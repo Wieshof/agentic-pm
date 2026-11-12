@@ -238,7 +238,7 @@ trackers:
     notes_de: Viele Beziehungsarten (blocks/precedes/follows); keine Webhooks im Kern, daher Polling
   gitea:
     name: Gitea / Forgejo
-    status: planned
+    status: available
     issue: 36
     tier: 2
     api: REST

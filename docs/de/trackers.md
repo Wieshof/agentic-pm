@@ -23,6 +23,7 @@ Die Tabelle wird aus [`catalog.yaml`](../../src/agentic_pm/adapters/catalog.yaml
 |---|---|---|---|---|---|---|---|---|---|---|
 | **GitHub Issues** | ✅ verfügbar | 1 | ✅ | 🧩 | 🧩 | ✅ | ⚡ | ✅ | REST + GraphQL · Token / GitHub App | Fälligkeit/Schätzung über Textzeilen oder Meilenstein; Projects-Felder geplant |
 | **OpenProject** | ✅ verfügbar | 1 | ✅ | ✅ | ✅ | — | ⚡ | 👥 | REST v3 (HAL) · API key | Beziehungen blocks/precedes/follows; mit aufgezeichneten Antworten getestet *(noch nicht live geprüft)* |
+| **Gitea / Forgejo** | ✅ verfügbar ([#36](https://github.com/Wieshof/agentic-pm/issues/36)) | 2 | ✅ | — | ✅ | ✅ | ⚡ | 👥 | REST · Token | Native Issue-Abhängigkeiten; keine Schätzung (nur Zeiterfassung) *(noch nicht live geprüft)* |
 | **Asana** | 🗓️ geplant ([#30](https://github.com/Wieshof/agentic-pm/issues/30)) | 1 | ✅ | 🧩 | ✅ | — | ⚡ | ✅ | REST · PAT / OAuth | Abhängigkeiten brauchen einen bezahlten Plan; Schätzung über Custom Field *(noch nicht live geprüft)* |
 | **Azure DevOps Boards** | 🗓️ geplant ([#62](https://github.com/Wieshof/agentic-pm/issues/62)) | 1 | ✅ | ✅ | ✅ | — | ⚡ | ✅ | REST + WIQL · PAT / Entra ID | Vorgänger-/Nachfolger-Links; Aufwand/Story Points je Prozessvorlage; Service Hooks *(noch nicht live geprüft)* |
 | **GitHub Projects** | 🗓️ geplant ([#29](https://github.com/Wieshof/agentic-pm/issues/29)) | 1 | ✅ | 🧩 | 🧩 | ✅ | ⚡ | ✅ | GraphQL (ProjectsV2) · Token with project scope | Erweitert den GitHub-Adapter um Status-/Datums-/Schätzungsfelder aus Projects *(noch nicht live geprüft)* |
@@ -31,7 +32,6 @@ Die Tabelle wird aus [`catalog.yaml`](../../src/agentic_pm/adapters/catalog.yaml
 | **Linear** | 🗓️ geplant ([#27](https://github.com/Wieshof/agentic-pm/issues/27)) | 1 | ✅ | ✅ | ✅ | — | ⚡ | ✅ | GraphQL · API key / OAuth | Passt sehr gut; Status-Typen lassen sich direkt abbilden *(noch nicht live geprüft)* |
 | **Plane** | 🗓️ geplant ([#28](https://github.com/Wieshof/agentic-pm/issues/28)) | 1 | ✅ | ✅ | ✅ | ✅ | ⚡ | ✅ | REST v1 · API key | Open Source, selbst hostbar; Beziehungs-Endpunkte in Deiner API-Version prüfen *(noch nicht live geprüft)* |
 | **ClickUp** | 🗓️ geplant ([#31](https://github.com/Wieshof/agentic-pm/issues/31)) | 2 | ✅ | ✅ | ✅ | ✅ | ⚡ | 👥 | REST v2 · Token / OAuth | Abhängigkeiten „waiting on / blocking“; eigene Status haben einen Typ *(noch nicht live geprüft)* |
-| **Gitea / Forgejo** | 🗓️ geplant ([#36](https://github.com/Wieshof/agentic-pm/issues/36)) | 2 | ✅ | — | ✅ | ✅ | ⚡ | 👥 | REST · Token | Native Issue-Abhängigkeiten; keine Schätzung (nur Zeiterfassung) *(noch nicht live geprüft)* |
 | **Microsoft Project (for the web / Planner Premium)** | 🗓️ geplant ([#64](https://github.com/Wieshof/agentic-pm/issues/64)) | 2 | ✅ | ✅ | ✅ | ✅ | 🔄 | — | Dataverse Web API · Entra ID app | Pläne liegen in Dataverse; Desktop-.mpp-Dateien nur über Export *(noch nicht live geprüft)* |
 | **Notion** | 🗓️ geplant ([#38](https://github.com/Wieshof/agentic-pm/issues/38)) | 2 | 🔗 | 🧩 | 🧩 | ✅ | ⚡ | ✅ | REST · Integration token / OAuth | Aufgaben-Datenbanken sind je Team anders, deshalb ist eine Eigenschafts-Zuordnung nötig *(noch nicht live geprüft)* |
 | **Redmine** | 🗓️ geplant ([#35](https://github.com/Wieshof/agentic-pm/issues/35)) | 2 | ✅ | ✅ | ✅ | — | 🔄 | 👥 | REST (JSON) · API key | Viele Beziehungsarten (blocks/precedes/follows); keine Webhooks im Kern, daher Polling *(noch nicht live geprüft)* |
@@ -48,6 +48,27 @@ Die Tabelle wird aus [`catalog.yaml`](../../src/agentic_pm/adapters/catalog.yaml
 | **Trello** | 🗓️ geplant ([#40](https://github.com/Wieshof/agentic-pm/issues/40)) | 3 | 📝 | 🧩 | ✅ | ✅ | ⚡ | 👥 | REST · API key + token / OAuth | Status = Liste (Spalte), deshalb ist eine Listen-Zuordnung nötig; keine nativen Abhängigkeiten *(noch nicht live geprüft)* |
 
 <!-- tracker-matrix:end -->
+
+## Gitea / Forgejo: Zuordnung
+
+`tracker: gitea`, `repo: besitzer/repository` und `base_url: https://forge.example`
+verwenden. Ein Installations-Unterpfad ist möglich; `/api/v1` nicht anhängen.
+Das Lesetoken kommt ausschließlich aus `AGENT_PM_GITEA_TOKEN`. Der Adapter liest
+die gemeinsame REST-API und sendet keine schreibenden Requests.
+
+Offene/geschlossene Issues werden auf `open`/`done` abgebildet. Für offene Issues
+werden die Labels `status:in-progress`, `status:in-review` und `status:blocked` erkannt.
+Ein geschlossenes Issue wird nicht ohne entsprechende API-Daten als abgebrochen interpretiert.
+`due_date`, mehrere Zuständige, Kommentare und beide Richtungen nativer Abhängigkeiten
+werden gelesen. Pull Requests, geschätzte Aufwände und eine vermutete Hierarchie sind ausgeschlossen.
+
+Vor `handle_webhook` müssen Empfänger den unveränderten Request-Body mit
+`agentic_pm.adapters.gitea.verify_signature` und `X-Gitea-Signature` bzw.
+`X-Forgejo-Signature` prüfen. Anschließend werden Ereignisname (`issues` oder
+`issue_comment`), Payload und Delivery-ID übergeben. Das gemeinsame Webhook-Gate
+filtert Agentenaktionen, doppelte Zustellungen und Ereignis-Bursts.
+Offline-Tests verwenden eine anonymisierte öffentliche Forgejo-Antwort; eine private
+Installation wurde nicht live geprüft.
 
 **Stufen.** 1 = als Nächstes (weit verbreitet, API passt gut zu abhängigkeitsbewusstem PM). 2 = später. 3 = passt nur begrenzt zu Team-Projektmanagement, z. B. persönliche Aufgabenlisten oder Bugtracker ohne Planungsfelder. Eine Stufe ist eine vorgeschlagene Reihenfolge, keine Hürde: Beiträge für jeden Tracker sind willkommen.
 
