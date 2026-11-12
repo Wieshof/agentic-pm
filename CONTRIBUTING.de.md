@@ -2,11 +2,11 @@
 
 🇬🇧 [English](CONTRIBUTING.md) · 🇩🇪 Deutsch
 
-Danke für Ihr Interesse an agentic-pm!
+Danke für Dein Interesse an agentic-pm!
 
 ## Wie wir arbeiten
 
-- **Zuerst ein Issue.** Eröffnen Sie ein Issue (Feature, Bug oder Designfrage), bevor Sie größere Arbeiten beginnen.
+- **Zuerst ein Issue.** Eröffne ein Issue (Feature, Bug oder Designfrage), bevor Du größere Arbeiten beginnst.
 - **Meilensteine = Roadmap-Phasen.** Siehe [docs/de/roadmap.md](docs/de/roadmap.md).
 - **Architekturentscheidungen** werden als ADRs in [`docs/adr/`](docs/adr/) festgehalten, mit der Vorlage [`0000-template.de.md`](docs/adr/0000-template.de.md).
 - **Kleine PRs** mit klarer Beschreibung und Verweis auf das Issue.
@@ -22,4 +22,4 @@ Danke für Ihr Interesse an agentic-pm!
 
 ## Verhaltenskodex
 
-Seien Sie freundlich und konstruktiv, und gehen Sie von guten Absichten aus.
+Sei freundlich und konstruktiv, und geh von guten Absichten aus.

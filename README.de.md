@@ -2,9 +2,9 @@
 
 🇬🇧 [English](README.md) · 🇩🇪 Deutsch
 
-**Eine omnichannel-fähige, agentische Projektmanagement-Schicht, die auf den Issue-Trackern aufsetzt, die Sie bereits nutzen.**
+**Eine omnichannel-fähige, agentische Projektmanagement-Schicht, die auf den Issue-Trackern aufsetzt, die Du bereits nutzt.**
 
-agentic-pm ersetzt Ihren Issue-Tracker nicht. Es ist eine intelligente Orchestrierungsschicht, die:
+agentic-pm ersetzt Deinen Issue-Tracker nicht. Es ist eine intelligente Orchestrierungsschicht, die:
 
 - den Live-Zustand aus bestehenden Open-Source- und API-first-Trackern **einliest** (OpenProject, Plane, Taiga, GitHub/GitLab Issues, Jira, Linear),
 - über Abhängigkeiten, Widersprüche und implizites Wissen **schlussfolgert** und
@@ -114,7 +114,7 @@ uv run agent-pm schema > schemas/team.schema.json # JSON-Schema exportieren
 uv run agent-pm mcp                               # MCP-Tracker-Server (stdio, Demodaten)
 ```
 
-**Lokales LLM (Standard):** Betreiben Sie einen beliebigen OpenAI-kompatiblen Server, z. B. [Ollama](https://ollama.com), und setzen Sie `llm.model` / `llm.base_url` in `team.yaml`. Live-Test: `AGENT_PM_LIVE_LLM=<Modell> uv run pytest tests/test_llm.py`.
+**Lokales LLM (Standard):** Betreibe einen beliebigen OpenAI-kompatiblen Server, z. B. [Ollama](https://ollama.com), und setze `llm.model` / `llm.base_url` in `team.yaml`. Live-Test: `AGENT_PM_LIVE_LLM=<Modell> uv run pytest tests/test_llm.py`.
 
 | Modul | Zweck |
 |-------|-------|
