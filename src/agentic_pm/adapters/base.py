@@ -114,6 +114,7 @@ class TrackerEvent(_Model):
     ref: TaskRef
     changed_fields: list[str] = []
     at: datetime
+    actor: str | None = Field(default=None, description="Tracker login that caused the event")
 
 
 EventHandler = Callable[[TrackerEvent], Awaitable[None]]

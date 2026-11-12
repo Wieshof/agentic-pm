@@ -78,3 +78,37 @@ def test_cli_validate(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> Non
     assert main(["validate", str(bad)]) == 1
     assert "quote times" in capsys.readouterr().err
     assert main(["validate", str(tmp_path / "missing.yaml")]) == 2
+
+
+@pytest.mark.parametrize(
+    ("where", "value"),
+    [
+        (("llm", "base_url"), "https://user:hunter2@llm.example.com/v1"),
+        (("llm", "base_url"), "https://llm.example.com/v1?api_key=abc"),
+        (("project", "repo"), "ghp_" + "a" * 36),
+    ],
+)
+def test_secret_values_rejected(where: tuple[str, str], value: str) -> None:
+    data = base()
+    data.setdefault(where[0], {})[where[1]] = value
+    with pytest.raises(ValidationError, match="looks like a secret"):
+        TeamConfig.model_validate(data)
+
+
+def test_secret_keys_rejected() -> None:
+    data = base()
+    data["people"]["alex"]["channels"]["smtp_password"] = "x"
+    with pytest.raises(ValidationError, match=r"people\.alex\.channels\.smtp_password"):
+        TeamConfig.model_validate(data)
+
+
+def test_languages_and_ticket_language() -> None:
+    data = base()
+    data["people"]["alex"]["language"] = "pt-BR"
+    data["project"]["ticket_language"] = "en"
+    data["project"]["agent_accounts"] = ["agent-pm-bot"]
+    cfg = TeamConfig.model_validate(data)
+    assert cfg.people["alex"].language == "pt-BR"
+    data["people"]["alex"]["language"] = "German"
+    with pytest.raises(ValidationError):
+        TeamConfig.model_validate(data)

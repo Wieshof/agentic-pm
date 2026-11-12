@@ -37,6 +37,18 @@ def _validate(path: str) -> int:
         print(f"✗ {path}: {e}", file=sys.stderr)
         return 1
     print(f"✓ {path}: {len(cfg.people)} people, tracker={cfg.project.tracker}")
+    from agentic_pm.briefs.morning import base_language
+
+    for handle, person in cfg.people.items():
+        if base_language(person.language) != person.language.split("-")[0]:
+            print(
+                f"  note: {handle} speaks '{person.language}'; briefs use English templates "
+                "for now (the optional LLM summary is written in their language)"
+            )
+    if not cfg.project.agent_accounts:
+        print(
+            "  note: project.agent_accounts is empty; set it before the agent writes to the tracker"
+        )
     return 0
 
 

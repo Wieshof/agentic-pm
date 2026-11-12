@@ -41,6 +41,7 @@ from agentic_pm.adapters.base import (
     TrackerEventKind,
     Unsubscribe,
 )
+from agentic_pm.ingress import Decision, WebhookGate
 
 _STATUS_LABELS: dict[str, TaskStatus] = {
     "status:blocked": TaskStatus.BLOCKED,
@@ -74,7 +75,10 @@ class GitHubAdapter:
         token: str | None,
         api_url: str = "https://api.github.com",
         transport: httpx.AsyncBaseTransport | None = None,
+        gate: WebhookGate | None = None,
     ) -> None:
+        # Self-trigger protection + de-duplication for incoming webhooks.
+        self.gate = gate or WebhookGate()
         headers = {
             "Accept": "application/vnd.github+json",
             "X-GitHub-Api-Version": "2022-11-28",
@@ -86,6 +90,7 @@ class GitHubAdapter:
             base_url=api_url.rstrip("/"), headers=headers, timeout=30.0, transport=transport
         )
         self._handlers: list[EventHandler] = []
+        self.last_decision: Decision | None = None
 
     # ---------------------------------------------------------------- HTTP
 
@@ -209,8 +214,16 @@ class GitHubAdapter:
 
     # ------------------------------------------------------------- webhooks
 
-    async def handle_webhook(self, event: str, payload: dict[str, Any]) -> TrackerEvent | None:
-        """Translate a GitHub webhook delivery into a `TrackerEvent` and notify subscribers."""
+    async def handle_webhook(
+        self, event: str, payload: dict[str, Any], delivery_id: str | None = None
+    ) -> TrackerEvent | None:
+        """Translate a GitHub webhook delivery into a `TrackerEvent` and notify subscribers.
+
+        `delivery_id` is the `X-GitHub-Delivery` header. Returns None when the
+        delivery is ignored: not an issue event, a duplicate, the agent's own
+        change, or part of a burst (see `agentic_pm.ingress`). The reason is
+        kept in `self.last_decision`.
+        """
         issue = payload.get("issue")
         repo = (payload.get("repository") or {}).get("full_name")
         if not issue or not repo or "pull_request" in issue:
@@ -228,11 +241,20 @@ class GitHubAdapter:
             kind, changed = TrackerEventKind.LINKED, [event]
         else:
             return None
+        ref = self._ref(repo, issue["number"])
+        actor = (payload.get("sender") or {}).get("login")
+        text = (payload.get("comment") or {}).get("body") if event == "issue_comment" else None
+        self.last_decision = self.gate.admit(
+            ticket=str(ref), kind=kind, delivery_id=delivery_id, actor=actor, text=text
+        )
+        if not self.last_decision.admitted:
+            return None
         evt = TrackerEvent(
             kind=kind,
-            ref=self._ref(repo, issue["number"]),
+            ref=ref,
             changed_fields=changed,
             at=datetime.now(UTC),
+            actor=actor,
         )
         for h in list(self._handlers):
             await h(evt)

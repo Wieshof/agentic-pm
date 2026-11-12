@@ -135,3 +135,13 @@ def test_cli_demo(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     files = sorted(p.name for p in tmp_path.iterdir())
     assert files == ["2026-11-13-alex.eml"]  # only alex has an email brief
     assert main(["brief", "--demo", "--person", "nobody"]) == 2
+
+
+async def test_unknown_language_falls_back_to_english(cfg: Any) -> None:
+    from agentic_pm.briefs.summary import style_for
+
+    d = await brief(cfg, "alex")
+    d.language = "fr"
+    assert render_text(d).startswith("Good morning, Alex!")
+    assert "'fr'" in style_for("fr")
+    assert "Du" in style_for("de-AT")

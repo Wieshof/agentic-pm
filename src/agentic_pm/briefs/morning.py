@@ -173,8 +173,18 @@ _PLURALS: dict[str, dict[str, tuple[str, str, str]]] = {
 }
 
 
+def base_language(lang: str) -> str:
+    """Brief templates exist for English and German; other languages fall back to English."""
+    code = lang.split("-")[0]
+    return code if code in T else "en"
+
+
+def texts(lang: str) -> dict[str, str]:
+    return T[base_language(lang)]
+
+
 def plural(lang: str, word: str, n: int) -> str:
-    zero, one, many = _PLURALS[lang][word]
+    zero, one, many = _PLURALS[base_language(lang)][word]
     return zero if n == 0 else one if n == 1 else many.format(n=n)
 
 
@@ -183,7 +193,7 @@ def _label(t: Task) -> str:
 
 
 def _sections(d: BriefData) -> list[tuple[str, list[str]]]:
-    tr = T[d.language]
+    tr = texts(d.language)
     lang = d.language
 
     def due(t: Task) -> str:
@@ -230,7 +240,7 @@ def _sections(d: BriefData) -> list[tuple[str, list[str]]]:
 
 
 def subject(d: BriefData) -> str:
-    tr = T[d.language]
+    tr = texts(d.language)
     n = d.attention_count
     return (
         tr["subject_busy"].format(things=plural(d.language, "things", n))
@@ -240,7 +250,7 @@ def subject(d: BriefData) -> str:
 
 
 def render_text(d: BriefData, summary: str | None = None) -> str:
-    tr = T[d.language]
+    tr = texts(d.language)
     lines = [tr["hello"].format(name=d.name), ""]
     if summary:
         lines += [summary, ""]
@@ -255,7 +265,7 @@ def render_text(d: BriefData, summary: str | None = None) -> str:
 
 
 def render_html(d: BriefData, summary: str | None = None) -> str:
-    tr = T[d.language]
+    tr = texts(d.language)
     e = html.escape
     parts = [
         '<div style="font-family:system-ui,sans-serif;max-width:640px;line-height:1.5">',

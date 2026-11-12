@@ -37,6 +37,16 @@ _STYLE = {
 }
 
 
+def style_for(language: str) -> str:
+    code = language.split("-")[0]
+    if code in _STYLE:
+        return _STYLE[code]
+    return (
+        f"Write in the language with ISO code '{language}'. Use the informal, friendly "
+        "form of address. Warm, calm and encouraging, like a helpful teammate."
+    )
+
+
 def summary_facts(d: BriefData) -> dict[str, Any]:
     def t(task: Any) -> dict[str, Any]:
         return {"id": f"#{task.ref.id}", "title": task.title, "due": str(task.due)}
@@ -70,7 +80,7 @@ def allowed_ids(facts: dict[str, Any]) -> set[str]:
 def normalize_summary(summary: str, language: str) -> str:
     """Deterministic clean-up: German Du-forms are always capitalized (team style)."""
     text = summary.strip()
-    if language == "de":
+    if language.startswith("de"):
         text = _LOWER_DU.sub(lambda m: m.group(0).capitalize(), text)
     return text
 
@@ -87,9 +97,9 @@ def check_summary(summary: str, facts: dict[str, Any], language: str) -> list[st
         problems.append(f"mentions unknown tasks: {sorted('#' + u for u in unknown)}")
     if stray := _STRAY_HASH.findall(text):
         problems.append(f"stray '#' tags: {stray}")
-    if language == "de" and _FORMAL_DE.search(text):
+    if language.startswith("de") and _FORMAL_DE.search(text):
         problems.append("uses formal 'Sie' instead of 'Du'")
-    if language == "de" and (lower := _LOWER_DU.findall(text)):
+    if language.startswith("de") and (lower := _LOWER_DU.findall(text)):
         problems.append(f"Du-forms must be capitalized: {sorted(set(lower))}")
     return problems
 
@@ -100,7 +110,7 @@ def build_messages(facts: dict[str, Any], language: str) -> list[ChatMessage]:
             role="system",
             content=(
                 "You write the opening lines of a project-management morning brief. "
-                f"{_STYLE[language]} Use 1-3 short sentences, at most {MAX_WORDS} words. "
+                f"{style_for(language)} Use 1-3 short sentences, at most {MAX_WORDS} words. "
                 "Mention only tasks that appear in the facts, using their exact #numbers. "
                 "Lead with what matters most today. No greeting, no sign-off, no lists. "
                 'Answer as JSON: {"summary": "..."}'

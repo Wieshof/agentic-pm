@@ -33,3 +33,24 @@ No lookup table is needed to know which reply belongs to which task.
 - Short-lived caches with a TTL and no source-of-truth role
 - Delivery and retry queues for outbound messages
 - Responsiveness counters for adaptive cadence. These can also be stored back in `team.yaml` or SSO attributes if full statelessness is required.
+
+## Webhook ingress: no loops, no storms
+
+Every write the agent makes (a comment, a how-to section) causes the tracker to send a webhook straight back. `agentic_pm.ingress.WebhookGate` drops, without any database:
+
+| Dropped | How it's recognised |
+|---------|---------------------|
+| Retries of the same delivery | Delivery id (e.g. `X-GitHub-Delivery`), remembered for 1 h |
+| The agent's own changes | Sender is in `project.agent_accounts`, or the text carries the audit footer |
+| Bursts for one ticket | Same ticket + event kind within 10 s |
+
+Dropping is safe because the agent fetches the live ticket on every admitted event anyway. The memory is process-local and bounded; a restart simply starts fresh. With several agent processes, route webhooks for one repository to the same process (or accept the occasional duplicate question).
+
+## Languages: people vs. tickets
+
+Two separate settings in `team.yaml`:
+
+- `people.<handle>.language` is the language the agent **speaks** with that person (briefs, chats, calls).
+- `project.ticket_language` is the language the agent **writes** into the tracker.
+
+So a developer can explain a fix in a German voice note while the agent writes the how-to in English into the GitHub issue. Any ISO code works (`en`, `de`, `pt-BR`). Brief templates exist for English and German so far; other languages get English templates with a summary in their own language.

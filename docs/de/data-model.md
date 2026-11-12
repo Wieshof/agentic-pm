@@ -33,3 +33,24 @@ Es braucht keine Nachschlagetabelle, um zu wissen, welche Antwort zu welcher Auf
 - Kurzlebige Caches mit TTL, ohne Rolle als Quelle der Wahrheit
 - Zustell- und Wiederholungswarteschlangen für ausgehende Nachrichten
 - Reaktionszähler für die adaptive Taktung. Diese können auch in `team.yaml` oder SSO-Attributen abgelegt werden, wenn vollständige Zustandslosigkeit gefordert ist.
+
+## Webhook-Eingang: keine Schleifen, keine Stürme
+
+Jede Änderung des Agenten (ein Kommentar, ein How-to-Abschnitt) lässt den Tracker sofort einen Webhook zurückschicken. `agentic_pm.ingress.WebhookGate` verwirft, ganz ohne Datenbank:
+
+| Verworfen | So wird es erkannt |
+|-----------|--------------------|
+| Wiederholungen derselben Zustellung | Zustell-ID (z. B. `X-GitHub-Delivery`), 1 h gemerkt |
+| Eigene Änderungen des Agenten | Absender steht in `project.agent_accounts`, oder der Text trägt die Audit-Fußzeile |
+| Stürme zu einem Ticket | Gleiches Ticket + gleiche Ereignisart innerhalb von 10 s |
+
+Das Verwerfen ist sicher, weil der Agent bei jedem zugelassenen Ereignis ohnehin das aktuelle Ticket live abruft. Der Speicher liegt nur im Prozess und ist begrenzt; nach einem Neustart beginnt er einfach leer. Bei mehreren Agent-Prozessen leite die Webhooks eines Repositorys an denselben Prozess (oder nimm gelegentlich eine doppelte Nachfrage in Kauf).
+
+## Sprachen: Menschen vs. Tickets
+
+Zwei getrennte Einstellungen in `team.yaml`:
+
+- `people.<handle>.language` ist die Sprache, in der der Agent mit dieser Person **spricht** (Briefings, Chats, Anrufe).
+- `project.ticket_language` ist die Sprache, in der der Agent in den Tracker **schreibt**.
+
+So kann eine Entwicklerin ihren Fix per deutscher Sprachnachricht erklären, während der Agent das How-to auf Englisch ins GitHub-Issue schreibt. Jeder ISO-Code funktioniert (`en`, `de`, `pt-BR`). Briefing-Vorlagen gibt es bisher auf Englisch und Deutsch; andere Sprachen bekommen englische Vorlagen mit einer Zusammenfassung in ihrer eigenen Sprache.

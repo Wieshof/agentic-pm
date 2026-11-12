@@ -6,6 +6,7 @@ import os
 
 from agentic_pm.adapters.base import TrackerAdapter
 from agentic_pm.config.team import Project, Tracker
+from agentic_pm.ingress import WebhookGate
 
 
 class AdapterConfigError(ValueError):
@@ -18,7 +19,11 @@ def build_adapter(project: Project, env: dict[str, str] | None = None) -> Tracke
         from agentic_pm.adapters.github import GitHubAdapter
 
         token = env.get("AGENT_PM_GITHUB_TOKEN") or env.get("GITHUB_TOKEN")
-        return GitHubAdapter(token=token, api_url=project.base_url or "https://api.github.com")
+        return GitHubAdapter(
+            token=token,
+            api_url=project.base_url or "https://api.github.com",
+            gate=WebhookGate(agent_accounts=project.agent_accounts),
+        )
     if project.tracker == Tracker.OPENPROJECT:
         from agentic_pm.adapters.openproject import OpenProjectAdapter
 

@@ -30,6 +30,40 @@ agentic-pm turns this around. Contributors stay in the channel they already use,
 
 ---
 
+## Quick start
+
+**1. Describe your team** in `.agent-pm/team.yaml`. This file is committed to your repository, so it never contains secrets:
+
+```yaml
+project:
+  tracker: github                # reference adapter (see Contributing)
+  repo: your-org/your-repo
+  leads: [alex]
+  ticket_language: en            # the agent writes tickets in English ...
+  agent_accounts: [agent-pm-bot] # ... with this login (its own webhooks are ignored)
+people:
+  alex:
+    role: team-lead
+    archetype: reader            # reader | writer | talker | listener
+    language: de                 # ... while Alex talks German with the agent
+    channels: {email: alex@example.com}
+    brief: {when: "08:00", format: email}
+```
+
+**2. Run it:**
+
+```bash
+uv sync
+uv run agent-pm validate                   # checks team.yaml, also for pasted secrets
+uv run agent-pm brief --person alex        # needs GITHUB_TOKEN; try --demo first
+```
+
+> 🔐 **Secrets only in environment variables.** Tracker tokens, SMTP/WhatsApp keys and SIP credentials never go into `team.yaml`. `agent-pm validate` rejects values that look like credentials. See [Secrets](#secrets).
+
+Full walkthrough: [Getting started](docs/getting-started.md) · complete example: [.agent-pm/team.example.yaml](.agent-pm/team.example.yaml)
+
+---
+
 ## Architecture at a glance
 
 ```
@@ -80,6 +114,50 @@ Details: [docs/workflows.md](docs/workflows.md)
 
 Details: [docs/data-model.md](docs/data-model.md) · example config: [.agent-pm/team.example.yaml](.agent-pm/team.example.yaml)
 
+## Development
+
+Requires Python ≥ 3.12 and [uv](https://docs.astral.sh/uv/). Decisions: [ADR-0001](docs/adr/0001-tech-stack-and-llm.md).
+
+```bash
+uv sync                                           # install
+uv run pytest                                     # tests
+uv run agent-pm validate .agent-pm/team.yaml      # check a team file
+uv run agent-pm schema > schemas/team.schema.json # export JSON Schema
+uv run agent-pm mcp                               # MCP tracker server (stdio, demo data)
+uv run agent-pm deps  --demo                      # dependency risks & cycles
+uv run agent-pm brief --demo --person alex        # friendly morning brief
+uv run agent-pm eval  --model qwen3.5             # compare local models
+```
+
+**Local LLM (default):** run any OpenAI-compatible server, e.g. [Ollama](https://ollama.com), and set `llm.model` / `llm.base_url` in `team.yaml`. Live test: `AGENT_PM_LIVE_LLM=<model> uv run pytest tests/test_llm.py`.
+
+### Secrets
+
+`team.yaml` and the `llm:` settings in it are versioned and reviewed like code. Everything secret comes from the environment (or your secret manager, injected as environment variables):
+
+| Variable | Used for |
+|----------|----------|
+| `GITHUB_TOKEN` / `AGENT_PM_GITHUB_TOKEN` | GitHub adapter |
+| `OPENPROJECT_API_KEY` | OpenProject adapter |
+| `AGENT_PM_SMTP_HOST`, `_PORT`, `_USER`, `_PASSWORD`, `_FROM` | Sending email briefs |
+| `AGENT_PM_LLM_API_KEY` | Only if your model server requires a key |
+| `AGENT_PM_GITHUB_WEBHOOK_SECRET` | Verifying webhooks (Phase 2) |
+| `AGENT_PM_WHATSAPP_*`, `AGENT_PM_SIP_*` | WhatsApp and voice (Phase 3, planned) |
+
+### Modules
+
+| Module | Purpose |
+|--------|---------|
+| `agentic_pm.config` | `team.yaml` schema & validation |
+| `agentic_pm.adapters` | `TrackerAdapter` protocol, GitHub & OpenProject (read-only), in-memory tracker |
+| `agentic_pm.engine` | Dependency Graph Analyzer: risks, what-if, cycles |
+| `agentic_pm.briefs` | Morning briefs (EN/DE), guarded LLM summary, SMTP |
+| `agentic_pm.evals` | Eval cases & runner for local models |
+| `agentic_pm.audit` | Permission tiers & audit footer |
+| `agentic_pm.ingress` | Webhook gate: ignores the agent's own changes, de-duplicates deliveries and bursts |
+| `agentic_pm.mcp_server` | MCP tools over any adapter, with tier enforcement |
+| `agentic_pm.llm` | Provider-agnostic LLM interface, local OpenAI-compatible provider |
+
 ## Guardrails & KPIs
 
 - **Tiered write permissions:** low-risk actions run automatically with an audit trail. High-impact changes need a team lead to confirm.
@@ -103,37 +181,11 @@ docs/
   de/                 German versions of all documents
 ```
 
-## Development
-
-Requires Python ≥ 3.12 and [uv](https://docs.astral.sh/uv/). Decisions: [ADR-0001](docs/adr/0001-tech-stack-and-llm.md).
-
-```bash
-uv sync                                           # install
-uv run pytest                                     # tests
-uv run agent-pm validate .agent-pm/team.yaml      # check a team file
-uv run agent-pm schema > schemas/team.schema.json # export JSON Schema
-uv run agent-pm mcp                               # MCP tracker server (stdio, demo data)
-uv run agent-pm deps  --demo                      # dependency risks & cycles
-uv run agent-pm brief --demo --person alex        # friendly morning brief
-uv run agent-pm eval  --model qwen3.5             # compare local models
-```
-
-**Local LLM (default):** run any OpenAI-compatible server, e.g. [Ollama](https://ollama.com), and set `llm.model` / `llm.base_url` in `team.yaml`. Live test: `AGENT_PM_LIVE_LLM=<model> uv run pytest tests/test_llm.py`.
-
-| Module | Purpose |
-|--------|---------|
-| `agentic_pm.config` | `team.yaml` schema & validation |
-| `agentic_pm.adapters` | `TrackerAdapter` protocol, GitHub & OpenProject (read-only), in-memory tracker |
-| `agentic_pm.engine` | Dependency Graph Analyzer: risks, what-if, cycles |
-| `agentic_pm.briefs` | Morning briefs (EN/DE), guarded LLM summary, SMTP |
-| `agentic_pm.evals` | Eval cases & runner for local models |
-| `agentic_pm.audit` | Permission tiers & audit footer |
-| `agentic_pm.mcp_server` | MCP tools over any adapter, with tier enforcement |
-| `agentic_pm.llm` | Provider-agnostic LLM interface, local OpenAI-compatible provider |
-
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Design discussion happens in GitHub Issues. Each roadmap phase has a milestone.
+
+**Reference adapter: GitHub Issues** ([`adapters/github.py`](src/agentic_pm/adapters/github.py)), built in Phase 1 together with OpenProject. New tracker adapters (Plane, Taiga, GitLab, Jira, Linear, see #18) implement the same `TrackerAdapter` protocol. Copy the GitHub adapter and its tests, which use recorded API responses, so no account is needed.
 
 ## License
 

@@ -7,6 +7,11 @@ project:
   repo: your-org/your-repo
   timezone: Europe/Vienna
   leads: [alex]              # receive high-impact confirmation prompts
+  ticket_language: en        # language the agent writes into tickets (how-to docs, comments)
+  agent_accounts: [agent-pm-bot]  # tracker logins the agent writes with; their webhooks are ignored
+
+# No secrets in this file! It is committed to the repository. Tokens and
+# passwords come from environment variables only (see README, "Secrets").
 
 people:
   alex:
@@ -24,7 +29,7 @@ people:
   sam:
     role: backend-engineer
     archetype: talker
-    language: de                # briefs and messages in German (informal Du)
+    language: de                # Sam talks German with the agent; tickets stay in ticket_language
     channels:
       phone: "+43 000 000000"
       whatsapp: "+43 000 000000"

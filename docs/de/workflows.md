@@ -27,7 +27,7 @@ Der Agent benennt die genaue Lücke, ermittelt, **wer den fehlenden Kontext hat*
 
 **Auslöser:** Jemand erklärt eine Lösung in einem Anruf, einer Sprachnachricht oder im Chat. Zum Beispiel: *„Ich habe das Auth-Timeout behoben, indem ich die Redis-Poolgröße erhöht und den Retry-Header angepasst habe.“*
 
-Der Agent macht daraus sauberes Markdown und hängt es an das Ticket an:
+Der Agent macht daraus sauberes Markdown und hängt es an das Ticket an. Die Erklärung darf in jeder Sprache kommen; das How-to wird in `project.ticket_language` geschrieben (aus einer deutschen Sprachnachricht wird z. B. ein englisches How-to):
 
 ```markdown
 ### Wie es gelöst wurde

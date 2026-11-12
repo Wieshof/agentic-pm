@@ -27,7 +27,7 @@ The agent pinpoints the gap, works out **who holds the missing context**, and st
 
 **Trigger:** a contributor explains a fix in a call, voice note or chat. For example: *"I fixed the auth timeout by increasing the Redis pool size and updating the retry header."*
 
-The agent turns this into clean Markdown and appends it to the ticket:
+The agent turns this into clean Markdown and appends it to the ticket. The explanation can come in any language; the how-to is written in `project.ticket_language` (e.g. a German voice note becomes an English how-to):
 
 ```markdown
 ### How it was solved

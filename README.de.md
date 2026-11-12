@@ -30,6 +30,40 @@ agentic-pm dreht das um. Die Beteiligten bleiben in dem Kanal, den sie ohnehin n
 
 ---
 
+## Schnellstart
+
+**1. Beschreibe Dein Team** in `.agent-pm/team.yaml`. Die Datei wird in Dein Repository eingecheckt und enthält deshalb nie Geheimnisse:
+
+```yaml
+project:
+  tracker: github                # Referenz-Adapter (siehe Mitwirken)
+  repo: deine-org/dein-repo
+  leads: [alex]
+  ticket_language: en            # der Agent schreibt Tickets auf Englisch ...
+  agent_accounts: [agent-pm-bot] # ... mit diesem Login (seine eigenen Webhooks werden ignoriert)
+people:
+  alex:
+    role: team-lead
+    archetype: reader            # reader | writer | talker | listener
+    language: de                 # ... während Alex mit dem Agenten Deutsch spricht
+    channels: {email: alex@example.com}
+    brief: {when: "08:00", format: email}
+```
+
+**2. Starte es:**
+
+```bash
+uv sync
+uv run agent-pm validate                   # prüft team.yaml, auch auf eingefügte Geheimnisse
+uv run agent-pm brief --person alex        # braucht GITHUB_TOKEN; probier zuerst --demo
+```
+
+> 🔐 **Geheimnisse nur in Umgebungsvariablen.** Tracker-Tokens, SMTP-/WhatsApp-Schlüssel und SIP-Zugangsdaten gehören nie in `team.yaml`. `agent-pm validate` lehnt Werte ab, die wie Zugangsdaten aussehen. Siehe [Geheimnisse](#geheimnisse).
+
+Ausführliche Anleitung: [Erste Schritte](docs/de/getting-started.md) · vollständiges Beispiel: [.agent-pm/team.example.yaml](.agent-pm/team.example.yaml)
+
+---
+
 ## Architektur im Überblick
 
 ```
@@ -80,6 +114,50 @@ Details: [docs/de/workflows.md](docs/de/workflows.md)
 
 Details: [docs/de/data-model.md](docs/de/data-model.md) · Beispielkonfiguration: [.agent-pm/team.example.yaml](.agent-pm/team.example.yaml)
 
+## Entwicklung
+
+Voraussetzungen: Python ≥ 3.12 und [uv](https://docs.astral.sh/uv/). Entscheidungen: [ADR-0001](docs/adr/0001-tech-stack-and-llm.de.md).
+
+```bash
+uv sync                                           # installieren
+uv run pytest                                     # Tests
+uv run agent-pm validate .agent-pm/team.yaml      # Team-Datei prüfen
+uv run agent-pm schema > schemas/team.schema.json # JSON-Schema exportieren
+uv run agent-pm mcp                               # MCP-Tracker-Server (stdio, Demodaten)
+uv run agent-pm deps  --demo                      # Abhängigkeitsrisiken & Zyklen
+uv run agent-pm brief --demo --person sam         # freundliches Morgen-Briefing
+uv run agent-pm eval  --model qwen3.5             # lokale Modelle vergleichen
+```
+
+**Lokales LLM (Standard):** Betreibe einen beliebigen OpenAI-kompatiblen Server, z. B. [Ollama](https://ollama.com), und setze `llm.model` / `llm.base_url` in `team.yaml`. Live-Test: `AGENT_PM_LIVE_LLM=<Modell> uv run pytest tests/test_llm.py`.
+
+### Geheimnisse
+
+`team.yaml` und die `llm:`-Einstellungen darin werden versioniert und wie Code reviewt. Alles Geheime kommt aus der Umgebung (oder aus Deinem Secret-Manager, als Umgebungsvariablen eingespielt):
+
+| Variable | Wofür |
+|----------|-------|
+| `GITHUB_TOKEN` / `AGENT_PM_GITHUB_TOKEN` | GitHub-Adapter |
+| `OPENPROJECT_API_KEY` | OpenProject-Adapter |
+| `AGENT_PM_SMTP_HOST`, `_PORT`, `_USER`, `_PASSWORD`, `_FROM` | Versand der E-Mail-Briefings |
+| `AGENT_PM_LLM_API_KEY` | Nur wenn Dein Modellserver einen Schlüssel verlangt |
+| `AGENT_PM_GITHUB_WEBHOOK_SECRET` | Prüfung von Webhooks (Phase 2) |
+| `AGENT_PM_WHATSAPP_*`, `AGENT_PM_SIP_*` | WhatsApp und Sprache (Phase 3, geplant) |
+
+### Module
+
+| Modul | Zweck |
+|-------|-------|
+| `agentic_pm.config` | Schema & Validierung für `team.yaml` |
+| `agentic_pm.adapters` | `TrackerAdapter`-Protokoll, GitHub & OpenProject (nur lesend), In-Memory-Tracker |
+| `agentic_pm.engine` | Abhängigkeitsgraph-Analyse: Risiken, Was-wäre-wenn, Zyklen |
+| `agentic_pm.briefs` | Morgen-Briefings (DE/EN), abgesicherte LLM-Zusammenfassung, SMTP |
+| `agentic_pm.evals` | Evaluationsfälle & Runner für lokale Modelle |
+| `agentic_pm.audit` | Berechtigungsstufen & Audit-Fußzeile |
+| `agentic_pm.ingress` | Webhook-Filter: ignoriert eigene Änderungen des Agenten, entfernt doppelte Zustellungen und Event-Stürme |
+| `agentic_pm.mcp_server` | MCP-Werkzeuge über jedem Adapter, mit Stufenprüfung |
+| `agentic_pm.llm` | Anbieterunabhängige LLM-Schnittstelle, lokaler OpenAI-kompatibler Anbieter |
+
 ## Leitplanken & KPIs
 
 - **Gestufte Schreibrechte:** Aktionen mit geringem Risiko laufen automatisch mit Audit-Trail. Folgenreiche Änderungen muss eine Teamleitung bestätigen.
@@ -103,37 +181,11 @@ docs/
   de/                 deutsche Fassungen aller Dokumente
 ```
 
-## Entwicklung
-
-Voraussetzungen: Python ≥ 3.12 und [uv](https://docs.astral.sh/uv/). Entscheidungen: [ADR-0001](docs/adr/0001-tech-stack-and-llm.de.md).
-
-```bash
-uv sync                                           # installieren
-uv run pytest                                     # Tests
-uv run agent-pm validate .agent-pm/team.yaml      # Team-Datei prüfen
-uv run agent-pm schema > schemas/team.schema.json # JSON-Schema exportieren
-uv run agent-pm mcp                               # MCP-Tracker-Server (stdio, Demodaten)
-uv run agent-pm deps  --demo                      # Abhängigkeitsrisiken & Zyklen
-uv run agent-pm brief --demo --person sam         # freundliches Morgen-Briefing
-uv run agent-pm eval  --model qwen3.5             # lokale Modelle vergleichen
-```
-
-**Lokales LLM (Standard):** Betreibe einen beliebigen OpenAI-kompatiblen Server, z. B. [Ollama](https://ollama.com), und setze `llm.model` / `llm.base_url` in `team.yaml`. Live-Test: `AGENT_PM_LIVE_LLM=<Modell> uv run pytest tests/test_llm.py`.
-
-| Modul | Zweck |
-|-------|-------|
-| `agentic_pm.config` | Schema & Validierung für `team.yaml` |
-| `agentic_pm.adapters` | `TrackerAdapter`-Protokoll, GitHub & OpenProject (nur lesend), In-Memory-Tracker |
-| `agentic_pm.engine` | Abhängigkeitsgraph-Analyse: Risiken, Was-wäre-wenn, Zyklen |
-| `agentic_pm.briefs` | Morgen-Briefings (DE/EN), abgesicherte LLM-Zusammenfassung, SMTP |
-| `agentic_pm.evals` | Evaluationsfälle & Runner für lokale Modelle |
-| `agentic_pm.audit` | Berechtigungsstufen & Audit-Fußzeile |
-| `agentic_pm.mcp_server` | MCP-Werkzeuge über jedem Adapter, mit Stufenprüfung |
-| `agentic_pm.llm` | Anbieterunabhängige LLM-Schnittstelle, lokaler OpenAI-kompatibler Anbieter |
-
 ## Mitwirken
 
 Siehe [CONTRIBUTING.de.md](CONTRIBUTING.de.md). Designdiskussionen finden in GitHub Issues statt. Jede Roadmap-Phase hat einen Meilenstein.
+
+**Referenz-Adapter: GitHub Issues** ([`adapters/github.py`](src/agentic_pm/adapters/github.py)), in Phase 1 zusammen mit OpenProject gebaut. Neue Tracker-Adapter (Plane, Taiga, GitLab, Jira, Linear, siehe #18) implementieren dasselbe `TrackerAdapter`-Protokoll. Kopiere am besten den GitHub-Adapter samt Tests. Die Tests nutzen aufgezeichnete API-Antworten, Du brauchst also kein Konto.
 
 ## Lizenz
 

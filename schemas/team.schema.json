@@ -243,10 +243,8 @@
         },
         "language": {
           "default": "en",
-          "enum": [
-            "en",
-            "de"
-          ],
+          "description": "Language the agent uses with this person (briefs, calls, chats)",
+          "pattern": "^[a-z]{2}(-[A-Z]{2})?$",
           "title": "Language",
           "type": "string"
         },
@@ -317,6 +315,21 @@
           "minimum": 1,
           "title": "Brief Horizon Days",
           "type": "integer"
+        },
+        "ticket_language": {
+          "default": "en",
+          "description": "Language the agent writes in the tracker (how-to docs, comments), independent of the language people speak with it",
+          "pattern": "^[a-z]{2}(-[A-Z]{2})?$",
+          "title": "Ticket Language",
+          "type": "string"
+        },
+        "agent_accounts": {
+          "description": "Tracker logins the agent writes with (service accounts). Webhooks caused by these accounts are ignored to prevent self-triggering loops.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Agent Accounts",
+          "type": "array"
         }
       },
       "required": [
