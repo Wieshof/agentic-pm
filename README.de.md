@@ -12,7 +12,7 @@ agentic-pm ersetzt Ihren Issue-Tracker nicht. Es ist eine intelligente Orchestri
 
 Der zugrunde liegende Tracker bleibt die einzige, synchronisierte Quelle der Wahrheit. Der Agent speichert selbst **keinen dauerhaften Aufgabenzustand**.
 
-> Status: 🧭 Konzept / frühes Design. Siehe [Roadmap](docs/de/roadmap.md).
+> Status: 🏗️ Phase 0 (Grundlagen) abgeschlossen. Siehe [Roadmap](docs/de/roadmap.md).
 
 ---
 
@@ -101,6 +101,28 @@ docs/
   adr/                Architekturentscheidungen (ADRs)
   de/                 deutsche Fassungen aller Dokumente
 ```
+
+## Entwicklung
+
+Voraussetzungen: Python ≥ 3.12 und [uv](https://docs.astral.sh/uv/). Entscheidungen: [ADR-0001](docs/adr/0001-tech-stack-and-llm.de.md).
+
+```bash
+uv sync                                           # installieren
+uv run pytest                                     # Tests
+uv run agent-pm validate .agent-pm/team.yaml      # Team-Datei prüfen
+uv run agent-pm schema > schemas/team.schema.json # JSON-Schema exportieren
+uv run agent-pm mcp                               # MCP-Tracker-Server (stdio, Demodaten)
+```
+
+**Lokales LLM (Standard):** Betreiben Sie einen beliebigen OpenAI-kompatiblen Server, z. B. [Ollama](https://ollama.com), und setzen Sie `llm.model` / `llm.base_url` in `team.yaml`. Live-Test: `AGENT_PM_LIVE_LLM=<Modell> uv run pytest tests/test_llm.py`.
+
+| Modul | Zweck |
+|-------|-------|
+| `agentic_pm.config` | Schema & Validierung für `team.yaml` |
+| `agentic_pm.adapters` | `TrackerAdapter`-Protokoll, Datenmodell, In-Memory-Referenztracker |
+| `agentic_pm.audit` | Berechtigungsstufen & Audit-Fußzeile |
+| `agentic_pm.mcp_server` | MCP-Werkzeuge über jedem Adapter, mit Stufenprüfung |
+| `agentic_pm.llm` | Anbieterunabhängige LLM-Schnittstelle, lokaler OpenAI-kompatibler Anbieter |
 
 ## Mitwirken
 

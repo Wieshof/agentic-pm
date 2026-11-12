@@ -1,0 +1,319 @@
+{
+  "$defs": {
+    "Archetype": {
+      "enum": [
+        "reader",
+        "writer",
+        "talker",
+        "listener"
+      ],
+      "title": "Archetype",
+      "type": "string"
+    },
+    "Brief": {
+      "additionalProperties": false,
+      "properties": {
+        "when": {
+          "pattern": "^(?:(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun) )?(?:[01]\\d|2[0-3]):[0-5]\\d$",
+          "title": "When",
+          "type": "string"
+        },
+        "format": {
+          "$ref": "#/$defs/BriefFormat"
+        }
+      },
+      "required": [
+        "when",
+        "format"
+      ],
+      "title": "Brief",
+      "type": "object"
+    },
+    "BriefFormat": {
+      "enum": [
+        "email",
+        "chat",
+        "voice"
+      ],
+      "title": "BriefFormat",
+      "type": "string"
+    },
+    "Channels": {
+      "additionalProperties": false,
+      "properties": {
+        "email": {
+          "anyOf": [
+            {
+              "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Email"
+        },
+        "phone": {
+          "anyOf": [
+            {
+              "pattern": "^\\+[0-9 ]{6,20}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Phone"
+        },
+        "whatsapp": {
+          "anyOf": [
+            {
+              "pattern": "^\\+[0-9 ]{6,20}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Whatsapp"
+        },
+        "chat": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Slack/Teams handle",
+          "title": "Chat"
+        }
+      },
+      "title": "Channels",
+      "type": "object"
+    },
+    "CheckIn": {
+      "additionalProperties": false,
+      "properties": {
+        "window": {
+          "pattern": "^(?:[01]\\d|2[0-3]):[0-5]\\d-(?:[01]\\d|2[0-3]):[0-5]\\d$",
+          "title": "Window",
+          "type": "string"
+        },
+        "max_call_seconds": {
+          "default": 90,
+          "maximum": 600,
+          "minimum": 30,
+          "title": "Max Call Seconds",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "window"
+      ],
+      "title": "CheckIn",
+      "type": "object"
+    },
+    "Interruptions": {
+      "enum": [
+        "any",
+        "urgent-only",
+        "none"
+      ],
+      "title": "Interruptions",
+      "type": "string"
+    },
+    "LLMSettings": {
+      "additionalProperties": false,
+      "description": "Model access; local-first per ADR-0001.",
+      "properties": {
+        "provider": {
+          "default": "openai-compatible",
+          "title": "Provider",
+          "type": "string"
+        },
+        "model": {
+          "default": "llama3.1:8b",
+          "title": "Model",
+          "type": "string"
+        },
+        "base_url": {
+          "default": "http://localhost:11434/v1",
+          "title": "Base Url",
+          "type": "string"
+        },
+        "reasoning_effort": {
+          "anyOf": [
+            {
+              "enum": [
+                "none",
+                "low",
+                "medium",
+                "high"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reasoning Effort"
+        }
+      },
+      "title": "LLMSettings",
+      "type": "object"
+    },
+    "Person": {
+      "additionalProperties": false,
+      "properties": {
+        "role": {
+          "title": "Role",
+          "type": "string"
+        },
+        "archetype": {
+          "$ref": "#/$defs/Archetype"
+        },
+        "channels": {
+          "$ref": "#/$defs/Channels"
+        },
+        "brief": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Brief"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "check_in": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CheckIn"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "interruptions": {
+          "$ref": "#/$defs/Interruptions",
+          "default": "any"
+        },
+        "quiet_hours": {
+          "anyOf": [
+            {
+              "pattern": "^(?:[01]\\d|2[0-3]):[0-5]\\d-(?:[01]\\d|2[0-3]):[0-5]\\d$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Quiet Hours"
+        },
+        "escalate_after_ignored": {
+          "default": 3,
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Escalate After Ignored",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "role",
+        "archetype",
+        "channels"
+      ],
+      "title": "Person",
+      "type": "object"
+    },
+    "Project": {
+      "additionalProperties": false,
+      "properties": {
+        "tracker": {
+          "$ref": "#/$defs/Tracker"
+        },
+        "repo": {
+          "title": "Repo",
+          "type": "string"
+        },
+        "timezone": {
+          "default": "UTC",
+          "title": "Timezone",
+          "type": "string"
+        },
+        "leads": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Leads",
+          "type": "array"
+        }
+      },
+      "required": [
+        "tracker",
+        "repo",
+        "leads"
+      ],
+      "title": "Project",
+      "type": "object"
+    },
+    "Tracker": {
+      "enum": [
+        "github",
+        "gitlab",
+        "openproject",
+        "plane",
+        "taiga",
+        "jira",
+        "linear"
+      ],
+      "title": "Tracker",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "project": {
+      "$ref": "#/$defs/Project"
+    },
+    "people": {
+      "minProperties": 1,
+      "patternProperties": {
+        "^[a-z0-9][a-z0-9._-]*$": {
+          "$ref": "#/$defs/Person"
+        }
+      },
+      "title": "People",
+      "type": "object"
+    },
+    "llm": {
+      "$ref": "#/$defs/LLMSettings",
+      "default": {
+        "provider": "openai-compatible",
+        "model": "llama3.1:8b",
+        "base_url": "http://localhost:11434/v1",
+        "reasoning_effort": null
+      }
+    }
+  },
+  "required": [
+    "project",
+    "people"
+  ],
+  "title": "agentic-pm team.yaml",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

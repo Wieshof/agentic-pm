@@ -40,3 +40,11 @@ people:
       when: "Mon 09:00"
       format: voice             # spoken briefing with Q&A
     quiet_hours: "18:00-08:00"
+
+# Model access (ADR-0001: local-first). Any OpenAI-compatible server works:
+# Ollama, vLLM, llama.cpp server, LM Studio.
+llm:
+  provider: openai-compatible
+  model: "llama3.1:8b"
+  base_url: "http://localhost:11434/v1"
+  # reasoning_effort: none        # for thinking models (qwen3.x etc.) on short JSON calls
