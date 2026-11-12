@@ -1,0 +1,42 @@
+# Example team preference file ("Drucker profiles").
+# Copy to .agent-pm/team.yaml in the repository the agent manages.
+# Each person controls their own entry; the agent can also update it on request.
+
+project:
+  tracker: github            # github | gitlab | openproject | plane | taiga | jira | linear
+  repo: your-org/your-repo
+  timezone: Europe/Vienna
+  leads: [alex]              # receive high-impact confirmation prompts
+
+people:
+  alex:
+    role: team-lead
+    archetype: reader        # reader | writer | talker | listener
+    channels:
+      email: alex@example.com
+    brief:
+      when: "08:00"
+      format: email
+    interruptions: urgent-only
+
+  sam:
+    role: backend-engineer
+    archetype: talker
+    channels:
+      phone: "+43 000 000000"
+      whatsapp: "+43 000 000000"
+    check_in:
+      window: "14:00-16:00"
+      max_call_seconds: 90
+    escalate_after_ignored: 3   # switch modality after N unanswered nudges
+
+  kim:
+    role: product-owner
+    archetype: listener
+    channels:
+      phone: "+43 000 000001"
+      email: kim@example.com
+    brief:
+      when: "Mon 09:00"
+      format: voice             # spoken briefing with Q&A
+    quiet_hours: "18:00-08:00"
