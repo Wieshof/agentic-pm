@@ -1,5 +1,7 @@
 # Phased Delivery Roadmap
 
+🇬🇧 English · 🇩🇪 [Deutsch](de/roadmap.md)
+
 Each phase is a GitHub milestone. The phases build on each other. Every phase ends with something a pilot team can actually use.
 
 ## Phase 0 — Foundations

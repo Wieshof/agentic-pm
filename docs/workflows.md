@@ -1,5 +1,7 @@
 # Core Agentic Workflows
 
+🇬🇧 English · 🇩🇪 [Deutsch](de/workflows.md)
+
 To work like a human project manager, the system runs five autonomous loops in the background.
 
 ## 1. Proactive Dependency Resolution

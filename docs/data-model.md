@@ -1,5 +1,7 @@
 # Stateless Data Model
 
+🇬🇧 English · 🇩🇪 [Deutsch](de/data-model.md)
+
 Every piece of data the agent needs can live in infrastructure the company already runs. The agent itself holds **no permanent task state**.
 
 ## Tasks, deadlines & dependencies → existing tracker

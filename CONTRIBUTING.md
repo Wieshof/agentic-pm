@@ -1,5 +1,7 @@
 # Contributing
 
+🇬🇧 English · 🇩🇪 [Deutsch](CONTRIBUTING.de.md)
+
 Thanks for your interest in agentic-pm!
 
 ## How we work

@@ -1,5 +1,7 @@
 # Architecture & Modality Mapping
 
+🇬🇧 English · 🇩🇪 [Deutsch](de/architecture.md)
+
 agentic-pm is a **three-tier middleware layer**. It ingests state from underlying tools, reasons over dependencies and inconsistencies, and translates updates across the communication channels.
 
 ## 1. Repository Adapter Layer (Open Core)

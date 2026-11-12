@@ -1,5 +1,7 @@
 # Operational Guardrails & Success Metrics
 
+🇬🇧 English · 🇩🇪 [Deutsch](de/guardrails.md)
+
 Giving an AI write access to project repositories and direct communication channels needs clear boundaries so the team can trust it.
 
 ## Tiered write permissions

@@ -1,5 +1,7 @@
 # agentic-pm
 
+🇬🇧 English · 🇩🇪 [Deutsch](README.de.md)
+
 **An omnichannel, agentic project-management layer that sits on top of the issue trackers you already run.**
 
 agentic-pm doesn't replace your issue tracker. It's an intelligent orchestration layer that:
@@ -97,6 +99,7 @@ docs/
   guardrails.md       permissions, privacy, KPIs
   roadmap.md          phased delivery plan
   adr/                architecture decision records
+  de/                 German versions of all documents
 ```
 
 ## Contributing
