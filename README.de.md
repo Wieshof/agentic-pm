@@ -101,7 +101,7 @@ Details: [docs/de/architecture.md](docs/de/architecture.md)
 | 4 | **Adaptive Nachfass-Taktung** | Verfolgt, wie schnell jede Person reagiert, und wechselt den Kanal, wenn einer nicht funktioniert. Nicht dringende Fragen werden gebündelt. |
 | 5 | **Statusberichte & Scrum-Artefakte** | Versendet Statusberichte per E-Mail oder als gesprochenes Briefing mit Rückfragemöglichkeit. Hält Scrum-Artefakte (Backlog, Sprint, Burndown, Review-Notizen) aktuell. |
 
-Details: [docs/de/workflows.md](docs/de/workflows.md)
+Details: [docs/de/workflows.md](docs/de/workflows.md) · **So deckt sich das mit der kompletten PM-Rolle** (Aufgaben, täglicher/wöchentlicher/monatlicher Takt, Kennzahlen, was beim Menschen bleibt): [PM-Abdeckung](docs/de/pm-coverage.md)
 
 ## Zustandslos by Design
 
@@ -177,7 +177,8 @@ docs/
   guardrails.md       Berechtigungen, Datenschutz, KPIs
   roadmap.md          phasenweiser Lieferplan
   getting-started.md  Tracker verbinden, Briefings, lokales Modell
-  trackers.md         Übersicht über 22 Tracker (generiert)
+  trackers.md         Übersicht über 25 Tracker (generiert)
+  pm-coverage.md      die komplette PM-Rolle vs. was der Agent tut
   adr/                Architekturentscheidungen (ADRs)
   de/                 deutsche Fassungen aller Dokumente
 ```
@@ -186,7 +187,7 @@ docs/
 
 Siehe [CONTRIBUTING.de.md](CONTRIBUTING.de.md). Designdiskussionen finden in GitHub Issues statt. Jede Roadmap-Phase hat einen Meilenstein.
 
-**Welche Tracker?** Die [Übersicht](docs/de/trackers.md) zeigt Jira, Asana, monday.com, Notion, Trello, Planner, Linear, GitLab, Redmine und mehr, dazu das [Adapter-Epic #18](https://github.com/Wieshof/agentic-pm/issues/18).
+**Welche Tracker?** Die [Übersicht](docs/de/trackers.md) zeigt Jira, Azure DevOps, Asana, monday.com, Smartsheet, Notion, Trello, Planner, Linear, GitLab, Redmine und mehr, dazu das [Adapter-Epic #18](https://github.com/Wieshof/agentic-pm/issues/18).
 
 **Referenz-Adapter: GitHub Issues** ([`adapters/github.py`](src/agentic_pm/adapters/github.py)), in Phase 1 zusammen mit OpenProject gebaut. Neue Tracker-Adapter (Plane, Taiga, GitLab, Jira, Linear, siehe #18) implementieren dasselbe `TrackerAdapter`-Protokoll und bestehen die gemeinsame Vertrags-Testsuite (`agentic_pm.testing`). Kopiere am besten den GitHub-Adapter samt Tests. Die Tests nutzen aufgezeichnete API-Antworten, Du brauchst also kein Konto.
 

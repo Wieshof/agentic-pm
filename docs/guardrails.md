@@ -30,6 +30,14 @@ Tiers can be configured per project in `.agent-pm/policy.yaml` (planned).
 | Mean time to surface a dependency blocker | < 2 h from status change |
 | Cross-modality engagement rate | % of team members actively updating tickets via their chosen channel |
 
+### Project KPIs
+
+The KPIs above measure the tool. The project itself is measured by on-time delivery, budget variance, change volume, risk resolution, quality and stakeholder satisfaction, see the [PM coverage map](pm-coverage.md#success-metrics).
+
+### People data
+
+The agent supports people topics but doesn't monitor or judge people: task-centric capacity checks, no per-person history or scores, team-level metrics only. See [ADR-0004](adr/0004-people-data-boundaries.md).
+
 ### Secondary (infrastructure-reduction) indicators
 
 - Number of shadow trackers / reporting plugins decommissioned

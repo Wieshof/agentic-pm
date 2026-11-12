@@ -18,7 +18,7 @@ Teams use very different trackers: Jira, Asana, monday.com, Notion, Trello, Plan
 4. **Plugins via entry points** (`agentic_pm.adapters`), so adapters can live outside this repository.
 5. **Mappings in config, not code.** Trackers with user-defined fields are configured through `project.tracker_options` (never secrets).
 6. **Read-only first.** Every adapter ships read-only. Writes follow per tracker in Phase 2, behind the permission tiers.
-7. **Tiers set the order.** Tier 1: Jira, GitLab, Linear, Plane, GitHub Projects, Asana. Tier 2: ClickUp, monday.com, Wrike, Shortcut, Redmine, Gitea/Forgejo, Taiga, Notion. Tier 3: Bugzilla, Trello, MantisBT, Microsoft Planner, Todoist, Taskade.
+7. **Tiers set the order.** Tier 1: Jira, Azure DevOps, GitLab, Linear, Plane, GitHub Projects, Asana. Tier 2: ClickUp, monday.com, Wrike, Shortcut, Smartsheet, MS Project, Redmine, Gitea/Forgejo, Taiga, Notion. Tier 3: Bugzilla, Trello, MantisBT, Microsoft Planner, Todoist, Taskade.
 
 Still open, each tracked as an issue: a polling event source (#22), a validated mapping schema (#23), and an MCP bridge for the long tail (#24).
 

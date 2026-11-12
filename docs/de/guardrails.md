@@ -30,6 +30,14 @@ Die Stufen sollen pro Projekt in `.agent-pm/policy.yaml` konfigurierbar sein (ge
 | Mittlere Zeit bis zur Sichtbarkeit eines Abhängigkeits-Blockers | < 2 h nach Statusänderung |
 | Kanalübergreifende Beteiligungsquote | Anteil der Teammitglieder, die Tickets aktiv über ihren gewählten Kanal aktualisieren |
 
+### Projekt-KPIs
+
+Die KPIs oben messen das Werkzeug. Das Projekt selbst wird an Termintreue, Budgetabweichung, Änderungsvolumen, Risikolösung, Qualität und Stakeholder-Zufriedenheit gemessen, siehe [PM-Abdeckung](pm-coverage.md#erfolgskennzahlen).
+
+### Personendaten
+
+Der Agent unterstützt bei Personenthemen, überwacht und beurteilt aber keine Menschen: aufgabenbezogene Kapazitätsprüfungen, keine Personenhistorie oder Werte pro Person, Kennzahlen nur auf Teamebene. Siehe [ADR-0004](../adr/0004-people-data-boundaries.de.md).
+
 ### Sekundäre Indikatoren (Infrastrukturabbau)
 
 - Anzahl abgeschalteter Schatten-Tracker / Reporting-Plugins

@@ -18,7 +18,7 @@ Teams nutzen sehr unterschiedliche Tracker: Jira, Asana, monday.com, Notion, Tre
 4. **Plugins über Entry Points** (`agentic_pm.adapters`), damit Adapter auch außerhalb dieses Repositorys leben können.
 5. **Zuordnungen in der Konfiguration, nicht im Code.** Tracker mit selbst definierten Feldern werden über `project.tracker_options` eingerichtet (nie Geheimnisse).
 6. **Zuerst nur lesend.** Jeder Adapter startet nur lesend. Schreiben folgt pro Tracker in Phase 2, hinter den Berechtigungsstufen.
-7. **Stufen bestimmen die Reihenfolge.** Stufe 1: Jira, GitLab, Linear, Plane, GitHub Projects, Asana. Stufe 2: ClickUp, monday.com, Wrike, Shortcut, Redmine, Gitea/Forgejo, Taiga, Notion. Stufe 3: Bugzilla, Trello, MantisBT, Microsoft Planner, Todoist, Taskade.
+7. **Stufen bestimmen die Reihenfolge.** Stufe 1: Jira, Azure DevOps, GitLab, Linear, Plane, GitHub Projects, Asana. Stufe 2: ClickUp, monday.com, Wrike, Shortcut, Smartsheet, MS Project, Redmine, Gitea/Forgejo, Taiga, Notion. Stufe 3: Bugzilla, Trello, MantisBT, Microsoft Planner, Todoist, Taskade.
 
 Noch offen, jeweils als Issue erfasst: eine Polling-Ereignisquelle (#22), ein geprüftes Zuordnungsschema (#23) und eine MCP-Brücke für seltene Tracker (#24).
 

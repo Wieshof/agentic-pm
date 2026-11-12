@@ -101,7 +101,7 @@ Details: [docs/architecture.md](docs/architecture.md)
 | 4 | **Adaptive Follow-Up Cadence** | Tracks how quickly each person responds and switches channel when one isn't working. Non-urgent questions are bundled into digests. |
 | 5 | **Status Updates & Scrum Artefacts** | Sends email or spoken status briefings you can ask questions about. Keeps Scrum artefacts (backlog, sprint, burndown, review notes) in sync. |
 
-Details: [docs/workflows.md](docs/workflows.md)
+Details: [docs/workflows.md](docs/workflows.md) · **How this maps to the full PM role** (responsibilities, daily/weekly/monthly cadence, metrics, what stays human): [PM coverage map](docs/pm-coverage.md)
 
 ## Stateless by design
 
@@ -177,7 +177,8 @@ docs/
   guardrails.md       permissions, privacy, KPIs
   roadmap.md          phased delivery plan
   getting-started.md  connect a tracker, briefs, local model
-  trackers.md         support matrix for 22 trackers (generated)
+  trackers.md         support matrix for 25 trackers (generated)
+  pm-coverage.md      the full PM role vs. what the agent does
   adr/                architecture decision records
   de/                 German versions of all documents
 ```
@@ -186,7 +187,7 @@ docs/
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Design discussion happens in GitHub Issues. Each roadmap phase has a milestone.
 
-**Which trackers?** See the [support matrix](docs/trackers.md) for Jira, Asana, monday.com, Notion, Trello, Planner, Linear, GitLab, Redmine and more, and the [adapter epic #18](https://github.com/Wieshof/agentic-pm/issues/18).
+**Which trackers?** See the [support matrix](docs/trackers.md) for Jira, Azure DevOps, Asana, monday.com, Smartsheet, Notion, Trello, Planner, Linear, GitLab, Redmine and more, and the [adapter epic #18](https://github.com/Wieshof/agentic-pm/issues/18).
 
 **Reference adapter: GitHub Issues** ([`adapters/github.py`](src/agentic_pm/adapters/github.py)), built in Phase 1 together with OpenProject. New tracker adapters (Plane, Taiga, GitLab, Jira, Linear, see #18) implement the same `TrackerAdapter` protocol and pass the shared contract suite (`agentic_pm.testing`). Copy the GitHub adapter and its tests, which use recorded API responses, so no account is needed.
 

@@ -389,3 +389,54 @@ trackers:
     verified: false
     notes_en: Outline-style projects; check API coverage of assignees and webhooks first
     notes_de: Gliederungs-Projekte; zuerst API-Abdeckung für Zuständige und Webhooks prüfen
+  azure_devops:
+    name: Azure DevOps Boards
+    status: planned
+    issue: 62
+    tier: 1
+    api: REST + WIQL
+    auth: PAT / Entra ID
+    dependencies: native
+    estimates: native
+    due_dates: native
+    multi_assignee: false
+    hierarchy: true
+    events: webhook
+    mcp: official
+    verified: false
+    notes_en: Predecessor/successor links; effort/story points by process template; service hooks
+    notes_de: Vorgänger-/Nachfolger-Links; Aufwand/Story Points je Prozessvorlage; Service Hooks
+  smartsheet:
+    name: Smartsheet
+    status: planned
+    issue: 63
+    tier: 2
+    api: REST 2.0
+    auth: API token / OAuth
+    dependencies: native
+    estimates: field
+    due_dates: field
+    multi_assignee: true
+    hierarchy: true
+    events: webhook
+    mcp: community
+    verified: false
+    notes_en: Predecessors when dependencies are enabled on the sheet; columns need a mapping
+    notes_de: Vorgänger, wenn Abhängigkeiten im Sheet aktiviert sind; Spalten brauchen eine Zuordnung
+  ms_project:
+    name: Microsoft Project (for the web / Planner Premium)
+    status: planned
+    issue: 64
+    tier: 2
+    api: Dataverse Web API
+    auth: Entra ID app
+    dependencies: native
+    estimates: native
+    due_dates: native
+    multi_assignee: true
+    hierarchy: true
+    events: polling
+    mcp: none
+    verified: false
+    notes_en: Plans live in Dataverse; desktop .mpp files only via export
+    notes_de: Pläne liegen in Dataverse; Desktop-.mpp-Dateien nur über Export

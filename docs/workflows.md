@@ -61,4 +61,4 @@ The agent can also keep Scrum artefacts up to date from live tracker data:
 | Sprint Review / Retro | Pre-drafted review notes and retro prompts from sprint data |
 | Burndown | Generated in briefings rather than a separate dashboard |
 
-> Open question: should the agent *remodel* artefacts (e.g. propose re-slicing stories), or only report on them? Tracked in the roadmap as a Phase 4 item.
+> Open question: should the agent *remodel* artefacts (e.g. propose re-slicing stories), or only report on them? Tracked in the roadmap as a Phase 5 item.

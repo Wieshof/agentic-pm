@@ -61,4 +61,4 @@ Der Agent kann außerdem Scrum-Artefakte aus Live-Trackerdaten aktuell halten:
 | Sprint Review / Retro | Vorentwürfe für Review-Notizen und Retro-Impulse aus Sprintdaten |
 | Burndown | Wird in Briefings erzeugt statt in einem eigenen Dashboard |
 
-> Offene Frage: Soll der Agent Artefakte *umgestalten* (z. B. Stories neu schneiden) oder nur darüber berichten? Wird in der Roadmap als Punkt in Phase 4 geführt.
+> Offene Frage: Soll der Agent Artefakte *umgestalten* (z. B. Stories neu schneiden) oder nur darüber berichten? Wird in der Roadmap als Punkt in Phase 5 geführt.
