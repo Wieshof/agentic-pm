@@ -4,13 +4,13 @@
 
 Jede Phase ist ein GitHub-Meilenstein. Die Phasen bauen aufeinander auf. Jede Phase endet mit etwas, das ein Pilotteam tatsächlich nutzen kann.
 
-## Phase 0 — Grundlagen
+## Phase 0 — Grundlagen ✅
 - Repository, Dokumentation, ADR-Prozess, Beitragsrichtlinien
 - Tech-Stack und LLM-Anbieter auswählen (ADR)
 - Schema + Validator für `team.yaml`
 - Gemeinsame `TrackerAdapter`-Schnittstelle + MCP-Werkzeugumfang
 
-## Phase 1 — Einblick nur lesend (ein Tracker, E-Mail)
+## Phase 1 — Einblick nur lesend (ein Tracker, E-Mail) ✅ gebaut · Pilot steht aus
 - GitHub-Issues-Adapter (lesend), danach OpenProject oder Plane
 - Abhängigkeitsgraph-Analyse (nur lesend)
 - Morgendliches E-Mail-Briefing für „Leser“

@@ -101,4 +101,4 @@ async def test_tools_enforce_permission_tiers() -> None:
 async def test_mcp_server_lists_tools() -> None:
     server = build_server(demo_tracker())
     names = {t.name for t in await server.list_tools()}
-    assert names == {"get_task", "list_dependencies", "add_comment", "update_fields"}
+    assert names == {"get_task", "list_tasks", "list_dependencies", "add_comment", "update_fields"}

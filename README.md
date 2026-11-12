@@ -12,7 +12,7 @@ agentic-pm doesn't replace your issue tracker. It's an intelligent orchestration
 
 The underlying tracker stays the single, synchronized source of truth. The agent keeps **no permanent task state** of its own.
 
-> Status: 🏗️ Phase 0 (foundations) done. See the [roadmap](docs/roadmap.md).
+> Status: 🔎 Phase 1 (read-only insight) built, ready for a pilot team. Start here: [Getting started](docs/getting-started.md). See the [roadmap](docs/roadmap.md).
 
 ---
 
@@ -98,6 +98,7 @@ docs/
   data-model.md       stateless data placement & routing
   guardrails.md       permissions, privacy, KPIs
   roadmap.md          phased delivery plan
+  getting-started.md  connect a tracker, briefs, local model
   adr/                architecture decision records
   de/                 German versions of all documents
 ```
@@ -112,6 +113,9 @@ uv run pytest                                     # tests
 uv run agent-pm validate .agent-pm/team.yaml      # check a team file
 uv run agent-pm schema > schemas/team.schema.json # export JSON Schema
 uv run agent-pm mcp                               # MCP tracker server (stdio, demo data)
+uv run agent-pm deps  --demo                      # dependency risks & cycles
+uv run agent-pm brief --demo --person alex        # friendly morning brief
+uv run agent-pm eval  --model qwen3.5             # compare local models
 ```
 
 **Local LLM (default):** run any OpenAI-compatible server, e.g. [Ollama](https://ollama.com), and set `llm.model` / `llm.base_url` in `team.yaml`. Live test: `AGENT_PM_LIVE_LLM=<model> uv run pytest tests/test_llm.py`.
@@ -119,7 +123,10 @@ uv run agent-pm mcp                               # MCP tracker server (stdio, d
 | Module | Purpose |
 |--------|---------|
 | `agentic_pm.config` | `team.yaml` schema & validation |
-| `agentic_pm.adapters` | `TrackerAdapter` protocol, data model, in-memory reference tracker |
+| `agentic_pm.adapters` | `TrackerAdapter` protocol, GitHub & OpenProject (read-only), in-memory tracker |
+| `agentic_pm.engine` | Dependency Graph Analyzer: risks, what-if, cycles |
+| `agentic_pm.briefs` | Morning briefs (EN/DE), guarded LLM summary, SMTP |
+| `agentic_pm.evals` | Eval cases & runner for local models |
 | `agentic_pm.audit` | Permission tiers & audit footer |
 | `agentic_pm.mcp_server` | MCP tools over any adapter, with tier enforcement |
 | `agentic_pm.llm` | Provider-agnostic LLM interface, local OpenAI-compatible provider |

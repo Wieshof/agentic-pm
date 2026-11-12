@@ -4,13 +4,13 @@
 
 Each phase is a GitHub milestone. The phases build on each other. Every phase ends with something a pilot team can actually use.
 
-## Phase 0 — Foundations
+## Phase 0 — Foundations ✅
 - Repository, docs, ADR process, contribution guidelines
 - Pick the tech stack and LLM provider (ADR)
 - `team.yaml` schema + validator
 - Common `TrackerAdapter` interface + MCP tool surface
 
-## Phase 1 — Read-only Insight (single tracker, email)
+## Phase 1 — Read-only Insight (single tracker, email) ✅ built · pilot pending
 - GitHub Issues adapter (read), then OpenProject or Plane
 - Dependency Graph Analyzer (read-only)
 - Morning email brief for "Readers"

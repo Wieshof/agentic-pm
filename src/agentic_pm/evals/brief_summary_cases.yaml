@@ -1,0 +1,108 @@
+# Evaluation cases for the brief summary (issue #21).
+# Each case: the facts the model sees, the language, and the task numbers the
+# summary MUST mention (the most important ones). Graders also reject unknown
+# task numbers, stray '#' tags, empty/too long output, formal "Sie" or
+# lowercase Du-forms in German. `expect_summary: false` = quiet day, the model
+# must not be called at all.
+
+- id: overdue-and-risk-en
+  language: en
+  must_mention: ["#11"]
+  facts:
+    person: Sam
+    today: "2026-11-13"
+    overdue: [{id: "#11", title: Redis pool sizing, due: "2026-11-11"}]
+    due_soon: [{id: "#12", title: Fix auth timeout, due: "2026-11-14"}]
+    at_risk:
+      - {id: "#12", title: Fix auth timeout, due: "2026-11-14", blocked_by: "#11", days_late: 1}
+    others_waiting_on_you: [{waiting: "#13", on: "#12"}]
+    team_risks: 0
+
+- id: overdue-and-risk-de
+  language: de
+  must_mention: ["#11"]
+  facts:
+    person: Sam
+    today: "2026-11-13"
+    overdue: [{id: "#11", title: Redis-Pool dimensionieren, due: "2026-11-11"}]
+    due_soon: [{id: "#12", title: Auth-Timeout beheben, due: "2026-11-14"}]
+    at_risk:
+      - {id: "#12", title: Auth-Timeout beheben, due: "2026-11-14", blocked_by: "#11", days_late: 1}
+    others_waiting_on_you: [{waiting: "#13", on: "#12"}]
+    team_risks: 0
+
+- id: quiet-day-en
+  language: en
+  expect_summary: false
+  must_mention: []
+  facts:
+    person: Kim
+    today: "2026-11-13"
+    overdue: []
+    due_soon: []
+    at_risk: []
+    others_waiting_on_you: []
+    team_risks: 0
+
+- id: quiet-day-de
+  language: de
+  expect_summary: false
+  must_mention: []
+  facts:
+    person: Kim
+    today: "2026-11-13"
+    overdue: []
+    due_soon: []
+    at_risk: []
+    others_waiting_on_you: []
+    team_risks: 0
+
+- id: lead-many-items-en
+  language: en
+  must_mention: ["#15", "#14"]
+  facts:
+    person: Alex
+    today: "2026-11-13"
+    overdue: [{id: "#15", title: Quarterly roadmap review, due: "2026-11-12"}]
+    due_soon: [{id: "#14", title: Release notes, due: "2026-11-16"}]
+    at_risk:
+      - {id: "#14", title: Release notes, due: "2026-11-16", blocked_by: "#13", days_late: 3}
+    others_waiting_on_you: []
+    team_risks: 3
+
+- id: lead-many-items-de
+  language: de
+  must_mention: ["#15", "#14"]
+  facts:
+    person: Alex
+    today: "2026-11-13"
+    overdue: [{id: "#15", title: Quartals-Roadmap-Review, due: "2026-11-12"}]
+    due_soon: [{id: "#14", title: Release Notes, due: "2026-11-16"}]
+    at_risk:
+      - {id: "#14", title: Release Notes, due: "2026-11-16", blocked_by: "#13", days_late: 3}
+    others_waiting_on_you: []
+    team_risks: 3
+
+- id: waiting-on-you-only-en
+  language: en
+  must_mention: ["#20"]
+  facts:
+    person: Robin
+    today: "2026-11-13"
+    overdue: []
+    due_soon: []
+    at_risk: []
+    others_waiting_on_you: [{waiting: "#21", on: "#20"}, {waiting: "#22", on: "#20"}]
+    team_risks: 0
+
+- id: due-soon-only-de
+  language: de
+  must_mention: ["#31"]
+  facts:
+    person: Mia
+    today: "2026-11-13"
+    overdue: []
+    due_soon: [{id: "#31", title: Datenschutz-Hinweis für Anrufe, due: "2026-11-14"}]
+    at_risk: []
+    others_waiting_on_you: []
+    team_risks: 0

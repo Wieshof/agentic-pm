@@ -89,13 +89,29 @@ class Person(_Strict):
     interruptions: Interruptions = Interruptions.ANY
     quiet_hours: TimeWindow | None = None
     escalate_after_ignored: int = Field(default=3, ge=1, le=20)
+    name: str | None = Field(default=None, description="How the agent greets this person")
+    language: Literal["en", "de"] = "en"
+    tracker_login: str | None = Field(
+        default=None,
+        description="Username in the tracker if it differs from the handle "
+        "(GitHub login, or OpenProject display name)",
+    )
+
+    def login(self, handle: str) -> str:
+        return self.tracker_login or handle
 
 
 class Project(_Strict):
     tracker: Tracker
-    repo: str
+    repo: str = Field(description="GitHub 'owner/repo', or OpenProject project identifier")
+    base_url: str | None = Field(
+        default=None, description="Tracker URL, required for self-hosted trackers (OpenProject)"
+    )
     timezone: str = "UTC"
     leads: list[Handle] = Field(min_length=1)
+    brief_horizon_days: int = Field(
+        default=3, ge=1, le=14, description="'Due soon' window used in briefs"
+    )
 
 
 class LLMSettings(_Strict):
@@ -129,6 +145,8 @@ class TeamConfig(_Strict):
     @model_validator(mode="after")
     def _check_consistency(self) -> Self:
         errors: list[str] = []
+        if self.project.tracker == Tracker.OPENPROJECT and not self.project.base_url:
+            errors.append("project.base_url is required for tracker 'openproject'")
         for lead in self.project.leads:
             if lead not in self.people:
                 errors.append(f"project.leads: '{lead}' is not defined under people")

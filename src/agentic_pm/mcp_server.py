@@ -40,6 +40,10 @@ class TrackerTools:
         task = await self.adapter.get_task(self._ref(project, task_id))
         return task.model_dump(mode="json")
 
+    async def list_tasks(self, project: str, include_closed: bool = False) -> list[dict[str, Any]]:
+        tasks = await self.adapter.list_tasks(project, include_closed=include_closed)
+        return [t.model_dump(mode="json", exclude={"comments"}) for t in tasks]
+
     async def list_dependencies(self, project: str, task_id: str) -> list[dict[str, Any]]:
         edges = await self.adapter.list_dependencies(self._ref(project, task_id))
         return [e.model_dump(mode="json") for e in edges]
@@ -88,6 +92,11 @@ def build_server(adapter: TrackerAdapter) -> MCPServer:
     async def get_task(project: str, task_id: str) -> dict[str, Any]:
         """Fetch one task live from the tracker."""
         return await tools.get_task(project, task_id)
+
+    @server.tool()
+    async def list_tasks(project: str, include_closed: bool = False) -> list[dict[str, Any]]:
+        """List tasks of a project (open only by default), without comments."""
+        return await tools.list_tasks(project, include_closed)
 
     @server.tool()
     async def list_dependencies(project: str, task_id: str) -> list[dict[str, Any]]:

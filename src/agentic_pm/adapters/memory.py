@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from agentic_pm.adapters.base import (
+    CLOSED_STATUSES,
     AuditMeta,
     Comment,
     Edge,
@@ -41,6 +42,13 @@ class InMemoryTracker:
 
     async def get_task(self, ref: TaskRef) -> Task:
         return self._require(ref).model_copy(deep=True)
+
+    async def list_tasks(self, project: str, *, include_closed: bool = False) -> list[Task]:
+        return [
+            t.model_copy(deep=True)
+            for t in self._tasks.values()
+            if t.ref.project == project and (include_closed or t.status not in CLOSED_STATUSES)
+        ]
 
     async def list_dependencies(self, ref: TaskRef) -> list[Edge]:
         self._require(ref)

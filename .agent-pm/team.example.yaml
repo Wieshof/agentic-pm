@@ -10,7 +10,9 @@ project:
 
 people:
   alex:
+    name: Alex                  # how the agent greets you
     role: team-lead
+    tracker_login: alex         # GitHub login / OpenProject display name, if different
     archetype: reader        # reader | writer | talker | listener
     channels:
       email: alex@example.com
@@ -22,6 +24,7 @@ people:
   sam:
     role: backend-engineer
     archetype: talker
+    language: de                # briefs and messages in German (informal Du)
     channels:
       phone: "+43 000 000000"
       whatsapp: "+43 000 000000"

@@ -124,6 +124,13 @@ class TaskNotFoundError(LookupError):
     pass
 
 
+class ReadOnlyAdapterError(PermissionError):
+    """Raised by adapters that do not (yet) support writes (Phase 1 is read-only)."""
+
+
+CLOSED_STATUSES = frozenset({TaskStatus.DONE, TaskStatus.CLOSED})
+
+
 @runtime_checkable
 class TrackerAdapter(Protocol):
     """Bidirectional connector to one issue tracker.
@@ -135,6 +142,10 @@ class TrackerAdapter(Protocol):
     name: str
 
     async def get_task(self, ref: TaskRef) -> Task: ...
+
+    async def list_tasks(self, project: str, *, include_closed: bool = False) -> list[Task]:
+        """All tasks of a project (open ones only unless `include_closed`)."""
+        ...
 
     async def list_dependencies(self, ref: TaskRef) -> list[Edge]:
         """All edges where `ref` is source or target."""

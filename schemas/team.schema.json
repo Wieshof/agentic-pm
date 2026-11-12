@@ -227,6 +227,41 @@
           "minimum": 1,
           "title": "Escalate After Ignored",
           "type": "integer"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How the agent greets this person",
+          "title": "Name"
+        },
+        "language": {
+          "default": "en",
+          "enum": [
+            "en",
+            "de"
+          ],
+          "title": "Language",
+          "type": "string"
+        },
+        "tracker_login": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Username in the tracker if it differs from the handle (GitHub login, or OpenProject display name)",
+          "title": "Tracker Login"
         }
       },
       "required": [
@@ -244,8 +279,22 @@
           "$ref": "#/$defs/Tracker"
         },
         "repo": {
+          "description": "GitHub 'owner/repo', or OpenProject project identifier",
           "title": "Repo",
           "type": "string"
+        },
+        "base_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Tracker URL, required for self-hosted trackers (OpenProject)",
+          "title": "Base Url"
         },
         "timezone": {
           "default": "UTC",
@@ -260,6 +309,14 @@
           "minItems": 1,
           "title": "Leads",
           "type": "array"
+        },
+        "brief_horizon_days": {
+          "default": 3,
+          "description": "'Due soon' window used in briefs",
+          "maximum": 14,
+          "minimum": 1,
+          "title": "Brief Horizon Days",
+          "type": "integer"
         }
       },
       "required": [

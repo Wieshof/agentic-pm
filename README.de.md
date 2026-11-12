@@ -12,7 +12,7 @@ agentic-pm ersetzt Deinen Issue-Tracker nicht. Es ist eine intelligente Orchestr
 
 Der zugrunde liegende Tracker bleibt die einzige, synchronisierte Quelle der Wahrheit. Der Agent speichert selbst **keinen dauerhaften Aufgabenzustand**.
 
-> Status: 🏗️ Phase 0 (Grundlagen) abgeschlossen. Siehe [Roadmap](docs/de/roadmap.md).
+> Status: 🔎 Phase 1 (Einblick, nur lesend) gebaut, bereit für ein Pilotteam. Hier geht's los: [Erste Schritte](docs/de/getting-started.md). Siehe [Roadmap](docs/de/roadmap.md).
 
 ---
 
@@ -98,6 +98,7 @@ docs/
   data-model.md       zustandslose Datenhaltung & Routing
   guardrails.md       Berechtigungen, Datenschutz, KPIs
   roadmap.md          phasenweiser Lieferplan
+  getting-started.md  Tracker verbinden, Briefings, lokales Modell
   adr/                Architekturentscheidungen (ADRs)
   de/                 deutsche Fassungen aller Dokumente
 ```
@@ -112,6 +113,9 @@ uv run pytest                                     # Tests
 uv run agent-pm validate .agent-pm/team.yaml      # Team-Datei prüfen
 uv run agent-pm schema > schemas/team.schema.json # JSON-Schema exportieren
 uv run agent-pm mcp                               # MCP-Tracker-Server (stdio, Demodaten)
+uv run agent-pm deps  --demo                      # Abhängigkeitsrisiken & Zyklen
+uv run agent-pm brief --demo --person sam         # freundliches Morgen-Briefing
+uv run agent-pm eval  --model qwen3.5             # lokale Modelle vergleichen
 ```
 
 **Lokales LLM (Standard):** Betreibe einen beliebigen OpenAI-kompatiblen Server, z. B. [Ollama](https://ollama.com), und setze `llm.model` / `llm.base_url` in `team.yaml`. Live-Test: `AGENT_PM_LIVE_LLM=<Modell> uv run pytest tests/test_llm.py`.
@@ -119,7 +123,10 @@ uv run agent-pm mcp                               # MCP-Tracker-Server (stdio, D
 | Modul | Zweck |
 |-------|-------|
 | `agentic_pm.config` | Schema & Validierung für `team.yaml` |
-| `agentic_pm.adapters` | `TrackerAdapter`-Protokoll, Datenmodell, In-Memory-Referenztracker |
+| `agentic_pm.adapters` | `TrackerAdapter`-Protokoll, GitHub & OpenProject (nur lesend), In-Memory-Tracker |
+| `agentic_pm.engine` | Abhängigkeitsgraph-Analyse: Risiken, Was-wäre-wenn, Zyklen |
+| `agentic_pm.briefs` | Morgen-Briefings (DE/EN), abgesicherte LLM-Zusammenfassung, SMTP |
+| `agentic_pm.evals` | Evaluationsfälle & Runner für lokale Modelle |
 | `agentic_pm.audit` | Berechtigungsstufen & Audit-Fußzeile |
 | `agentic_pm.mcp_server` | MCP-Werkzeuge über jedem Adapter, mit Stufenprüfung |
 | `agentic_pm.llm` | Anbieterunabhängige LLM-Schnittstelle, lokaler OpenAI-kompatibler Anbieter |
