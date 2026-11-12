@@ -37,6 +37,7 @@ class BriefData(BaseModel):
     team_risks: list[Risk] = []
     cycles: list[list[str]] = []
     open_count: int = 0
+    limitations: list[str] = []
     names: dict[str, str] = {}
 
     @property
@@ -102,6 +103,7 @@ async def collect(
         team_risks=[r for r in risks if str(r.task.ref) not in at_risk_ids] if is_lead else [],
         cycles=[[f"#{r.id}" for r in c] for c in graph.cycles()] if is_lead else [],
         open_count=len(mine),
+        limitations=graph.limitations() if is_lead else [],
         names={p.login(h): p.name or h.capitalize() for h, p in cfg.people.items()},
     )
 
@@ -132,6 +134,10 @@ T: dict[str, dict[str, str]] = {
         "blocked_by": "{task}, blocked by {refs}",
         "footer": "You have {tasks}. Just reply to this email if anything looks off. 💬",
         "summary": "In short",
+        "limits": "🔍 Your tracker doesn't provide this, so I can't check it",
+        "limit_dependencies": "dependencies (no risk warnings for blocked tasks)",
+        "limit_due_dates": "due dates",
+        "limit_estimates": "estimates (each task counts as 1 day)",
     },
     "de": {
         "subject_busy": "☀️ Dein Morgen-Briefing: {things} heute",
@@ -156,6 +162,10 @@ T: dict[str, dict[str, str]] = {
         "blocked_by": "{task}, blockiert durch {refs}",
         "footer": "Du hast {tasks}. Antworte einfach auf diese Mail, wenn etwas nicht stimmt. 💬",
         "summary": "Kurz gesagt",
+        "limits": "🔍 Dein Tracker liefert das nicht, deshalb kann ich es nicht prüfen",
+        "limit_dependencies": "Abhängigkeiten (keine Risiko-Warnungen für blockierte Aufgaben)",
+        "limit_due_dates": "Fälligkeiten",
+        "limit_estimates": "Schätzungen (jede Aufgabe zählt als 1 Tag)",
     },
 }
 
@@ -235,6 +245,7 @@ def _sections(d: BriefData) -> list[tuple[str, list[str]]]:
         (tr["blocked"], blocked),
         (tr["team_risks"], [risk(r) for r in d.team_risks]),
         (tr["cycles"], [" → ".join(c) for c in d.cycles]),
+        (tr["limits"], [tr[f"limit_{x}"] for x in d.limitations]),
     ]
     return [(h, items) for h, items in sections if items]
 

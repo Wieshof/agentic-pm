@@ -17,6 +17,8 @@ Die Demodaten liegen relativ zu heute, Du siehst also immer etwas: eine überfä
 
 ## 2. Deinen Tracker verbinden
 
+GitHub Issues und OpenProject funktionieren heute. Alle anderen Tracker (Jira, Asana, Notion, Trello, …) findest Du in der [Übersicht](trackers.md).
+
 Kopiere `.agent-pm/team.example.yaml` nach `.agent-pm/team.yaml` und passe sie an. Prüfen kannst Du sie mit `uv run agent-pm validate`. Geheimnisse kommen ausschließlich aus Umgebungsvariablen.
 
 ### GitHub Issues

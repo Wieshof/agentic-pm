@@ -17,6 +17,8 @@ The demo dates are relative to today, so there is always something to see: an ov
 
 ## 2. Connect your tracker
 
+GitHub Issues and OpenProject work today. For all other trackers (Jira, Asana, Notion, Trello, …) see the [support matrix](trackers.md).
+
 Copy `.agent-pm/team.example.yaml` to `.agent-pm/team.yaml` and adjust it. Check it with `uv run agent-pm validate`. Secrets only ever come from environment variables.
 
 ### GitHub Issues

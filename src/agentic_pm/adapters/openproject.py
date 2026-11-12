@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import date
+from datetime import date, datetime
 from typing import Any
 
 import httpx
@@ -35,6 +35,7 @@ from agentic_pm.adapters.base import (
     TaskStatus,
     Unsubscribe,
 )
+from agentic_pm.adapters.catalog import load_catalog
 
 _WP_ID = re.compile(r"/work_packages/(\d+)$")
 _DURATION = re.compile(r"^P(?:(\d+(?:\.\d+)?)D)?(?:T(?:(\d+(?:\.\d+)?)H)?(?:(\d+(?:\.\d+)?)M)?)?$")
@@ -78,6 +79,7 @@ def _wp_id(href: str | None) -> str | None:
 
 class OpenProjectAdapter:
     name = "openproject"
+    capabilities = load_catalog()["openproject"].capabilities(writes=False)
 
     def __init__(
         self,
@@ -120,6 +122,11 @@ class OpenProjectAdapter:
             due=due,
             estimate_hours=parse_duration_hours(wp.get("estimatedTime")),
             url=f"{self.base_url}/work_packages/{wp['id']}",
+            updated_at=(
+                datetime.fromisoformat(wp["updatedAt"].replace("Z", "+00:00"))
+                if wp.get("updatedAt")
+                else None
+            ),
         )
 
     async def get_task(self, ref: TaskRef) -> Task:

@@ -153,6 +153,40 @@ async def _brief(args: argparse.Namespace) -> int:
     return 0
 
 
+REPO_URL = "https://github.com/Wieshof/agentic-pm"
+TRACKER_DOCS = {"en": Path("docs/trackers.md"), "de": Path("docs/de/trackers.md")}
+
+
+def _trackers(args: argparse.Namespace) -> int:
+    from agentic_pm.adapters.catalog import load_catalog, render_matrix, replace_matrix
+
+    if args.write_docs or args.check_docs:
+        stale = []
+        for lang, path in TRACKER_DOCS.items():
+            doc = path.read_text(encoding="utf-8")
+            new = replace_matrix(doc, render_matrix(lang, REPO_URL))  # type: ignore[arg-type]
+            if new != doc:
+                stale.append(str(path))
+                if args.write_docs:
+                    path.write_text(new, encoding="utf-8")
+        if args.check_docs and stale:
+            print(f"✗ outdated: {', '.join(stale)} (run agent-pm trackers --write-docs)")
+            return 1
+        print(f"✓ tracker matrix {'written' if args.write_docs else 'up to date'}")
+        return 0
+    entries = sorted(load_catalog().values(), key=lambda e: (e.status != "available", e.tier))
+    for e in entries:
+        if args.tier and e.tier != args.tier:
+            continue
+        mark = {"available": "✅", "planned": "🗓️ ", "candidate": "💡"}[e.status]
+        issue = f"  #{e.issue}" if e.issue else ""
+        print(
+            f"{mark} {e.key:<16} tier {e.tier}  deps={e.dependencies:<10} "
+            f"events={e.events:<8} {e.name}{issue}"
+        )
+    return 0
+
+
 def _eval(args: argparse.Namespace) -> int:
     from agentic_pm.evals.brief_summary import run
 
@@ -183,6 +217,10 @@ def main(argv: list[str] | None = None) -> int:
     b.add_argument("--out", help="write files to this directory instead of stdout")
     b.add_argument("--llm", action="store_true", help="add a short summary from the local LLM")
     b.add_argument("--send", action="store_true", help="send via SMTP (AGENT_PM_SMTP_* env)")
+    t = sub.add_parser("trackers", help="list supported and planned trackers")
+    t.add_argument("--tier", type=int, choices=[1, 2, 3])
+    t.add_argument("--write-docs", action="store_true", help="update the matrix in docs/")
+    t.add_argument("--check-docs", action="store_true", help="fail if docs are outdated")
     e = sub.add_parser("eval", help="evaluate the brief summary against a local model")
     e.add_argument("--model", required=True)
     e.add_argument("--base-url", default="http://localhost:11434/v1")
@@ -204,6 +242,8 @@ def main(argv: list[str] | None = None) -> int:
         return asyncio.run(_deps(args))
     if args.cmd == "brief":
         return asyncio.run(_brief(args))
+    if args.cmd == "trackers":
+        return _trackers(args)
     if args.cmd == "eval":
         return _eval(args)
     return 2

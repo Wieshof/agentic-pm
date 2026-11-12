@@ -34,6 +34,7 @@ from agentic_pm.adapters.base import (
     TaskRef,
     TrackerAdapter,
 )
+from agentic_pm.adapters.catalog import Capabilities
 
 HOURS_PER_DAY = 8
 
@@ -54,7 +55,10 @@ class Risk(BaseModel):
 
 
 class DependencyGraph:
-    def __init__(self, tasks: list[Task], edges: list[Edge]) -> None:
+    def __init__(
+        self, tasks: list[Task], edges: list[Edge], capabilities: Capabilities | None = None
+    ) -> None:
+        self.capabilities = capabilities
         self.tasks: dict[str, Task] = {
             str(t.ref): t for t in tasks if t.status not in CLOSED_STATUSES
         }
@@ -78,6 +82,8 @@ class DependencyGraph:
             async with limit:
                 return await adapter.list_dependencies(ref)
 
+        if adapter.capabilities.dependencies == "none":
+            return cls(list(tasks.values()), [], adapter.capabilities)
         per_task = await asyncio.gather(*(deps(t.ref) for t in tasks.values()))
         edges: list[Edge] = [e for group in per_task for e in group]
         # Blockers in other projects/repos: fetch them so they can block, too.
@@ -88,7 +94,7 @@ class DependencyGraph:
                         tasks[str(ref)] = await adapter.get_task(ref)
                     except TaskNotFoundError:
                         continue
-        return cls(list(tasks.values()), edges)
+        return cls(list(tasks.values()), edges, adapter.capabilities)
 
     # -------------------------------------------------------------- queries
 
@@ -111,6 +117,21 @@ class DependencyGraph:
             order.append(k)
             queue.extend(self._down[k])
         return [self.tasks[k] for k in order]
+
+    def limitations(self) -> list[str]:
+        """What this tracker cannot tell us (shown to leads, so silence is never mistaken for
+        'all good')."""
+        caps = self.capabilities
+        if caps is None:
+            return []
+        out = []
+        if caps.dependencies == "none":
+            out.append("dependencies")
+        if caps.due_dates == "none":
+            out.append("due_dates")
+        if caps.estimates == "none":
+            out.append("estimates")
+        return out
 
     def cycles(self) -> list[list[TaskRef]]:
         """Strongly connected components with more than one task (Tarjan)."""

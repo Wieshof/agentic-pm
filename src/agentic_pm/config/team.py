@@ -71,16 +71,6 @@ class _Strict(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
 
-class Tracker(StrEnum):
-    GITHUB = "github"
-    GITLAB = "gitlab"
-    OPENPROJECT = "openproject"
-    PLANE = "plane"
-    TAIGA = "taiga"
-    JIRA = "jira"
-    LINEAR = "linear"
-
-
 class Archetype(StrEnum):
     READER = "reader"
     WRITER = "writer"
@@ -145,10 +135,18 @@ class Person(_Strict):
 
 
 class Project(_Strict):
-    tracker: Tracker
+    tracker: str = Field(
+        description="Tracker key from the catalog (`agent-pm trackers`), e.g. github, jira, "
+        "or an installed plugin"
+    )
     repo: str = Field(description="GitHub 'owner/repo', or OpenProject project identifier")
     base_url: str | None = Field(
         default=None, description="Tracker URL, required for self-hosted trackers (OpenProject)"
+    )
+    tracker_options: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Tracker-specific mapping, e.g. status_map for Trello lists or "
+        "property names for Notion databases (never secrets)",
     )
     timezone: str = "UTC"
     leads: list[Handle] = Field(min_length=1)
@@ -208,7 +206,14 @@ class TeamConfig(_Strict):
     @model_validator(mode="after")
     def _check_consistency(self) -> Self:
         errors: list[str] = []
-        if self.project.tracker == Tracker.OPENPROJECT and not self.project.base_url:
+        from agentic_pm.adapters.registry import known_trackers
+
+        if self.project.tracker not in known_trackers():
+            errors.append(
+                f"project.tracker: unknown tracker '{self.project.tracker}' "
+                f"(known: {', '.join(sorted(known_trackers()))})"
+            )
+        if self.project.tracker == "openproject" and not self.project.base_url:
             errors.append("project.base_url is required for tracker 'openproject'")
         for lead in self.project.leads:
             if lead not in self.people:

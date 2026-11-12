@@ -18,11 +18,21 @@ from agentic_pm.adapters.base import (
     TrackerEventKind,
     Unsubscribe,
 )
+from agentic_pm.adapters.catalog import Capabilities
 from agentic_pm.audit import render_audit_footer
 
 
 class InMemoryTracker:
     name = "memory"
+    capabilities = Capabilities(
+        dependencies="native",
+        estimates="native",
+        due_dates="native",
+        multi_assignee=True,
+        hierarchy=True,
+        events="webhook",
+        writes=True,
+    )
 
     def __init__(self, tasks: list[Task] | None = None, edges: list[Edge] | None = None) -> None:
         self._tasks: dict[str, Task] = {str(t.ref): t for t in tasks or []}

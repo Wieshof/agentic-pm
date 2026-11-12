@@ -145,3 +145,27 @@ async def test_unknown_language_falls_back_to_english(cfg: Any) -> None:
     assert render_text(d).startswith("Good morning, Alex!")
     assert "'fr'" in style_for("fr")
     assert "Du" in style_for("de-AT")
+
+
+async def test_lead_brief_names_tracker_limitations(cfg: Any) -> None:
+    from agentic_pm.adapters import InMemoryTracker
+    from agentic_pm.adapters.catalog import Capabilities
+
+    class Planner(InMemoryTracker):
+        capabilities = Capabilities(
+            dependencies="none",
+            estimates="none",
+            due_dates="native",
+            multi_assignee=True,
+            hierarchy=False,
+            events="polling",
+        )
+
+    demo = demo_tracker(cfg.project.repo, TODAY)
+    tracker = Planner(list(demo._tasks.values()), demo._edges)
+    d = await collect(cfg, "alex", tracker, TODAY)
+    assert d.limitations == ["dependencies", "estimates"]
+    assert not d.team_risks
+    assert "Your tracker doesn't provide this" in render_text(d)
+    sam = await collect(cfg, "sam", tracker, TODAY)
+    assert sam.limitations == []  # only leads see it

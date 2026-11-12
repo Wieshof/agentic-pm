@@ -14,6 +14,8 @@ from typing import Protocol, runtime_checkable
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from agentic_pm.adapters.catalog import Capabilities
+
 
 class _Model(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -57,6 +59,9 @@ class Task(_Model):
         default=False, description="Due date is committed to an external client"
     )
     url: str | None = None
+    updated_at: datetime | None = Field(
+        default=None, description="Last change in the tracker; used for polling trackers"
+    )
     comments: list[Comment] = []
 
 
@@ -141,6 +146,7 @@ class TrackerAdapter(Protocol):
     """
 
     name: str
+    capabilities: Capabilities
 
     async def get_task(self, ref: TaskRef) -> Task: ...
 

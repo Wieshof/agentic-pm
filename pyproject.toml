@@ -12,6 +12,14 @@ dependencies = [
     "mcp>=2.3,<3",
 ]
 
+[project.optional-dependencies]
+# For adapter plugins that reuse the shared contract suite (agentic_pm.testing).
+testing = ["pytest>=8", "pytest-asyncio>=0.23"]
+
+[project.entry-points."agentic_pm.adapters"]
+# Third-party adapters register here in their own pyproject, e.g.
+# youtrack = "agentic_pm_youtrack:build"
+
 [project.scripts]
 agent-pm = "agentic_pm.cli:main"
 
@@ -45,4 +53,5 @@ plugins = ["pydantic.mypy"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]

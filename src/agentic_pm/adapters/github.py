@@ -41,6 +41,7 @@ from agentic_pm.adapters.base import (
     TrackerEventKind,
     Unsubscribe,
 )
+from agentic_pm.adapters.catalog import load_catalog
 from agentic_pm.ingress import Decision, WebhookGate
 
 _STATUS_LABELS: dict[str, TaskStatus] = {
@@ -53,6 +54,10 @@ _STATUS_LABELS: dict[str, TaskStatus] = {
 }
 _NEXT_LINK = re.compile(r'<([^>]+)>;\s*rel="next"')
 _REPO_FROM_URL = re.compile(r"/repos/([^/]+/[^/]+)$")
+
+
+def _ts(value: str | None) -> datetime | None:
+    return datetime.fromisoformat(value.replace("Z", "+00:00")) if value else None
 
 
 class GitHubError(RuntimeError):
@@ -69,6 +74,7 @@ def verify_signature(secret: str, body: bytes, signature_header: str | None) -> 
 
 class GitHubAdapter:
     name = "github"
+    capabilities = load_catalog()["github"].capabilities(writes=False)
 
     def __init__(
         self,
@@ -152,6 +158,7 @@ class GitHubAdapter:
             labels=labels,
             client_facing="client-facing" in (lbl.lower() for lbl in labels),
             url=issue.get("html_url"),
+            updated_at=_ts(issue.get("updated_at")),
             comments=[
                 Comment(
                     author=(c.get("user") or {}).get("login", "ghost"),

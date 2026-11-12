@@ -1,0 +1,391 @@
+# Tracker catalog: the single source of truth for which trackers agentic-pm
+# knows, what each one can offer, and how far support is.
+#
+# Used by: `agent-pm trackers`, team.yaml validation, and the generated support
+# matrix in docs/trackers.md (+ docs/de/trackers.md). Edit here, then run
+#   uv run agent-pm trackers --write-docs
+#
+# Values (from the trackers' public API docs, as of 2026-11; `verified: false`
+# means not yet checked against a live instance, so treat the row as a plan):
+#   dependencies: native | relation (via a configurable relation field) |
+#                 convention ("Blocked by #12" in the description) | none
+#   estimates / due_dates: native | field (custom field, needs mapping) | none
+#   events: webhook | polling
+#   status: available (adapter built) | planned | candidate (no issue yet)
+#   tier: 1 = next, 2 = later, 3 = limited fit for team PM
+#   mcp: official | community | none   (vendor/community MCP server exists)
+#   notes_en / notes_de: one line, shown in the docs
+
+trackers:
+  github:
+    name: GitHub Issues
+    status: available
+    tier: 1
+    api: REST + GraphQL
+    auth: Token / GitHub App
+    dependencies: native
+    estimates: field
+    due_dates: field
+    multi_assignee: true
+    hierarchy: true
+    events: webhook
+    mcp: official
+    verified: true
+    notes_en: Due/estimate via body lines or milestone; Projects fields planned
+    notes_de: Fälligkeit/Schätzung über Textzeilen oder Meilenstein; Projects-Felder geplant
+  openproject:
+    name: OpenProject
+    status: available
+    tier: 1
+    api: REST v3 (HAL)
+    auth: API key
+    dependencies: native
+    estimates: native
+    due_dates: native
+    multi_assignee: false
+    hierarchy: true
+    events: webhook
+    mcp: community
+    verified: false
+    notes_en: Relations blocks/precedes/follows; tested with recorded responses
+    notes_de: Beziehungen blocks/precedes/follows; mit aufgezeichneten Antworten getestet
+  jira:
+    name: Jira (Cloud / Data Center)
+    status: planned
+    issue: 25
+    tier: 1
+    api: REST v3 (Cloud), REST v2 (DC)
+    auth: API token, OAuth 2.0; DC PAT
+    dependencies: native
+    estimates: native
+    due_dates: native
+    multi_assignee: false
+    hierarchy: true
+    events: webhook
+    mcp: official
+    verified: false
+    notes_en: Issue links "blocks"; story points are a custom field; status categories
+    notes_de: Issue-Links „blocks“; Story Points sind ein Custom Field; Status-Kategorien
+  gitlab:
+    name: GitLab Issues
+    status: planned
+    issue: 26
+    tier: 1
+    api: REST v4 + GraphQL
+    auth: Token / OAuth
+    dependencies: native
+    estimates: native
+    due_dates: native
+    multi_assignee: true
+    hierarchy: true
+    events: webhook
+    mcp: official
+    verified: false
+    notes_en: '"blocks" links and multiple assignees need Premium; status via scoped labels'
+    notes_de: „blocks“-Links und mehrere Zuständige brauchen Premium; Status über Scoped Labels
+  linear:
+    name: Linear
+    status: planned
+    issue: 27
+    tier: 1
+    api: GraphQL
+    auth: API key / OAuth
+    dependencies: native
+    estimates: native
+    due_dates: native
+    multi_assignee: false
+    hierarchy: true
+    events: webhook
+    mcp: official
+    verified: false
+    notes_en: Clean fit; state types map directly
+    notes_de: Passt sehr gut; Status-Typen lassen sich direkt abbilden
+  plane:
+    name: Plane
+    status: planned
+    issue: 28
+    tier: 1
+    api: REST v1
+    auth: API key
+    dependencies: native
+    estimates: native
+    due_dates: native
+    multi_assignee: true
+    hierarchy: true
+    events: webhook
+    mcp: official
+    verified: false
+    notes_en: Open source, self-hostable; check relation endpoints in the API version you run
+    notes_de: Open Source, selbst hostbar; Beziehungs-Endpunkte in Deiner API-Version prüfen
+  github_projects:
+    name: GitHub Projects
+    status: planned
+    issue: 29
+    tier: 1
+    api: GraphQL (ProjectsV2)
+    auth: Token with project scope
+    dependencies: native
+    estimates: field
+    due_dates: field
+    multi_assignee: true
+    hierarchy: true
+    events: webhook
+    mcp: official
+    verified: false
+    notes_en: Extends the GitHub adapter with Status/Date/Estimate project fields
+    notes_de: Erweitert den GitHub-Adapter um Status-/Datums-/Schätzungsfelder aus Projects
+  asana:
+    name: Asana
+    status: planned
+    issue: 30
+    tier: 1
+    api: REST
+    auth: PAT / OAuth
+    dependencies: native
+    estimates: field
+    due_dates: native
+    multi_assignee: false
+    hierarchy: true
+    events: webhook
+    mcp: official
+    verified: false
+    notes_en: Dependencies need a paid plan; estimates via custom field
+    notes_de: Abhängigkeiten brauchen einen bezahlten Plan; Schätzung über Custom Field
+  clickup:
+    name: ClickUp
+    status: planned
+    issue: 31
+    tier: 2
+    api: REST v2
+    auth: Token / OAuth
+    dependencies: native
+    estimates: native
+    due_dates: native
+    multi_assignee: true
+    hierarchy: true
+    events: webhook
+    mcp: community
+    verified: false
+    notes_en: '"Waiting on / blocking" dependencies; custom statuses carry a type'
+    notes_de: Abhängigkeiten „waiting on / blocking“; eigene Status haben einen Typ
+  monday:
+    name: monday.com
+    status: planned
+    issue: 32
+    tier: 2
+    api: GraphQL
+    auth: API token / OAuth
+    dependencies: relation
+    estimates: field
+    due_dates: field
+    multi_assignee: true
+    hierarchy: true
+    events: webhook
+    mcp: official
+    verified: false
+    notes_en: Everything is a board column, so a column mapping is required
+    notes_de: Alles ist eine Board-Spalte, deshalb ist eine Spalten-Zuordnung nötig
+  wrike:
+    name: Wrike
+    status: planned
+    issue: 33
+    tier: 2
+    api: REST v4
+    auth: OAuth 2.0 / permanent token
+    dependencies: native
+    estimates: field
+    due_dates: native
+    multi_assignee: true
+    hierarchy: true
+    events: webhook
+    mcp: community
+    verified: false
+    notes_en: Finish-to-start etc. dependencies; effort fields depend on plan
+    notes_de: Abhängigkeiten wie Ende-Anfang; Aufwandsfelder hängen vom Plan ab
+  shortcut:
+    name: Shortcut
+    status: planned
+    issue: 34
+    tier: 2
+    api: REST v3
+    auth: API token
+    dependencies: native
+    estimates: native
+    due_dates: native
+    multi_assignee: true
+    hierarchy: true
+    events: webhook
+    mcp: official
+    verified: false
+    notes_en: Story links "blocks"; workflow state types done/started/unstarted
+    notes_de: Story-Links „blocks“; Workflow-Status-Typen done/started/unstarted
+  redmine:
+    name: Redmine
+    status: planned
+    issue: 35
+    tier: 2
+    api: REST (JSON)
+    auth: API key
+    dependencies: native
+    estimates: native
+    due_dates: native
+    multi_assignee: false
+    hierarchy: true
+    events: polling
+    mcp: community
+    verified: false
+    notes_en: Rich relations (blocks/precedes/follows); no core webhooks, so polling
+    notes_de: Viele Beziehungsarten (blocks/precedes/follows); keine Webhooks im Kern, daher Polling
+  gitea:
+    name: Gitea / Forgejo
+    status: planned
+    issue: 36
+    tier: 2
+    api: REST
+    auth: Token
+    dependencies: native
+    estimates: none
+    due_dates: native
+    multi_assignee: true
+    hierarchy: false
+    events: webhook
+    mcp: community
+    verified: false
+    notes_en: Native issue dependencies; no estimates (time tracking only)
+    notes_de: Native Issue-Abhängigkeiten; keine Schätzung (nur Zeiterfassung)
+  taiga:
+    name: Taiga
+    status: planned
+    issue: 37
+    tier: 2
+    api: REST
+    auth: Token / application token
+    dependencies: convention
+    estimates: native
+    due_dates: native
+    multi_assignee: true
+    hierarchy: true
+    events: webhook
+    mcp: none
+    verified: false
+    notes_en: No native dependencies; use "Blocked by #N" lines; points per role
+    notes_de: Keine nativen Abhängigkeiten; „Blocked by #N“-Zeilen nutzen; Punkte pro Rolle
+  notion:
+    name: Notion
+    status: planned
+    issue: 38
+    tier: 2
+    api: REST
+    auth: Integration token / OAuth
+    dependencies: relation
+    estimates: field
+    due_dates: field
+    multi_assignee: true
+    hierarchy: true
+    events: webhook
+    mcp: official
+    verified: false
+    notes_en: Task databases differ per team, so a property mapping is required
+    notes_de: Aufgaben-Datenbanken sind je Team anders, deshalb ist eine Eigenschafts-Zuordnung nötig
+  bugzilla:
+    name: Bugzilla
+    status: planned
+    issue: 39
+    tier: 3
+    api: REST (5.0+)
+    auth: API key
+    dependencies: native
+    estimates: field
+    due_dates: field
+    multi_assignee: false
+    hierarchy: false
+    events: polling
+    mcp: none
+    verified: false
+    notes_en: depends_on/blocks are native; deadline and estimates need time tracking enabled
+    notes_de: depends_on/blocks sind nativ; Termin und Schätzung brauchen aktivierte Zeiterfassung
+  trello:
+    name: Trello
+    status: planned
+    issue: 40
+    tier: 3
+    api: REST
+    auth: API key + token / OAuth
+    dependencies: convention
+    estimates: field
+    due_dates: native
+    multi_assignee: true
+    hierarchy: false
+    events: webhook
+    mcp: community
+    verified: false
+    notes_en: Status = list (column), so a list mapping is required; no native dependencies
+    notes_de: Status = Liste (Spalte), deshalb ist eine Listen-Zuordnung nötig; keine nativen Abhängigkeiten
+  mantis:
+    name: MantisBT
+    status: planned
+    issue: 41
+    tier: 3
+    api: REST (2.x)
+    auth: API token
+    dependencies: native
+    estimates: none
+    due_dates: field
+    multi_assignee: false
+    hierarchy: true
+    events: polling
+    mcp: none
+    verified: false
+    notes_en: '"Child of" relationship used as dependency; due date only if enabled'
+    notes_de: Beziehung „child of“ dient als Abhängigkeit; Fälligkeit nur wenn aktiviert
+  planner:
+    name: Microsoft Planner
+    status: planned
+    issue: 42
+    tier: 3
+    api: Microsoft Graph
+    auth: Entra ID app
+    dependencies: none
+    estimates: none
+    due_dates: native
+    multi_assignee: true
+    hierarchy: false
+    events: polling
+    mcp: community
+    verified: false
+    notes_en: Basic plans via Graph (delta queries); premium dependencies live in Dataverse
+    notes_de: Basis-Pläne über Graph (Delta-Abfragen); Premium-Abhängigkeiten liegen in Dataverse
+  todoist:
+    name: Todoist
+    status: planned
+    issue: 43
+    tier: 3
+    api: REST
+    auth: Token / OAuth
+    dependencies: none
+    estimates: field
+    due_dates: native
+    multi_assignee: false
+    hierarchy: true
+    events: webhook
+    mcp: official
+    verified: false
+    notes_en: Personal/small-team tasks; deadlines and durations, no dependencies
+    notes_de: Persönliche Aufgaben / kleine Teams; Termine und Dauer, keine Abhängigkeiten
+  taskade:
+    name: Taskade
+    status: planned
+    issue: 44
+    tier: 3
+    api: REST
+    auth: Token
+    dependencies: none
+    estimates: none
+    due_dates: native
+    multi_assignee: true
+    hierarchy: true
+    events: polling
+    mcp: official
+    verified: false
+    notes_en: Outline-style projects; check API coverage of assignees and webhooks first
+    notes_de: Gliederungs-Projekte; zuerst API-Abdeckung für Zuständige und Webhooks prüfen

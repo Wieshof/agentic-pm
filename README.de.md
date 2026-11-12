@@ -36,7 +36,7 @@ agentic-pm dreht das um. Die Beteiligten bleiben in dem Kanal, den sie ohnehin n
 
 ```yaml
 project:
-  tracker: github                # Referenz-Adapter (siehe Mitwirken)
+  tracker: github                # oder jira, asana, notion, ... siehe docs/de/trackers.md
   repo: deine-org/dein-repo
   leads: [alex]
   ticket_language: en            # der Agent schreibt Tickets auf Englisch ...
@@ -177,6 +177,7 @@ docs/
   guardrails.md       Berechtigungen, Datenschutz, KPIs
   roadmap.md          phasenweiser Lieferplan
   getting-started.md  Tracker verbinden, Briefings, lokales Modell
+  trackers.md         Übersicht über 22 Tracker (generiert)
   adr/                Architekturentscheidungen (ADRs)
   de/                 deutsche Fassungen aller Dokumente
 ```
@@ -185,7 +186,9 @@ docs/
 
 Siehe [CONTRIBUTING.de.md](CONTRIBUTING.de.md). Designdiskussionen finden in GitHub Issues statt. Jede Roadmap-Phase hat einen Meilenstein.
 
-**Referenz-Adapter: GitHub Issues** ([`adapters/github.py`](src/agentic_pm/adapters/github.py)), in Phase 1 zusammen mit OpenProject gebaut. Neue Tracker-Adapter (Plane, Taiga, GitLab, Jira, Linear, siehe #18) implementieren dasselbe `TrackerAdapter`-Protokoll. Kopiere am besten den GitHub-Adapter samt Tests. Die Tests nutzen aufgezeichnete API-Antworten, Du brauchst also kein Konto.
+**Welche Tracker?** Die [Übersicht](docs/de/trackers.md) zeigt Jira, Asana, monday.com, Notion, Trello, Planner, Linear, GitLab, Redmine und mehr, dazu das [Adapter-Epic #18](https://github.com/Wieshof/agentic-pm/issues/18).
+
+**Referenz-Adapter: GitHub Issues** ([`adapters/github.py`](src/agentic_pm/adapters/github.py)), in Phase 1 zusammen mit OpenProject gebaut. Neue Tracker-Adapter (Plane, Taiga, GitLab, Jira, Linear, siehe #18) implementieren dasselbe `TrackerAdapter`-Protokoll und bestehen die gemeinsame Vertrags-Testsuite (`agentic_pm.testing`). Kopiere am besten den GitHub-Adapter samt Tests. Die Tests nutzen aufgezeichnete API-Antworten, Du brauchst also kein Konto.
 
 ## Lizenz
 

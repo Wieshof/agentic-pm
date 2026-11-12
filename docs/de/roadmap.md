@@ -37,7 +37,7 @@ Jede Phase ist ein GitHub-Meilenstein. Die Phasen bauen aufeinander auf. Jede Ph
 - **Abschluss:** Ein Sprint läuft vollständig ohne separates Reporting-Dashboard
 
 ## Phase 5 — Skalierung & Ökosystem
-- Weitere Adapter: Taiga, GitLab, Jira, Linear
+- Weitere Adapter nach Stufen, siehe [Tracker](trackers.md) und Epic #18
 - Synchronisierung der Präferenzen über SSO (Entra ID / Google Workspace)
 - Multiprojekt- / Portfolio-Ansichten, Policy-as-Code
 - KPI-Messung & Bericht zum Infrastrukturabbau

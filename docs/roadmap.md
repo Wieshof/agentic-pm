@@ -37,7 +37,7 @@ Each phase is a GitHub milestone. The phases build on each other. Every phase en
 - **Exit:** a sprint run end-to-end without a separate reporting dashboard
 
 ## Phase 5 — Scale & Ecosystem
-- Additional adapters: Taiga, GitLab, Jira, Linear
+- Additional adapters by tier, see [trackers](trackers.md) and epic #18
 - SSO preference sync (Entra ID / Google Workspace)
 - Multi-project / portfolio views, policy-as-code
 - KPI measurement & infrastructure-reduction report
