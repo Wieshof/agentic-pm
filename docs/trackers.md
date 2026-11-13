@@ -23,6 +23,7 @@ The matrix is generated from [`catalog.yaml`](../src/agentic_pm/adapters/catalog
 |---|---|---|---|---|---|---|---|---|---|---|
 | **GitHub Issues** | ✅ available | 1 | ✅ | 🧩 | 🧩 | ✅ | ⚡ | ✅ | REST + GraphQL · Token / GitHub App | Due/estimate via body lines or milestone; Projects fields planned |
 | **OpenProject** | ✅ available | 1 | ✅ | ✅ | ✅ | — | ⚡ | 👥 | REST v3 (HAL) · API key | Relations blocks/precedes/follows; tested with recorded responses *(not yet verified live)* |
+| **Gitea / Forgejo** | ✅ available ([#36](https://github.com/Wieshof/agentic-pm/issues/36)) | 2 | ✅ | — | ✅ | ✅ | ⚡ | 👥 | REST · Token | Native issue dependencies; no estimates (time tracking only) *(not yet verified live)* |
 | **Asana** | 🗓️ planned ([#30](https://github.com/Wieshof/agentic-pm/issues/30)) | 1 | ✅ | 🧩 | ✅ | — | ⚡ | ✅ | REST · PAT / OAuth | Dependencies need a paid plan; estimates via custom field *(not yet verified live)* |
 | **Azure DevOps Boards** | 🗓️ planned ([#62](https://github.com/Wieshof/agentic-pm/issues/62)) | 1 | ✅ | ✅ | ✅ | — | ⚡ | ✅ | REST + WIQL · PAT / Entra ID | Predecessor/successor links; effort/story points by process template; service hooks *(not yet verified live)* |
 | **GitHub Projects** | 🗓️ planned ([#29](https://github.com/Wieshof/agentic-pm/issues/29)) | 1 | ✅ | 🧩 | 🧩 | ✅ | ⚡ | ✅ | GraphQL (ProjectsV2) · Token with project scope | Extends the GitHub adapter with Status/Date/Estimate project fields *(not yet verified live)* |
@@ -31,7 +32,6 @@ The matrix is generated from [`catalog.yaml`](../src/agentic_pm/adapters/catalog
 | **Linear** | 🗓️ planned ([#27](https://github.com/Wieshof/agentic-pm/issues/27)) | 1 | ✅ | ✅ | ✅ | — | ⚡ | ✅ | GraphQL · API key / OAuth | Clean fit; state types map directly *(not yet verified live)* |
 | **Plane** | 🗓️ planned ([#28](https://github.com/Wieshof/agentic-pm/issues/28)) | 1 | ✅ | ✅ | ✅ | ✅ | ⚡ | ✅ | REST v1 · API key | Open source, self-hostable; check relation endpoints in the API version you run *(not yet verified live)* |
 | **ClickUp** | 🗓️ planned ([#31](https://github.com/Wieshof/agentic-pm/issues/31)) | 2 | ✅ | ✅ | ✅ | ✅ | ⚡ | 👥 | REST v2 · Token / OAuth | "Waiting on / blocking" dependencies; custom statuses carry a type *(not yet verified live)* |
-| **Gitea / Forgejo** | 🗓️ planned ([#36](https://github.com/Wieshof/agentic-pm/issues/36)) | 2 | ✅ | — | ✅ | ✅ | ⚡ | 👥 | REST · Token | Native issue dependencies; no estimates (time tracking only) *(not yet verified live)* |
 | **Microsoft Project (for the web / Planner Premium)** | 🗓️ planned ([#64](https://github.com/Wieshof/agentic-pm/issues/64)) | 2 | ✅ | ✅ | ✅ | ✅ | 🔄 | — | Dataverse Web API · Entra ID app | Plans live in Dataverse; desktop .mpp files only via export *(not yet verified live)* |
 | **Notion** | 🗓️ planned ([#38](https://github.com/Wieshof/agentic-pm/issues/38)) | 2 | 🔗 | 🧩 | 🧩 | ✅ | ⚡ | ✅ | REST · Integration token / OAuth | Task databases differ per team, so a property mapping is required *(not yet verified live)* |
 | **Redmine** | 🗓️ planned ([#35](https://github.com/Wieshof/agentic-pm/issues/35)) | 2 | ✅ | ✅ | ✅ | — | 🔄 | 👥 | REST (JSON) · API key | Rich relations (blocks/precedes/follows); no core webhooks, so polling *(not yet verified live)* |
@@ -82,6 +82,31 @@ project:
 **Least privilege.** In Phase 1 the agent only reads. Give it a dedicated service account or token with **read-only** access to the projects it should see. Write scopes are only needed from Phase 2 on, and then only for comments and labels at first (see [guardrails](guardrails.md)). Put that account's login into `project.agent_accounts` so its own changes never trigger it.
 
 If you pick a tracker that is known but not built yet, the agent says so in a friendly way and links the issue.
+
+## Gitea / Forgejo mapping
+
+Use `tracker: gitea`, `repo: owner/repository` and `base_url: https://forge.example`
+(include an installation subpath if needed, but not `/api/v1`). Put the read-only token in
+`AGENT_PM_GITEA_TOKEN`. The adapter uses the shared Gitea/Forgejo REST API at `/api/v1`;
+it never sends write requests.
+
+Native open/closed issue state maps to `open`/`done`. Open issues may use
+`status:in-progress`, `status:in-review` or `status:blocked` labels. Gitea does not
+provide a separate cancellation reason, so a closed issue is not guessed to be cancelled.
+Native `due_date`, multiple assignees, comments and both dependency directions are read.
+Pull requests are excluded. Time tracking is not treated as an estimate, and project-board
+columns and sub-issue hierarchies are not inferred.
+
+Webhook consumers must first verify the raw request body using
+`agentic_pm.adapters.gitea.verify_signature` and `X-Gitea-Signature` (or
+`X-Forgejo-Signature`), then pass the `issues` or `issue_comment` event, JSON payload
+and delivery ID to `handle_webhook`. Agent-account, duplicate-delivery and burst filtering
+use the shared webhook gate. Live compatibility has not been verified against a private
+installation; the adapter is tested offline with an anonymized public Forgejo response.
+
+API references: [issue fields](https://docs.gitea.com/api/operations/issue-get-issue/),
+[dependencies](https://docs.gitea.com/api/operations/issue-list-issue-dependencies/) and
+[Forgejo webhooks](https://forgejo.org/docs/latest/user/repository/webhooks/).
 
 ## Your tracker isn't listed?
 

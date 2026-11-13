@@ -50,7 +50,24 @@ def _openproject(project: Project, env: Mapping[str, str]) -> TrackerAdapter:
     return OpenProjectAdapter(project.base_url, api_key=env.get("OPENPROJECT_API_KEY"))
 
 
-_BUILTIN: dict[str, AdapterFactory] = {"github": _github, "openproject": _openproject}
+def _gitea(project: Project, env: Mapping[str, str]) -> TrackerAdapter:
+    from agentic_pm.adapters.gitea import GiteaAdapter
+    from agentic_pm.ingress import WebhookGate
+
+    if not project.base_url:
+        raise AdapterConfigError("project.base_url is required for Gitea / Forgejo")
+    return GiteaAdapter(
+        project.base_url,
+        token=env.get("AGENT_PM_GITEA_TOKEN"),
+        gate=WebhookGate(agent_accounts=project.agent_accounts),
+    )
+
+
+_BUILTIN: dict[str, AdapterFactory] = {
+    "github": _github,
+    "openproject": _openproject,
+    "gitea": _gitea,
+}
 _registered: dict[str, AdapterFactory] = {}
 
 
