@@ -1,5 +1,7 @@
 # Erste Schritte (Phase 1: Einblick, nur lesend)
 
+> Bereit für Schreiben, How-tos, Freigaben und den Team-Takt? Weiter geht's mit [Den Agenten betreiben (Phase 2)](running.md).
+
 🇬🇧 [English](../getting-started.md) · 🇩🇪 Deutsch
 
 In Phase 1 **liest** agentic-pm Deinen Tracker, findet Abhängigkeitsrisiken und schickt jedem „Leser“ eine freundliche Morgen-Mail. In den Tracker schreibt es nichts.

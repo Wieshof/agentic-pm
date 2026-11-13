@@ -1,5 +1,5 @@
 import json
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -169,3 +169,40 @@ async def test_lead_brief_names_tracker_limitations(cfg: Any) -> None:
     assert "Your tracker doesn't provide this" in render_text(d)
     sam = await collect(cfg, "sam", tracker, TODAY)
     assert sam.limitations == []  # only leads see it
+
+
+async def test_collisions_in_briefs(cfg: Any) -> None:
+    from agentic_pm.adapters import InMemoryTracker, Task, TaskRef, TaskStatus
+
+    mon = date(2026, 11, 16)
+
+    def t(i: int, who: str, est: float) -> Task:
+        return Task(
+            ref=TaskRef(tracker="memory", project=cfg.project.repo, id=str(i)),
+            title=f"Task {i}",
+            status=TaskStatus.OPEN,
+            assignees=[who],
+            due=mon + timedelta(days=1),
+            estimate_hours=est,
+        )
+
+    tracker = InMemoryTracker([t(1, "sam", 8), t(2, "sam", 16)])
+    sam = await collect(cfg, "sam", tracker, mon)
+    text = render_text(sam)
+    assert "🧮 Termine, die kollidieren" in text
+    assert "brauchen etwa 3 Tage, es bleiben aber nur 2 Arbeitstage" in text
+    assert "Vielleicht #2 verschieben oder übergeben?" in text
+    alex = await collect(cfg, "alex", tracker, mon)
+    assert "Sam: #1 Task 1 and #2 Task 2 are due by 2026-11-17" in render_text(alex)
+
+
+def test_onboarding_is_transparent_and_friendly(cfg: Any) -> None:
+    from agentic_pm.messages import onboarding
+
+    subject, text = onboarding(cfg, "sam")
+    assert subject.startswith("👋 Hallo Sam")
+    assert "Telefonnummer, WhatsApp" in text and "GitHub Issues" in text
+    assert "keine Bewertungen" in text and "docs/de/people-data.md" in text
+    assert " Sie " not in text
+    subject, text = onboarding(cfg, "alex")
+    assert "no scores" in text and "docs/people-data.md" in text

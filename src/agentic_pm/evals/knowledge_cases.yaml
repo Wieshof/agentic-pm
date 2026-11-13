@@ -1,0 +1,64 @@
+# Evaluation cases for the Knowledge Extractor (issue #10).
+# kind: expected classification. must_contain: words (case-insensitive) the
+# extracted fix/verification must keep, e.g. component names and numbers.
+# ticket_language: the language the how-to must be written in.
+
+- id: solution-en
+  ticket_language: en
+  kind: solution
+  must_contain: [redis, "50"]
+  task: Fix auth timeout
+  message: >-
+    Fixed the auth timeout by increasing the Redis pool size from 10 to 50 and
+    updating the retry header.
+
+- id: solution-de-to-en
+  ticket_language: en
+  kind: solution
+  must_contain: [redis, "50"]
+  task: Fix auth timeout
+  message: >-
+    Ich habe den Auth-Timeout behoben, indem ich die Redis-Poolgröße auf 50
+    erhöht und den Retry-Header angepasst habe.
+
+- id: solution-en-verification
+  ticket_language: en
+  kind: solution
+  must_contain: [index, staging]
+  task: Slow order search
+  message: >-
+    Root cause was a missing index on orders.customer_id. Added the index, the
+    query went from 4s to 80ms, and I checked it on staging.
+
+- id: solution-de-to-de
+  ticket_language: de
+  kind: solution
+  must_contain: [zertifikat]
+  task: Login über HTTPS schlägt fehl
+  message: >-
+    Problem war ein abgelaufenes TLS-Zertifikat am Load Balancer. Ich habe das
+    Zertifikat erneuert und Auto-Renew in cert-manager aktiviert.
+
+- id: status-de
+  ticket_language: en
+  kind: status
+  task: Login UI
+  message: Bin noch dran, brauche wahrscheinlich bis Donnerstag.
+
+- id: question-en
+  ticket_language: en
+  kind: question
+  task: Login UI
+  message: Do we need to support Safari 15 for the login page?
+
+- id: scope-de
+  ticket_language: en
+  kind: scope_change
+  task: Login UI
+  message: Könnt ihr bei der Login-Seite noch einen Dark Mode einbauen?
+
+- id: other-en
+  ticket_language: en
+  kind: other
+  task: Release notes
+  message: Thanks for the reminder!

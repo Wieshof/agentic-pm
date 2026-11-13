@@ -3,12 +3,22 @@
 # Each person controls their own entry; the agent can also update it on request.
 
 project:
-  tracker: github            # github | gitlab | openproject | plane | taiga | jira | linear
+  tracker: github            # see `agent-pm trackers` for all 25 known trackers
   repo: your-org/your-repo
   timezone: Europe/Vienna
   leads: [alex]              # receive high-impact confirmation prompts
   ticket_language: en        # language the agent writes into tickets (how-to docs, comments)
   agent_accounts: [agent-pm-bot]  # tracker logins the agent writes with; their webhooks are ignored
+  allow_writes: false        # opt-in (Phase 2): comments, how-tos, approved changes
+  agent_email: pm@example.com     # replies about a task go to pm+<id>@example.com
+  control_plane_url: https://pm.example.com  # approval links and webhook endpoint
+
+# When the agent does what (`agent-pm run`). "08:30" = weekdays,
+# "daily 08:30", "Fri 15:00", "last_friday 16:00". Times use project.timezone.
+cadence:
+  morning_triage: "08:30"    # personal briefs for everyone without their own brief.when
+  end_of_day: "17:30"        # short note to leads, only if something needs them
+  weekly_digest: "Fri 15:00" # week roll-up for leads
 
 # No secrets in this file! It is committed to the repository. Tokens and
 # passwords come from environment variables only (see README, "Secrets").

@@ -14,6 +14,8 @@ from typing import Annotated, Any, Literal, Self
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
+from agentic_pm.cadence import SPEC_PATTERN
+
 _DAYS = "Mon|Tue|Wed|Thu|Fri|Sat|Sun"
 _HHMM = r"(?:[01]\d|2[0-3]):[0-5]\d"
 
@@ -62,6 +64,28 @@ def find_secrets(data: Any, path: str = "") -> list[str]:
     return hits
 
 
+CadenceSpec = Annotated[str, StringConstraints(pattern=SPEC_PATTERN)]
+"""`"08:30"` (weekdays), `"daily 08:30"`, `"Fri 15:00"`, `"last_friday 16:00"`."""
+
+
+class Cadence(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    morning_triage: CadenceSpec | None = Field(
+        default=None, description="Personal briefs for everyone without their own brief.when"
+    )
+    end_of_day: CadenceSpec | None = Field(
+        default=None, description="Short evening note to leads, only if something needs them"
+    )
+    weekly_digest: CadenceSpec | None = Field(
+        default=None, description="Week roll-up for leads (steering)"
+    )
+    monthly_health_check: CadenceSpec | None = Field(
+        default=None, description="Monthly check against baseline (arrives with issue #54)"
+    )
+    inbox_poll_minutes: int = Field(default=2, ge=1, le=60)
+
+
 Handle = Annotated[str, StringConstraints(pattern=r"^[a-z0-9][a-z0-9._-]*$")]
 Phone = Annotated[str, StringConstraints(pattern=r"^\+[0-9 ]{6,20}$")]
 Email = Annotated[str, StringConstraints(pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")]
@@ -101,7 +125,9 @@ class Channels(_Strict):
 
 
 class Brief(_Strict):
-    when: TimeOfDay
+    when: CadenceSpec | None = Field(
+        default=None, description="Own time; default is cadence.morning_triage"
+    )
     format: BriefFormat
 
 
@@ -158,6 +184,21 @@ class Project(_Strict):
         description="Language the agent writes in the tracker (how-to docs, comments), "
         "independent of the language people speak with it",
     )
+    allow_writes: bool = Field(
+        default=False,
+        description="Opt-in: let the agent write to the tracker (comments, labels, fields), "
+        "always behind the permission tiers",
+    )
+    agent_email: str | None = Field(
+        default=None,
+        description="The agent's mailbox, e.g. pm@acme.com. Replies about a task go to "
+        "plus-addresses like pm+142@acme.com",
+    )
+    control_plane_url: str | None = Field(
+        default=None,
+        description="Public URL of `agent-pm run` (approval links, webhooks), "
+        "e.g. https://pm.acme.com",
+    )
     agent_accounts: list[str] = Field(
         default_factory=list,
         description="Tracker logins the agent writes with (service accounts). Webhooks "
@@ -202,6 +243,32 @@ class TeamConfig(_Strict):
     project: Project
     people: dict[Handle, Person] = Field(min_length=1)
     llm: LLMSettings = LLMSettings()
+    cadence: Cadence = Cadence()
+
+    # ------------------------------------------------------------ lookups
+
+    def handle_for_login(self, login: str) -> str | None:
+        return next(
+            (h for h, p in self.people.items() if p.login(h).lower() == login.lower()), None
+        )
+
+    def handle_for_email(self, email: str) -> str | None:
+        return next(
+            (
+                h
+                for h, p in self.people.items()
+                if p.channels.email and p.channels.email.lower() == email.lower()
+            ),
+            None,
+        )
+
+    def display_name(self, handle: str) -> str:
+        person = self.people.get(handle)
+        return (person.name if person and person.name else None) or handle.capitalize()
+
+    def language_of(self, handle: str) -> str:
+        person = self.people.get(handle)
+        return person.language if person else "en"
 
     @model_validator(mode="after")
     def _check_consistency(self) -> Self:
@@ -228,6 +295,10 @@ class TeamConfig(_Strict):
                 errors.append(
                     f"people.{handle}: brief format '{p.brief.format}' needs one of channels "
                     f"{_FORMAT_NEEDS[p.brief.format]}"
+                )
+            if p.brief and p.brief.when is None and self.cadence.morning_triage is None:
+                errors.append(
+                    f"people.{handle}: brief.when is missing and cadence.morning_triage is not set"
                 )
             if p.check_in and not p.channels.has("phone"):
                 errors.append(f"people.{handle}: check_in requires a phone channel")

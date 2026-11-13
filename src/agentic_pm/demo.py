@@ -37,6 +37,7 @@ def demo_tracker(project: str, today: date) -> InMemoryTracker:
         task(15, "Quarterly roadmap review", "alex", -1),
         task(16, "Docs cleanup", "alex", None),
         task(17, "API schema v2", "kim", 6),
+        task(19, "Accessibility review", "kim", 2, estimate_hours=8),
         task(18, "SDK update", "sam", 7),
     ]
 

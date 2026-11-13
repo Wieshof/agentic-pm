@@ -59,3 +59,21 @@ def parse_issue_links(text: str | None) -> tuple[list[str], list[str]]:
     blocked_by = [n for line in _BLOCKED_BY.findall(text) for n in _ISSUE_NO.findall(line)]
     blocks = [n for line in _BLOCKS.findall(text) for n in _ISSUE_NO.findall(line)]
     return blocked_by, blocks
+
+
+def format_hours(hours: float) -> str:
+    """16 -> '2d', 4 -> '4h', 40 -> '1w' (inverse of parse_estimate)."""
+    for unit in ("w", "d"):
+        size = HOURS_PER[unit]
+        if hours >= size and hours % size == 0:
+            return f"{int(hours // size)}{unit}"
+    return f"{hours:g}h"
+
+
+def set_body_field(body: str, field: str, value: str) -> str:
+    """Replace an existing `Field: value` line, or append one at the end."""
+    pattern = re.compile(rf"^(\s*){re.escape(field)}\s*:.*$", re.I | re.M)
+    if pattern.search(body):
+        return pattern.sub(lambda m: f"{m.group(1)}{field}: {value}", body, count=1)
+    sep = "" if not body or body.endswith("\n") else "\n"
+    return f"{body}{sep}{field}: {value}\n"

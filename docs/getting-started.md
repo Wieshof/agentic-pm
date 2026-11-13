@@ -1,5 +1,7 @@
 # Getting started (Phase 1: read-only insight)
 
+> Ready for writes, how-tos, approvals and the team cadence? Continue with [Running the agent (Phase 2)](running.md).
+
 🇬🇧 English · 🇩🇪 [Deutsch](de/getting-started.md)
 
 In Phase 1, agentic-pm **reads** your tracker, finds dependency risks and sends each "Reader" a friendly morning email. It never writes to the tracker.

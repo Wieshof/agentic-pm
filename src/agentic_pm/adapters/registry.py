@@ -39,6 +39,7 @@ def _github(project: Project, env: Mapping[str, str]) -> TrackerAdapter:
         token=env.get("AGENT_PM_GITHUB_TOKEN") or env.get("GITHUB_TOKEN"),
         api_url=project.base_url or "https://api.github.com",
         gate=WebhookGate(agent_accounts=project.agent_accounts),
+        allow_writes=project.allow_writes,
     )
 
 

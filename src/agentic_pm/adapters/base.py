@@ -104,6 +104,9 @@ class AuditMeta(_Model):
     channel: Channel
     reason: str
     approved_by: str | None = None
+    request_id: str | None = Field(
+        default=None, description="Approval request this write belongs to (idempotency)"
+    )
 
 
 class TrackerEventKind(StrEnum):

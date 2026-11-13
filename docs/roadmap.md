@@ -16,7 +16,10 @@ Each phase is a GitHub milestone. The phases build on each other. Every phase en
 - Morning email brief for "Readers"
 - **Exit:** a pilot team gets accurate daily briefs with zero writes
 
-## Phase 2 — Write-back, Documentation & Cadence
+## Phase 2 — Write-back, Documentation & Cadence ✅ built · pilot pending
+
+See [Running the agent](running.md).
+
 - Low-risk write tier with audit trail (comments, labels, blocker tags)
 - Email plus-addressing routing (`pm+repo-task142@…`)
 - Knowledge Extractor: email/chat → how-to Markdown on the ticket

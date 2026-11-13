@@ -10,6 +10,7 @@ from agentic_pm.adapters.base import (
     Comment,
     Edge,
     EventHandler,
+    ReadOnlyAdapterError,
     Task,
     TaskNotFoundError,
     TaskPatch,
@@ -64,7 +65,12 @@ class InMemoryTracker:
         self._require(ref)
         return [e for e in self._edges if ref in (e.source, e.target)]
 
+    def _check_writes(self) -> None:
+        if not self.capabilities.writes:
+            raise ReadOnlyAdapterError("writes are disabled for this tracker")
+
     async def add_comment(self, ref: TaskRef, markdown: str, meta: AuditMeta) -> None:
+        self._check_writes()
         task = self._require(ref)
         body = f"{markdown}\n\n{render_audit_footer(meta)}"
         comment = Comment(author="agent-pm", body=body, created_at=datetime.now(UTC))
@@ -72,6 +78,7 @@ class InMemoryTracker:
         await self._emit(TrackerEventKind.COMMENTED, ref, ["comments"])
 
     async def update_fields(self, ref: TaskRef, patch: TaskPatch, meta: AuditMeta) -> Task:
+        self._check_writes()
         task = self._require(ref)
         update: dict[str, object] = {}
         for field in ("status", "due", "estimate_hours", "assignees"):

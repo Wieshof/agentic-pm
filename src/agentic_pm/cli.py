@@ -187,7 +187,54 @@ def _trackers(args: argparse.Namespace) -> int:
     return 0
 
 
+async def _run(args: argparse.Namespace) -> int:
+    from agentic_pm.notify import RecordingNotifier
+    from agentic_pm.runtime import build_runtime
+
+    cfg, today = _load(args)
+    adapter = _adapter(cfg, args, today)
+    rt = build_runtime(cfg, adapter, dry_run=args.dry_run, use_llm=not args.no_llm)
+    if args.once:
+        result = await rt.run_once(args.once)
+        if isinstance(rt.notifier, RecordingNotifier):
+            for m in rt.notifier.sent:
+                print(f"--- to {m.handle}: {m.subject}\n{m.text}\n")
+        print(f"✓ {args.once}: {result}")
+        return 0
+    jobs = rt.jobs()
+    print(f"agent-pm running: {len(jobs)} scheduled job(s), web on :{args.port}")
+    for j in jobs:
+        print(f"  • {j.name} ({j.spec}, {cfg.project.timezone})")
+    await rt.serve(port=args.port)
+    return 0
+
+
+async def _onboarding(args: argparse.Namespace) -> int:
+    from agentic_pm.messages import onboarding
+    from agentic_pm.notify import EmailNotifier
+
+    cfg, _ = _load(args)
+    handles = list(cfg.people) if args.all else [args.person]
+    for handle in handles:
+        if handle not in cfg.people:
+            print(f"✗ unknown person: {handle}", file=sys.stderr)
+            return 2
+        subject, text = onboarding(cfg, handle)
+        if args.send:
+            ok = await EmailNotifier(cfg).notify(handle, subject, text)
+            print(f"{'✓ sent to' if ok else '✗ no email channel for'} {handle}")
+        else:
+            print(f"--- {handle}: {subject}\n{text}\n")
+    return 0
+
+
 def _eval(args: argparse.Namespace) -> int:
+    if args.suite == "knowledge":
+        from agentic_pm.evals.knowledge import run as run_knowledge
+
+        return asyncio.run(
+            run_knowledge(args.model, args.base_url, args.reasoning_effort, args.cases)
+        )
     from agentic_pm.evals.brief_summary import run
 
     return asyncio.run(run(args.model, args.base_url, args.reasoning_effort, args.cases))
@@ -217,12 +264,29 @@ def main(argv: list[str] | None = None) -> int:
     b.add_argument("--out", help="write files to this directory instead of stdout")
     b.add_argument("--llm", action="store_true", help="add a short summary from the local LLM")
     b.add_argument("--send", action="store_true", help="send via SMTP (AGENT_PM_SMTP_* env)")
+    r = sub.add_parser("run", help="run the agent: cadence, approvals web, webhooks, inbox")
+    common(r)
+    r.add_argument(
+        "--once",
+        choices=["briefs", "end_of_day", "weekly_digest", "monthly_health_check", "inbox"],
+        help="run one job now and exit (for cron)",
+    )
+    r.add_argument("--dry-run", action="store_true", help="print messages instead of sending")
+    r.add_argument("--no-llm", action="store_true", help="skip the local model")
+    r.add_argument("--port", type=int, default=8787)
+    o = sub.add_parser("onboarding", help="friendly intro message: what the agent does with data")
+    common(o)
+    ow = o.add_mutually_exclusive_group(required=True)
+    ow.add_argument("--person")
+    ow.add_argument("--all", action="store_true")
+    o.add_argument("--send", action="store_true", help="send by email instead of printing")
     t = sub.add_parser("trackers", help="list supported and planned trackers")
     t.add_argument("--tier", type=int, choices=[1, 2, 3])
     t.add_argument("--write-docs", action="store_true", help="update the matrix in docs/")
     t.add_argument("--check-docs", action="store_true", help="fail if docs are outdated")
     e = sub.add_parser("eval", help="evaluate the brief summary against a local model")
     e.add_argument("--model", required=True)
+    e.add_argument("--suite", choices=["brief", "knowledge"], default="brief")
     e.add_argument("--base-url", default="http://localhost:11434/v1")
     e.add_argument("--reasoning-effort", default="none")
     e.add_argument("--cases", help="YAML file with cases (default: built-in set)")
@@ -242,6 +306,10 @@ def main(argv: list[str] | None = None) -> int:
         return asyncio.run(_deps(args))
     if args.cmd == "brief":
         return asyncio.run(_brief(args))
+    if args.cmd == "onboarding":
+        return asyncio.run(_onboarding(args))
+    if args.cmd == "run":
+        return asyncio.run(_run(args))
     if args.cmd == "trackers":
         return _trackers(args)
     if args.cmd == "eval":

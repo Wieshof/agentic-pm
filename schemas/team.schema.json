@@ -14,16 +14,24 @@
       "additionalProperties": false,
       "properties": {
         "when": {
-          "pattern": "^(?:(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun) )?(?:[01]\\d|2[0-3]):[0-5]\\d$",
-          "title": "When",
-          "type": "string"
+          "anyOf": [
+            {
+              "pattern": "^(?:(?:daily|Mon|Tue|Wed|Thu|Fri|Sat|Sun) )?(?:[01]\\d|2[0-3]):[0-5]\\d$|^(?:first|last)_(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?: (?:[01]\\d|2[0-3]):[0-5]\\d)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Own time; default is cadence.morning_triage",
+          "title": "When"
         },
         "format": {
           "$ref": "#/$defs/BriefFormat"
         }
       },
       "required": [
-        "when",
         "format"
       ],
       "title": "Brief",
@@ -37,6 +45,76 @@
       ],
       "title": "BriefFormat",
       "type": "string"
+    },
+    "Cadence": {
+      "additionalProperties": false,
+      "properties": {
+        "morning_triage": {
+          "anyOf": [
+            {
+              "pattern": "^(?:(?:daily|Mon|Tue|Wed|Thu|Fri|Sat|Sun) )?(?:[01]\\d|2[0-3]):[0-5]\\d$|^(?:first|last)_(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?: (?:[01]\\d|2[0-3]):[0-5]\\d)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Personal briefs for everyone without their own brief.when",
+          "title": "Morning Triage"
+        },
+        "end_of_day": {
+          "anyOf": [
+            {
+              "pattern": "^(?:(?:daily|Mon|Tue|Wed|Thu|Fri|Sat|Sun) )?(?:[01]\\d|2[0-3]):[0-5]\\d$|^(?:first|last)_(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?: (?:[01]\\d|2[0-3]):[0-5]\\d)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Short evening note to leads, only if something needs them",
+          "title": "End Of Day"
+        },
+        "weekly_digest": {
+          "anyOf": [
+            {
+              "pattern": "^(?:(?:daily|Mon|Tue|Wed|Thu|Fri|Sat|Sun) )?(?:[01]\\d|2[0-3]):[0-5]\\d$|^(?:first|last)_(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?: (?:[01]\\d|2[0-3]):[0-5]\\d)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Week roll-up for leads (steering)",
+          "title": "Weekly Digest"
+        },
+        "monthly_health_check": {
+          "anyOf": [
+            {
+              "pattern": "^(?:(?:daily|Mon|Tue|Wed|Thu|Fri|Sat|Sun) )?(?:[01]\\d|2[0-3]):[0-5]\\d$|^(?:first|last)_(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?: (?:[01]\\d|2[0-3]):[0-5]\\d)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Monthly check against baseline (arrives with issue #54)",
+          "title": "Monthly Health Check"
+        },
+        "inbox_poll_minutes": {
+          "default": 2,
+          "maximum": 60,
+          "minimum": 1,
+          "title": "Inbox Poll Minutes",
+          "type": "integer"
+        }
+      },
+      "title": "Cadence",
+      "type": "object"
     },
     "Channels": {
       "additionalProperties": false,
@@ -274,7 +352,9 @@
       "additionalProperties": false,
       "properties": {
         "tracker": {
-          "$ref": "#/$defs/Tracker"
+          "description": "Tracker key from the catalog (`agent-pm trackers`), e.g. github, jira, or an installed plugin",
+          "title": "Tracker",
+          "type": "string"
         },
         "repo": {
           "description": "GitHub 'owner/repo', or OpenProject project identifier",
@@ -293,6 +373,12 @@
           "default": null,
           "description": "Tracker URL, required for self-hosted trackers (OpenProject)",
           "title": "Base Url"
+        },
+        "tracker_options": {
+          "additionalProperties": true,
+          "description": "Tracker-specific mapping, e.g. status_map for Trello lists or property names for Notion databases (never secrets)",
+          "title": "Tracker Options",
+          "type": "object"
         },
         "timezone": {
           "default": "UTC",
@@ -323,6 +409,38 @@
           "title": "Ticket Language",
           "type": "string"
         },
+        "allow_writes": {
+          "default": false,
+          "description": "Opt-in: let the agent write to the tracker (comments, labels, fields), always behind the permission tiers",
+          "title": "Allow Writes",
+          "type": "boolean"
+        },
+        "agent_email": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The agent's mailbox, e.g. pm@acme.com. Replies about a task go to plus-addresses like pm+142@acme.com",
+          "title": "Agent Email"
+        },
+        "control_plane_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Public URL of `agent-pm run` (approval links, webhooks), e.g. https://pm.acme.com",
+          "title": "Control Plane Url"
+        },
         "agent_accounts": {
           "description": "Tracker logins the agent writes with (service accounts). Webhooks caused by these accounts are ignored to prevent self-triggering loops.",
           "items": {
@@ -339,19 +457,6 @@
       ],
       "title": "Project",
       "type": "object"
-    },
-    "Tracker": {
-      "enum": [
-        "github",
-        "gitlab",
-        "openproject",
-        "plane",
-        "taiga",
-        "jira",
-        "linear"
-      ],
-      "title": "Tracker",
-      "type": "string"
     }
   },
   "additionalProperties": false,
@@ -376,6 +481,16 @@
         "model": "llama3.1:8b",
         "base_url": "http://localhost:11434/v1",
         "reasoning_effort": null
+      }
+    },
+    "cadence": {
+      "$ref": "#/$defs/Cadence",
+      "default": {
+        "morning_triage": null,
+        "end_of_day": null,
+        "weekly_digest": null,
+        "monthly_health_check": null,
+        "inbox_poll_minutes": 2
       }
     }
   },

@@ -24,7 +24,13 @@ from typing import Any
 
 import httpx
 
-from agentic_pm.adapters._text import parse_due, parse_estimate, parse_issue_links
+from agentic_pm.adapters._text import (
+    format_hours,
+    parse_due,
+    parse_estimate,
+    parse_issue_links,
+    set_body_field,
+)
 from agentic_pm.adapters.base import (
     AuditMeta,
     Comment,
@@ -42,6 +48,7 @@ from agentic_pm.adapters.base import (
     Unsubscribe,
 )
 from agentic_pm.adapters.catalog import load_catalog
+from agentic_pm.audit import render_audit_footer
 from agentic_pm.ingress import Decision, WebhookGate
 
 _STATUS_LABELS: dict[str, TaskStatus] = {
@@ -74,7 +81,6 @@ def verify_signature(secret: str, body: bytes, signature_header: str | None) -> 
 
 class GitHubAdapter:
     name = "github"
-    capabilities = load_catalog()["github"].capabilities(writes=False)
 
     def __init__(
         self,
@@ -82,7 +88,10 @@ class GitHubAdapter:
         api_url: str = "https://api.github.com",
         transport: httpx.AsyncBaseTransport | None = None,
         gate: WebhookGate | None = None,
+        allow_writes: bool = False,
     ) -> None:
+        # Writes are opt-in per project (`project.allow_writes`); Phase 1 behaviour otherwise.
+        self.capabilities = load_catalog()["github"].capabilities(writes=allow_writes)
         # Self-trigger protection + de-duplication for incoming webhooks.
         self.gate = gate or WebhookGate()
         headers = {
@@ -103,6 +112,21 @@ class GitHubAdapter:
     async def _get(self, url: str, params: dict[str, Any] | None = None) -> httpx.Response:
         try:
             resp = await self._client.get(url, params=params)
+        except httpx.HTTPError as e:
+            raise GitHubError(f"GitHub request failed: {e}") from e
+        if resp.status_code == 404:
+            raise TaskNotFoundError(url)
+        if resp.status_code >= 400:
+            raise GitHubError(f"GitHub {resp.status_code} for {url}: {resp.text[:200]}")
+        return resp
+
+    async def _send(self, method: str, url: str, payload: dict[str, Any]) -> httpx.Response:
+        if not self.capabilities.writes:
+            raise ReadOnlyAdapterError(
+                "writes are disabled for this project (set project.allow_writes: true)"
+            )
+        try:
+            resp = await self._client.request(method, url, json=payload)
         except httpx.HTTPError as e:
             raise GitHubError(f"GitHub request failed: {e}") from e
         if resp.status_code == 404:
@@ -210,10 +234,68 @@ class GitHubAdapter:
         return list(unique.values())
 
     async def add_comment(self, ref: TaskRef, markdown: str, meta: AuditMeta) -> None:
-        raise ReadOnlyAdapterError("GitHub adapter is read-only in Phase 1")
+        body = f"{markdown}\n\n{render_audit_footer(meta)}"
+        await self._send("POST", f"/repos/{ref.project}/issues/{ref.id}/comments", {"body": body})
 
     async def update_fields(self, ref: TaskRef, patch: TaskPatch, meta: AuditMeta) -> Task:
-        raise ReadOnlyAdapterError("GitHub adapter is read-only in Phase 1")
+        """Apply a patch in one PATCH request, then leave an audited comment.
+
+        Status `done`/`closed` close the issue; other statuses reopen it and set a
+        `status:*` label. Due date and estimate are kept as `Due:` / `Estimate:`
+        lines in the body (GitHub has no native fields for them).
+        """
+        if not self.capabilities.writes:
+            raise ReadOnlyAdapterError(
+                "writes are disabled for this project (set project.allow_writes: true)"
+            )
+        base = f"/repos/{ref.project}/issues/{ref.id}"
+        issue = (await self._get(base)).json()
+        before = self._to_task(ref.project, issue, [])
+        labels = [lbl["name"] if isinstance(lbl, dict) else str(lbl) for lbl in issue["labels"]]
+        body = issue.get("body") or ""
+        payload: dict[str, Any] = {}
+        changes: list[str] = []
+
+        if patch.status is not None and patch.status != before.status:
+            labels = [lbl for lbl in labels if lbl.lower() not in _STATUS_LABELS]
+            if patch.status in (TaskStatus.DONE, TaskStatus.CLOSED):
+                payload["state"] = "closed"
+                payload["state_reason"] = (
+                    "completed" if patch.status is TaskStatus.DONE else "not_planned"
+                )
+            else:
+                payload["state"] = "open"
+                if patch.status is not TaskStatus.OPEN:
+                    labels.append(f"status:{patch.status.value.replace('_', '-')}")
+            payload["labels"] = labels
+            changes.append(f"status {before.status.value} → {patch.status.value}")
+        if patch.add_labels or patch.remove_labels:
+            labels = [lbl for lbl in labels if lbl not in patch.remove_labels]
+            labels += [lbl for lbl in patch.add_labels if lbl not in labels]
+            payload["labels"] = labels
+            if patch.add_labels:
+                changes.append("labels +" + ", +".join(patch.add_labels))
+            if patch.remove_labels:
+                changes.append("labels -" + ", -".join(patch.remove_labels))
+        if patch.assignees is not None and sorted(patch.assignees) != sorted(before.assignees):
+            payload["assignees"] = patch.assignees
+            changes.append(
+                f"assignees {', '.join(before.assignees) or '-'} → {', '.join(patch.assignees)}"
+            )
+        if patch.due is not None and patch.due != before.due:
+            body = set_body_field(body, "Due", patch.due.isoformat())
+            payload["body"] = body
+            changes.append(f"due {before.due or '-'} → {patch.due}")
+        if patch.estimate_hours is not None and patch.estimate_hours != before.estimate_hours:
+            body = set_body_field(body, "Estimate", format_hours(patch.estimate_hours))
+            payload["body"] = body
+            changes.append(f"estimate → {format_hours(patch.estimate_hours)}")
+
+        if payload:
+            await self._send("PATCH", base, payload)
+            summary = "Updated by agent-pm: " + "; ".join(changes) + f".\n\n_{meta.reason}_"
+            await self.add_comment(ref, summary, meta)
+        return await self.get_task(ref)
 
     def subscribe(self, handler: EventHandler) -> Unsubscribe:
         self._handlers.append(handler)

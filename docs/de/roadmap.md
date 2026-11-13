@@ -16,7 +16,10 @@ Jede Phase ist ein GitHub-Meilenstein. Die Phasen bauen aufeinander auf. Jede Ph
 - Morgendliches E-Mail-Briefing für „Leser“
 - **Abschluss:** Ein Pilotteam erhält korrekte tägliche Briefings, ohne dass der Agent etwas schreibt
 
-## Phase 2 — Zurückschreiben, Dokumentation & Takt
+## Phase 2 — Zurückschreiben, Dokumentation & Takt ✅ gebaut · Pilot steht aus
+
+Siehe [Den Agenten betreiben](running.md).
+
 - Schreibstufe „geringes Risiko“ mit Audit-Trail (Kommentare, Labels, Blocker-Tags)
 - E-Mail-Routing per Plus-Adressierung (`pm+repo-task142@…`)
 - Wissensextraktion: E-Mail/Chat → How-to-Markdown im Ticket

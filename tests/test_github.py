@@ -9,7 +9,7 @@ import pytest
 
 from agentic_pm.adapters import AuditMeta, Channel, TaskRef, TaskStatus, TrackerAdapter
 from agentic_pm.adapters._text import parse_due, parse_estimate, parse_issue_links
-from agentic_pm.adapters.base import EdgeKind, ReadOnlyAdapterError, TaskNotFoundError
+from agentic_pm.adapters.base import EdgeKind, ReadOnlyAdapterError, TaskNotFoundError, TaskPatch
 from agentic_pm.adapters.github import GitHubAdapter, verify_signature
 
 REPO = "acme/app"
@@ -191,3 +191,92 @@ async def test_webhook_events() -> None:
     assert e2 is not None and e2.kind == "commented"
     assert e3 is None
     assert len(got) == 2
+
+
+def writer(issue_data: dict[str, Any], sent: list[tuple[str, str, Any]]) -> GitHubAdapter:
+    def handler(req: httpx.Request) -> httpx.Response:
+        if req.method == "GET":
+            return httpx.Response(200, json=issue_data)
+        payload = json.loads(req.content)
+        sent.append((req.method, req.url.path, payload))
+        if req.method == "PATCH":
+            issue_data.update({k: v for k, v in payload.items() if k != "labels"})
+            if "labels" in payload:
+                issue_data["labels"] = [{"name": n} for n in payload["labels"]]
+        return httpx.Response(200, json={})
+
+    return GitHubAdapter(
+        token="t",
+        api_url="https://gh.test",
+        transport=httpx.MockTransport(handler),
+        allow_writes=True,
+    )
+
+
+async def test_writes_need_opt_in() -> None:
+    a = adapter({f"/repos/{REPO}/issues/1": issue(1)})
+    assert not a.capabilities.writes
+    with pytest.raises(ReadOnlyAdapterError, match="allow_writes"):
+        await a.update_fields(
+            ref(1),
+            TaskPatch(add_labels=["x"]),
+            AuditMeta(actor="a", channel=Channel.SYSTEM, reason="r"),
+        )
+
+
+async def test_comment_carries_audit_footer() -> None:
+    sent: list[tuple[str, str, Any]] = []
+    a = writer(issue(1), sent)
+    await a.add_comment(
+        ref(1),
+        "### How it was solved",
+        AuditMeta(actor="sam", channel=Channel.EMAIL, reason="how-to"),
+    )
+    method, path, payload = sent[0]
+    assert (method, path) == ("POST", f"/repos/{REPO}/issues/1/comments")
+    assert "agent-pm-audit" in payload["body"]
+
+
+async def test_update_fields_patch_and_comment() -> None:
+    sent: list[tuple[str, str, Any]] = []
+    data = issue(
+        1,
+        body="Context\nDue: 2026-12-01\n",
+        labels=[{"name": "status:in-progress"}, {"name": "bug"}],
+    )
+    a = writer(data, sent)
+    meta = AuditMeta(actor="agent", channel=Channel.SYSTEM, reason="slip detected")
+    t = await a.update_fields(
+        ref(1),
+        TaskPatch(
+            due=date(2026, 12, 3), estimate_hours=16, status=TaskStatus.BLOCKED, add_labels=["risk"]
+        ),
+        meta,
+    )
+    patch = next(p for m, _, p in sent if m == "PATCH")
+    assert "Due: 2026-12-03" in patch["body"] and "Estimate: 2d" in patch["body"]
+    assert patch["state"] == "open"
+    assert set(patch["labels"]) == {"bug", "status:blocked", "risk"}
+    comment = next(p for m, path, p in sent if m == "POST")
+    assert "due 2026-12-01 → 2026-12-03" in comment["body"] and "slip detected" in comment["body"]
+    assert t.due == date(2026, 12, 3) and t.status is TaskStatus.BLOCKED
+
+
+async def test_done_closes_issue_and_noop_writes_nothing() -> None:
+    sent: list[tuple[str, str, Any]] = []
+    a = writer(issue(1), sent)
+    meta = AuditMeta(actor="agent", channel=Channel.SYSTEM, reason="done")
+    await a.update_fields(ref(1), TaskPatch(status=TaskStatus.DONE), meta)
+    assert sent[0][2]["state"] == "closed" and sent[0][2]["state_reason"] == "completed"
+    sent.clear()
+    await a.update_fields(ref(1), TaskPatch(assignees=["sam"]), meta)  # unchanged
+    assert sent == []
+
+
+def test_body_field_helpers() -> None:
+    from agentic_pm.adapters._text import format_hours, set_body_field
+
+    assert set_body_field("a\nDue: 2026-01-01\nb", "Due", "2026-02-02") == "a\nDue: 2026-02-02\nb"
+    assert set_body_field("a", "Due", "2026-02-02") == "a\nDue: 2026-02-02\n"
+    assert set_body_field("", "Estimate", "4h") == "Estimate: 4h\n"
+    assert [format_hours(h) for h in (4, 8, 12, 40, 0.5)] == ["4h", "1d", "12h", "1w", "0.5h"]

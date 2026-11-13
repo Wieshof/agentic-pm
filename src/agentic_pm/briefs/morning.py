@@ -14,6 +14,7 @@ from pydantic import BaseModel
 
 from agentic_pm.adapters.base import Task, TaskStatus, TrackerAdapter
 from agentic_pm.config.team import TeamConfig
+from agentic_pm.engine.capacity import Collision, find_collisions
 from agentic_pm.engine.dependencies import DependencyGraph, Risk
 
 
@@ -38,11 +39,18 @@ class BriefData(BaseModel):
     cycles: list[list[str]] = []
     open_count: int = 0
     limitations: list[str] = []
+    my_collisions: list[Collision] = []
+    team_collisions: list[Collision] = []
     names: dict[str, str] = {}
 
     @property
     def attention_count(self) -> int:
-        return len(self.overdue) + len(self.my_risks) + len(self.waiting_on_me)
+        return (
+            len(self.overdue)
+            + len(self.my_risks)
+            + len(self.waiting_on_me)
+            + len(self.my_collisions)
+        )
 
     @property
     def is_quiet(self) -> bool:
@@ -54,6 +62,8 @@ class BriefData(BaseModel):
             or self.waiting_on_me
             or self.team_risks
             or self.cycles
+            or self.my_collisions
+            or self.team_collisions
         )
 
 
@@ -74,6 +84,7 @@ async def collect(
     )
     horizon = today + timedelta(days=cfg.project.brief_horizon_days)
     risks = graph.risks(today)
+    collisions = find_collisions(graph, today)
     is_lead = handle in cfg.project.leads
     my_risks = [r for r in risks if login in r.task.assignees]
     at_risk_ids = {str(r.task.ref) for r in my_risks}
@@ -104,6 +115,8 @@ async def collect(
         cycles=[[f"#{r.id}" for r in c] for c in graph.cycles()] if is_lead else [],
         open_count=len(mine),
         limitations=graph.limitations() if is_lead else [],
+        my_collisions=[c for c in collisions if c.login == login],
+        team_collisions=[c for c in collisions if c.login != login] if is_lead else [],
         names={p.login(h): p.name or h.capitalize() for h, p in cfg.people.items()},
     )
 
@@ -134,6 +147,13 @@ T: dict[str, dict[str, str]] = {
         "blocked_by": "{task}, blocked by {refs}",
         "footer": "You have {tasks}. Just reply to this email if anything looks off. 💬",
         "summary": "In short",
+        "collisions": "🧮 Deadlines that collide",
+        "team_collisions": "🧮 Deadlines that collide in the team",
+        "collision": "{tasks} are due by {by} and need about {need}, but only {left} left.",
+        "collision_move": " Maybe move {id} or hand it over?",
+        "collision_all_critical": " Others are waiting on all of them, so let's look at "
+        "priorities together.",
+        "and": "and",
         "limits": "🔍 Your tracker doesn't provide this, so I can't check it",
         "limit_dependencies": "dependencies (no risk warnings for blocked tasks)",
         "limit_due_dates": "due dates",
@@ -162,6 +182,14 @@ T: dict[str, dict[str, str]] = {
         "blocked_by": "{task}, blockiert durch {refs}",
         "footer": "Du hast {tasks}. Antworte einfach auf diese Mail, wenn etwas nicht stimmt. 💬",
         "summary": "Kurz gesagt",
+        "collisions": "🧮 Termine, die kollidieren",
+        "team_collisions": "🧮 Termine, die im Team kollidieren",
+        "collision": "{tasks} sind bis {by} fällig und brauchen etwa {need}, es bleiben aber "
+        "nur {left}.",
+        "collision_move": " Vielleicht {id} verschieben oder übergeben?",
+        "collision_all_critical": " Auf alle davon warten andere, lass uns gemeinsam auf die "
+        "Prioritäten schauen.",
+        "and": "und",
         "limits": "🔍 Dein Tracker liefert das nicht, deshalb kann ich es nicht prüfen",
         "limit_dependencies": "Abhängigkeiten (keine Risiko-Warnungen für blockierte Aufgaben)",
         "limit_due_dates": "Fälligkeiten",
@@ -172,11 +200,13 @@ T: dict[str, dict[str, str]] = {
 _PLURALS: dict[str, dict[str, tuple[str, str, str]]] = {
     "en": {
         "days": ("0 days", "1 day", "{n} days"),
+        "workdays": ("no working days", "1 working day", "{n} working days"),
         "things": ("nothing needs you", "1 thing needs you", "{n} things need you"),
         "tasks": ("no open tasks", "1 open task", "{n} open tasks"),
     },
     "de": {
         "days": ("0 Tage", "1 Tag", "{n} Tage"),
+        "workdays": ("keine Arbeitstage", "1 Arbeitstag", "{n} Arbeitstage"),
         "things": ("nichts braucht Dich", "1 Sache braucht Dich", "{n} Sachen brauchen Dich"),
         "tasks": ("keine offenen Aufgaben", "1 offene Aufgabe", "{n} offene Aufgaben"),
     },
@@ -237,13 +267,32 @@ def _sections(d: BriefData) -> list[tuple[str, list[str]]]:
         else _label(b.task)
         for b in d.blocked
     ]
+
+    def collision(c: Collision, with_name: bool) -> str:
+        labels = [_label(t) for t in c.tasks]
+        joined = ", ".join(labels[:-1]) + f" {tr['and']} " + labels[-1]
+        days_needed = max(1, round(c.needed_hours / 8))
+        text = tr["collision"].format(
+            tasks=joined,
+            by=c.by.isoformat(),
+            need=plural(lang, "days", days_needed),
+            left=plural(lang, "workdays", int(c.available_hours // 8)),
+        )
+        if c.suggestion_id:
+            text += tr["collision_move"].format(id=f"#{c.suggestion_id}")
+        else:
+            text += tr["collision_all_critical"]
+        return f"{d.names.get(c.login, c.login)}: {text}" if with_name else text
+
     sections: list[tuple[str, list[str]]] = [
         (tr["overdue"], overdue),
+        (tr["collisions"], [collision(c, False) for c in d.my_collisions]),
         (tr["waiting_on_me"], waiting),
         (tr["my_risks"], [risk(r) for r in d.my_risks]),
         (tr["due_soon"], [f"{_label(t)} ({due(t)})" for t in d.due_soon]),
         (tr["blocked"], blocked),
         (tr["team_risks"], [risk(r) for r in d.team_risks]),
+        (tr["team_collisions"], [collision(c, True) for c in d.team_collisions]),
         (tr["cycles"], [" → ".join(c) for c in d.cycles]),
         (tr["limits"], [tr[f"limit_{x}"] for x in d.limitations]),
     ]

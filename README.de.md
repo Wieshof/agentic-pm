@@ -12,7 +12,7 @@ agentic-pm ersetzt Deinen Issue-Tracker nicht. Es ist eine intelligente Orchestr
 
 Der zugrunde liegende Tracker bleibt die einzige, synchronisierte Quelle der Wahrheit. Der Agent speichert selbst **keinen dauerhaften Aufgabenzustand**.
 
-> Status: 🔎 Phase 1 (Einblick, nur lesend) gebaut, bereit für ein Pilotteam. Hier geht's los: [Erste Schritte](docs/de/getting-started.md). Siehe [Roadmap](docs/de/roadmap.md).
+> Status: ✍️ Phase 2 (Zurückschreiben, How-tos, Freigaben, Takt) gebaut, bereit für ein Pilotteam. Hier geht's los: [Erste Schritte](docs/de/getting-started.md) · [Den Agenten betreiben](docs/de/running.md). Siehe [Roadmap](docs/de/roadmap.md).
 
 ---
 
@@ -126,7 +126,9 @@ uv run agent-pm schema > schemas/team.schema.json # JSON-Schema exportieren
 uv run agent-pm mcp                               # MCP-Tracker-Server (stdio, Demodaten)
 uv run agent-pm deps  --demo                      # Abhängigkeitsrisiken & Zyklen
 uv run agent-pm brief --demo --person sam         # freundliches Morgen-Briefing
-uv run agent-pm eval  --model qwen3.5             # lokale Modelle vergleichen
+uv run agent-pm eval  --model qwen3.5             # lokale Modelle vergleichen (--suite knowledge)
+uv run agent-pm run   --demo --dry-run            # der ganze Agent, zeigt an statt zu senden
+uv run agent-pm onboarding --demo --person sam    # freundliche Vorstellung: was der Agent mit Daten macht
 ```
 
 **Lokales LLM (Standard):** Betreibe einen beliebigen OpenAI-kompatiblen Server, z. B. [Ollama](https://ollama.com), und setze `llm.model` / `llm.base_url` in `team.yaml`. Live-Test: `AGENT_PM_LIVE_LLM=<Modell> uv run pytest tests/test_llm.py`.
@@ -141,7 +143,9 @@ uv run agent-pm eval  --model qwen3.5             # lokale Modelle vergleichen
 | `OPENPROJECT_API_KEY` | OpenProject-Adapter |
 | `AGENT_PM_SMTP_HOST`, `_PORT`, `_USER`, `_PASSWORD`, `_FROM` | Versand der E-Mail-Briefings |
 | `AGENT_PM_LLM_API_KEY` | Nur wenn Dein Modellserver einen Schlüssel verlangt |
-| `AGENT_PM_GITHUB_WEBHOOK_SECRET` | Prüfung von Webhooks (Phase 2) |
+| `AGENT_PM_SIGNING_KEY` | Signieren von Freigabe-Links |
+| `AGENT_PM_GITHUB_WEBHOOK_SECRET` | Prüfung von GitHub-Webhooks |
+| `AGENT_PM_IMAP_HOST`, `_PORT`, `_USER`, `_PASSWORD`, `_FOLDER` | Lesen von Antworten im Postfach des Agenten |
 | `AGENT_PM_WHATSAPP_*`, `AGENT_PM_SIP_*` | WhatsApp und Sprache (Phase 3, geplant) |
 
 ### Module
@@ -155,6 +159,11 @@ uv run agent-pm eval  --model qwen3.5             # lokale Modelle vergleichen
 | `agentic_pm.evals` | Evaluationsfälle & Runner für lokale Modelle |
 | `agentic_pm.audit` | Berechtigungsstufen & Audit-Fußzeile |
 | `agentic_pm.ingress` | Webhook-Filter: ignoriert eigene Änderungen des Agenten, entfernt doppelte Zustellungen und Event-Stürme |
+| `agentic_pm.actions` · `approvals` · `web` | Berechtigungs- & Audit-Wächter, signierte Freigabe-Tokens, Steuerungsoberfläche |
+| `agentic_pm.email_routing` · `inbox` · `inbound` | Ticket-Zuordnung für E-Mail, IMAP-Postfach, Antwortverarbeitung, How-to-Schleife |
+| `agentic_pm.knowledge` | Wissensextraktion: Antworten → How-tos in der Ticketsprache |
+| `agentic_pm.cadence` · `runtime` | Arbeitstakt, Scheduler, `agent-pm run` |
+| `agentic_pm.engine.capacity` | Terminkollisionen (aufgabenbezogen) |
 | `agentic_pm.mcp_server` | MCP-Werkzeuge über jedem Adapter, mit Stufenprüfung |
 | `agentic_pm.llm` | Anbieterunabhängige LLM-Schnittstelle, lokaler OpenAI-kompatibler Anbieter |
 
@@ -179,6 +188,8 @@ docs/
   getting-started.md  Tracker verbinden, Briefings, lokales Modell
   trackers.md         Übersicht über 25 Tracker (generiert)
   pm-coverage.md      die komplette PM-Rolle vs. was der Agent tut
+  running.md          den Agenten betreiben: Schreiben, Freigaben, E-Mail, Takt
+  people-data.md      was der Agent mit Daten über Menschen macht
   adr/                Architekturentscheidungen (ADRs)
   de/                 deutsche Fassungen aller Dokumente
 ```
