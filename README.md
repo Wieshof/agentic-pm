@@ -22,6 +22,10 @@ Classic PM tooling forces every contributor into the same rigid workflow: open t
 
 agentic-pm turns this around. Contributors stay in the channel they already use, and the agent does the ticket work for them.
 
+### Also for one-person companies
+
+For a freelancer or a small studio the value shifts from team coordination to taking things off your mind: a hidden chain in your task sheet (Friday's client launch waits on a printer proof in row 63) shows up in your morning email. It works with a plain **`.xlsx` or `.csv`** and a local model, with no accounts at all: [Start with a spreadsheet](docs/spreadsheets.md).
+
 ### It shrinks your stack instead of adding to it
 
 1. **Fewer shadow tools and reporting dashboards.** You no longer need separate BI connectors, status-reporting plugins or custom Excel trackers. Readers get tailored email briefs and talkers get spoken briefings, both built from live ticket data.
@@ -190,6 +194,8 @@ docs/
   pm-coverage.md      the full PM role vs. what the agent does
   running.md          running the agent: writes, approvals, email, cadence
   people-data.md      what the agent does with data about people
+  spreadsheets.md     start with a spreadsheet (solo & small teams)
+examples/solo/        a one-person studio planning in a CSV
   adr/                architecture decision records
   de/                 German versions of all documents
 ```

@@ -1,0 +1,11 @@
+ID,Task,Status,Due,Owner,Depends On,Estimate,Client,Fee
+P-1,Brief from client,done,2026-11-03,me,,2h,Bakery Huber,
+P-2,Logo drafts,done,2026-11-07,me,P-1,2d,Bakery Huber,
+P-3,Client picks logo,waiting,2026-11-13,me,P-2,,Bakery Huber,
+P-4,Print files for flyers,todo,2026-11-17,me,P-3,1d,Bakery Huber,
+P-5,Printer proof sign-off,waiting,2026-11-18,me,P-4,,Druckerei Lang,
+P-6,Flyers delivered,todo,2026-11-20,me,P-5,,Druckerei Lang,
+P-7,Client launch event,todo,2026-11-20,me,"P-6, P-9",4h,Bakery Huber,1200
+P-8,Website landing page,in progress,2026-11-19,me,,2d,Bakery Huber,
+P-9,Social media teaser,todo,2026-11-19,me,P-8,1d,Bakery Huber,
+P-10,Invoice Bakery Huber,todo,TBD,me,P-7,1h,Bakery Huber,

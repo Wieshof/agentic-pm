@@ -35,6 +35,7 @@ from agentic_pm.adapters.base import (
     TrackerAdapter,
 )
 from agentic_pm.adapters.catalog import Capabilities
+from agentic_pm.adapters.coverage import CoverageReport
 
 HOURS_PER_DAY = 8
 
@@ -56,9 +57,14 @@ class Risk(BaseModel):
 
 class DependencyGraph:
     def __init__(
-        self, tasks: list[Task], edges: list[Edge], capabilities: Capabilities | None = None
+        self,
+        tasks: list[Task],
+        edges: list[Edge],
+        capabilities: Capabilities | None = None,
+        coverage: CoverageReport | None = None,
     ) -> None:
         self.capabilities = capabilities
+        self.coverage = coverage
         self.tasks: dict[str, Task] = {
             str(t.ref): t for t in tasks if t.status not in CLOSED_STATUSES
         }
@@ -76,6 +82,8 @@ class DependencyGraph:
     ) -> DependencyGraph:
         """Fetch all open tasks of `project` and their dependencies, live."""
         tasks = {str(t.ref): t for t in await adapter.list_tasks(project)}
+        # Loosely structured sources (spreadsheets) report what they couldn't read.
+        coverage: CoverageReport | None = getattr(adapter, "last_coverage", None)
         limit = asyncio.Semaphore(concurrency)
 
         async def deps(ref: TaskRef) -> list[Edge]:
@@ -83,7 +91,7 @@ class DependencyGraph:
                 return await adapter.list_dependencies(ref)
 
         if adapter.capabilities.dependencies == "none":
-            return cls(list(tasks.values()), [], adapter.capabilities)
+            return cls(list(tasks.values()), [], adapter.capabilities, coverage)
         per_task = await asyncio.gather(*(deps(t.ref) for t in tasks.values()))
         edges: list[Edge] = [e for group in per_task for e in group]
         # Blockers in other projects/repos: fetch them so they can block, too.
@@ -94,7 +102,7 @@ class DependencyGraph:
                         tasks[str(ref)] = await adapter.get_task(ref)
                     except TaskNotFoundError:
                         continue
-        return cls(list(tasks.values()), edges, adapter.capabilities)
+        return cls(list(tasks.values()), edges, adapter.capabilities, coverage)
 
     # -------------------------------------------------------------- queries
 
@@ -198,10 +206,18 @@ class DependencyGraph:
             t = self.tasks[k]
             due = overrides.get(k, t.due)
             own = max(due, today) if due else None
+            # Latest-finishing blocker drives the date. Ties are broken deterministically
+            # (never by set order): a blocker that is itself delayed explains more, then id.
             best_up: tuple[date, str] | None = None
-            for u in self._up[k]:
+            for u in sorted(self._up[k]):
                 f = finish.get(u)
-                if f is not None and (best_up is None or f > best_up[0]):
+                if f is None:
+                    continue
+                if (
+                    best_up is None
+                    or f > best_up[0]
+                    or (f == best_up[0] and u in driver and best_up[1] not in driver)
+                ):
                     best_up = (f, u)
             candidate = best_up[0] + timedelta(days=duration_days(t)) if best_up else None
             if candidate and (own is None or candidate > own):

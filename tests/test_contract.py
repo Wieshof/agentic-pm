@@ -109,7 +109,7 @@ def test_catalog_is_consistent() -> None:
     cat = load_catalog()
     assert {"github", "openproject", "jira", "trello", "planner"} <= set(cat)
     available = {k for k, e in cat.items() if e.status == "available"}
-    assert available == {"github", "openproject", "gitea"}  # update when an adapter ships
+    assert available == {"github", "openproject", "gitea", "spreadsheet"}  # update on release
     for e in cat.values():
         assert e.notes_en and e.notes_de
 

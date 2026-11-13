@@ -23,6 +23,7 @@ Die Tabelle wird aus [`catalog.yaml`](../../src/agentic_pm/adapters/catalog.yaml
 |---|---|---|---|---|---|---|---|---|---|---|
 | **GitHub Issues** | ✅ verfügbar | 1 | ✅ | 🧩 | 🧩 | ✅ | ⚡ | ✅ | REST + GraphQL · Token / GitHub App | Fälligkeit/Schätzung über Textzeilen oder Meilenstein; Projects-Felder geplant |
 | **OpenProject** | ✅ verfügbar | 1 | ✅ | ✅ | ✅ | — | ⚡ | 👥 | REST v3 (HAL) · API key | Beziehungen blocks/precedes/follows; mit aufgezeichneten Antworten getestet *(noch nicht live geprüft)* |
+| **Spreadsheet (.xlsx / .csv)** | ✅ verfügbar | 1 | 🔗 | 🧩 | 🧩 | ✅ | 🔄 | — | local file (openpyxl / csv) · none | Start ohne Einrichtung für Selbstständige und kleine Teams; bei jedem Lauf gelesen, jede übersprungene Zeile gemeldet |
 | **Gitea / Forgejo** | ✅ verfügbar ([#36](https://github.com/Wieshof/agentic-pm/issues/36)) | 2 | ✅ | — | ✅ | ✅ | ⚡ | 👥 | REST · Token | Native Issue-Abhängigkeiten; keine Schätzung (nur Zeiterfassung) *(noch nicht live geprüft)* |
 | **Asana** | 🗓️ geplant ([#30](https://github.com/Wieshof/agentic-pm/issues/30)) | 1 | ✅ | 🧩 | ✅ | — | ⚡ | ✅ | REST · PAT / OAuth | Abhängigkeiten brauchen einen bezahlten Plan; Schätzung über Custom Field *(noch nicht live geprüft)* |
 | **Azure DevOps Boards** | 🗓️ geplant ([#62](https://github.com/Wieshof/agentic-pm/issues/62)) | 1 | ✅ | ✅ | ✅ | — | ⚡ | ✅ | REST + WIQL · PAT / Entra ID | Vorgänger-/Nachfolger-Links; Aufwand/Story Points je Prozessvorlage; Service Hooks *(noch nicht live geprüft)* |

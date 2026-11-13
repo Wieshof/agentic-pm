@@ -13,9 +13,15 @@ from email.message import EmailMessage
 from pydantic import BaseModel
 
 from agentic_pm.adapters.base import Task, TaskStatus, TrackerAdapter
+from agentic_pm.adapters.coverage import CoverageReport
+from agentic_pm.briefs.coverage_text import render_coverage
 from agentic_pm.config.team import TeamConfig
 from agentic_pm.engine.capacity import Collision, find_collisions
 from agentic_pm.engine.dependencies import DependencyGraph, Risk
+
+
+def _lower(values: list[str]) -> set[str]:
+    return {v.lower() for v in values}
 
 
 class Blocked(BaseModel):
@@ -39,6 +45,7 @@ class BriefData(BaseModel):
     cycles: list[list[str]] = []
     open_count: int = 0
     limitations: list[str] = []
+    coverage: CoverageReport | None = None
     my_collisions: list[Collision] = []
     team_collisions: list[Collision] = []
     names: dict[str, str] = {}
@@ -50,6 +57,7 @@ class BriefData(BaseModel):
             + len(self.my_risks)
             + len(self.waiting_on_me)
             + len(self.my_collisions)
+            + (1 if self.coverage else 0)
         )
 
     @property
@@ -64,6 +72,7 @@ class BriefData(BaseModel):
             or self.cycles
             or self.my_collisions
             or self.team_collisions
+            or self.coverage
         )
 
 
@@ -75,18 +84,18 @@ async def collect(
     graph: DependencyGraph | None = None,
 ) -> BriefData:
     person = cfg.people[handle]
-    login = person.login(handle)
+    login = person.login(handle).lower()  # sheets often say "Sam", trackers "sam"
     if graph is None:
         graph = await DependencyGraph.build(adapter, cfg.project.repo)
     mine = sorted(
-        (t for t in graph.tasks.values() if login in t.assignees),
+        (t for t in graph.tasks.values() if login in _lower(t.assignees)),
         key=lambda t: (t.due or date.max, t.ref.id),
     )
     horizon = today + timedelta(days=cfg.project.brief_horizon_days)
     risks = graph.risks(today)
     collisions = find_collisions(graph, today)
     is_lead = handle in cfg.project.leads
-    my_risks = [r for r in risks if login in r.task.assignees]
+    my_risks = [r for r in risks if login in _lower(r.task.assignees)]
     at_risk_ids = {str(r.task.ref) for r in my_risks}
     # Each task appears once, in its most important section.
     blocked = [
@@ -109,7 +118,9 @@ async def collect(
         blocked=blocked,
         my_risks=my_risks,
         waiting_on_me=[
-            r for r in risks if login in r.blocker.assignees and login not in r.task.assignees
+            r
+            for r in risks
+            if login in _lower(r.blocker.assignees) and login not in _lower(r.task.assignees)
         ],
         team_risks=[r for r in risks if str(r.task.ref) not in at_risk_ids] if is_lead else [],
         cycles=[[f"#{r.id}" for r in c] for c in graph.cycles()] if is_lead else [],
@@ -117,7 +128,12 @@ async def collect(
         limitations=graph.limitations() if is_lead else [],
         my_collisions=[c for c in collisions if c.login == login],
         team_collisions=[c for c in collisions if c.login != login] if is_lead else [],
-        names={p.login(h): p.name or h.capitalize() for h, p in cfg.people.items()},
+        names={p.login(h).lower(): p.name or h.capitalize() for h, p in cfg.people.items()},
+        coverage=(
+            graph.coverage
+            if is_lead and graph.coverage is not None and not graph.coverage.is_complete
+            else None
+        ),
     )
 
 
@@ -255,7 +271,7 @@ def _sections(d: BriefData) -> list[tuple[str, list[str]]]:
     ]
     waiting = [
         tr["waits"].format(
-            who=", ".join(d.names.get(a, a) for a in r.task.assignees) or "?",
+            who=", ".join(d.names.get(a.lower(), a) for a in r.task.assignees) or "?",
             blocker=_label(r.blocker),
             task=_label(r.task),
         )
@@ -282,7 +298,7 @@ def _sections(d: BriefData) -> list[tuple[str, list[str]]]:
             text += tr["collision_move"].format(id=f"#{c.suggestion_id}")
         else:
             text += tr["collision_all_critical"]
-        return f"{d.names.get(c.login, c.login)}: {text}" if with_name else text
+        return f"{d.names.get(c.login.lower(), c.login)}: {text}" if with_name else text
 
     sections: list[tuple[str, list[str]]] = [
         (tr["overdue"], overdue),
@@ -296,6 +312,9 @@ def _sections(d: BriefData) -> list[tuple[str, list[str]]]:
         (tr["cycles"], [" → ".join(c) for c in d.cycles]),
         (tr["limits"], [tr[f"limit_{x}"] for x in d.limitations]),
     ]
+    if d.coverage is not None:  # never present a partial picture as "all clear"
+        heading, items = render_coverage(d.coverage, lang)
+        sections.insert(0, (heading, items))
     return [(h, items) for h, items in sections if items]
 
 

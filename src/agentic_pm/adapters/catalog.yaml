@@ -17,6 +17,22 @@
 #   notes_en / notes_de: one line, shown in the docs
 
 trackers:
+  spreadsheet:
+    name: Spreadsheet (.xlsx / .csv)
+    status: available
+    tier: 1
+    api: local file (openpyxl / csv)
+    auth: none
+    dependencies: relation
+    estimates: field
+    due_dates: field
+    multi_assignee: true
+    hierarchy: false
+    events: polling
+    mcp: none
+    verified: true
+    notes_en: Zero-setup start for solo operators and small teams; read on every run, every skipped row reported
+    notes_de: Start ohne Einrichtung für Selbstständige und kleine Teams; bei jedem Lauf gelesen, jede übersprungene Zeile gemeldet
   github:
     name: GitHub Issues
     status: available

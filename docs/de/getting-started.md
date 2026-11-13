@@ -8,6 +8,8 @@ In Phase 1 **liest** agentic-pm Deinen Tracker, findet Abhängigkeitsrisiken und
 
 ## 1. Mit Demodaten ausprobieren (ohne Konten)
 
+> Arbeitest Du allein oder in einem sehr kleinen Team mit einer Tabelle? Dann starte lieber mit [Deiner `.xlsx` oder `.csv`](spreadsheets.md).
+
 ```bash
 uv sync
 uv run agent-pm deps  --demo                 # Abhängigkeitsrisiken und Zyklen

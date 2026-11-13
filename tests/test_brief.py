@@ -76,7 +76,7 @@ def test_summary_guard() -> None:
     facts = {"overdue": [{"id": "#11"}], "due_soon": [], "at_risk": [], "team_risks": 0}
     assert check_summary("Finish #11 today.", facts, "en") == []
     assert "unknown" in check_summary("Finish #12.", facts, "en")[0]
-    assert "stray" in check_summary("Finish #11 and #abc.", facts, "en")[0]
+    assert "unknown" in check_summary("Finish #11 and #abc.", facts, "en")[0]
     assert "formal" in check_summary("Bitte erledigen Sie #11.", facts, "de")[0]
     assert "capitalized" in check_summary("Kümmere dich um #11.", facts, "de")[0]
     assert check_summary("", facts, "en") == ["empty"]
@@ -206,3 +206,23 @@ def test_onboarding_is_transparent_and_friendly(cfg: Any) -> None:
     assert " Sie " not in text
     subject, text = onboarding(cfg, "alex")
     assert "no scores" in text and "docs/people-data.md" in text
+
+
+@pytest.mark.parametrize(
+    ("summary", "problem"),
+    [
+        ("Kümmere Dich zuerst um #P-3, damit #P-7 nicht rutscht.", None),
+        ("Look at #APP-12 first.", "unknown"),
+        ("Bitte erst #P-99 erledigen.", "unknown"),
+        ("Fokus auf #{15} heute.", "stray"),
+    ],
+)
+def test_summary_guard_handles_alphanumeric_ids(summary: str, problem: str | None) -> None:
+    facts = {
+        "overdue": [{"id": "#P-3"}],
+        "due_soon": [],
+        "at_risk": [{"id": "#P-7"}],
+        "team_risks": 0,
+    }
+    found = check_summary(summary, facts, "de")
+    assert (found == []) if problem is None else (problem in found[0])

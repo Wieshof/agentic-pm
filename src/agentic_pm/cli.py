@@ -83,6 +83,14 @@ async def _deps(args: argparse.Namespace) -> int:
         )
     for c in graph.cycles():
         print("  🔁 " + " → ".join(f"#{ref.id}" for ref in c))
+    cov = graph.coverage
+    if cov is not None:
+        print(f"coverage {cov.source}: {cov.tasks_loaded}/{cov.rows_scanned} rows loaded")
+        for w in cov.warnings:
+            mark = "✗" if w.severity == "error" else "!"
+            print(f"  {mark} {w.location} ({w.code}): {w.message}")
+        if cov.has_errors:
+            return 1
     return 0
 
 

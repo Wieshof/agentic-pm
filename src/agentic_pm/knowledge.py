@@ -21,7 +21,7 @@ from agentic_pm.messages import language_name
 Kind = Literal["solution", "status", "question", "scope_change", "other"]
 KINDS: tuple[str, ...] = ("solution", "status", "question", "scope_change", "other")
 MAX_FIELD = 300
-_ID = re.compile(r"#(\d+)")
+_ID = re.compile(r"#([A-Za-z0-9](?:[A-Za-z0-9_-]*[A-Za-z0-9])?)")  # 12, P-7, APP-12
 _WORD = re.compile(r"[a-zäöüß]+", re.I)
 
 

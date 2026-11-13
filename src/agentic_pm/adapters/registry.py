@@ -64,10 +64,23 @@ def _gitea(project: Project, env: Mapping[str, str]) -> TrackerAdapter:
     )
 
 
+def _spreadsheet(project: Project, env: Mapping[str, str]) -> TrackerAdapter:
+    from pydantic import ValidationError
+
+    from agentic_pm.adapters.spreadsheet import SpreadsheetAdapter, SpreadsheetOptions
+
+    try:
+        options = SpreadsheetOptions.model_validate(project.tracker_options)
+    except ValidationError as e:
+        raise AdapterConfigError(f"project.tracker_options for spreadsheet: {e}") from e
+    return SpreadsheetAdapter(project.repo, options)
+
+
 _BUILTIN: dict[str, AdapterFactory] = {
     "github": _github,
     "openproject": _openproject,
     "gitea": _gitea,
+    "spreadsheet": _spreadsheet,
 }
 _registered: dict[str, AdapterFactory] = {}
 

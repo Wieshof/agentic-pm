@@ -88,3 +88,13 @@ async def test_demo_data_has_expected_story() -> None:
     g = await DependencyGraph.build(demo_tracker(P, TODAY), P)
     assert {r.task.ref.id for r in g.risks(TODAY)} == {"13", "14"}
     assert len(g.cycles()) == 1
+
+
+async def test_tie_between_blockers_is_deterministic() -> None:
+    # 1 -> 2 (2 is delayed by 1) and 3 -> 4; both 2 and 3 finish on day 3, 4 is due day 3.
+    tasks = [task(1, 3, est=8), task(2, 2, est=8), task(3, 3, est=8), task(4, 3, est=8)]
+    edges = [blocks(1, 2), blocks(2, 4), blocks(3, 4)]
+    for order in (tasks, list(reversed(tasks))):
+        g = await build(order, list(reversed(edges)) if order is tasks else edges)
+        risk = next(r for r in g.risks(TODAY) if r.task.ref.id == "4")
+        assert risk.blocker.ref.id == "2" and risk.reason == "chain_delay"

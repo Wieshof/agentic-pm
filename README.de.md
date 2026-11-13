@@ -22,6 +22,10 @@ Klassische PM-Werkzeuge zwingen alle Beteiligten in denselben starren Ablauf: Tr
 
 agentic-pm dreht das um. Die Beteiligten bleiben in dem Kanal, den sie ohnehin nutzen, und der Agent erledigt die Ticketarbeit für sie.
 
+### Auch für Ein-Personen-Firmen
+
+Für Selbstständige oder ein kleines Studio verschiebt sich der Nutzen vom Koordinieren eines Teams hin zum Entlasten des Kopfes: Eine versteckte Kette in Deiner Aufgabentabelle (der Kunden-Launch am Freitag wartet auf einen Druckproof in Zeile 63) taucht in Deiner Morgen-Mail auf. Das funktioniert mit einer einfachen **`.xlsx` oder `.csv`** und einem lokalen Modell, ganz ohne Konten: [Mit einer Tabelle starten](docs/de/spreadsheets.md).
+
 ### Der Stack wird kleiner statt größer
 
 1. **Weniger Schatten-Tools und Reporting-Dashboards.** Separate BI-Konnektoren, Status-Reporting-Plugins oder eigene Excel-Tracker werden überflüssig. Leser erhalten maßgeschneiderte E-Mail-Briefings, Sprecher gesprochene Briefings, beides direkt aus Live-Ticketdaten.
@@ -190,6 +194,8 @@ docs/
   pm-coverage.md      die komplette PM-Rolle vs. was der Agent tut
   running.md          den Agenten betreiben: Schreiben, Freigaben, E-Mail, Takt
   people-data.md      was der Agent mit Daten über Menschen macht
+  spreadsheets.md     mit einer Tabelle starten (Selbstständige & kleine Teams)
+examples/solo/        ein Ein-Personen-Studio, das in einer CSV plant
   adr/                Architekturentscheidungen (ADRs)
   de/                 deutsche Fassungen aller Dokumente
 ```

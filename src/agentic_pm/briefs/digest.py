@@ -97,7 +97,7 @@ async def end_of_day(
     attention = len(unowned) + len(urgent) + len(collisions)
     if attention == 0:
         return None
-    names = {p.login(h): cfg.display_name(h) for h, p in cfg.people.items()}
+    names = {p.login(h).lower(): cfg.display_name(h) for h, p in cfg.people.items()}
     lines = [t["eod_hello"].format(name=cfg.display_name(lead)), ""]
     lines += _block(t["eod_unowned"], [_label(x) for x in unowned])
     lines += _block(
@@ -115,7 +115,7 @@ async def end_of_day(
         t["eod_collisions"],
         [
             t["collision"].format(
-                who=names.get(c.login, c.login),
+                who=names.get(c.login.lower(), c.login),
                 tasks=", ".join(f"#{x.ref.id}" for x in c.tasks),
                 by=c.by.isoformat(),
             )
@@ -142,7 +142,7 @@ async def weekly_digest(
     collisions = find_collisions(graph, today)
     cycles = graph.cycles()
     overdue = [x for x in graph.tasks.values() if x.due and x.due < today]
-    names = {p.login(h): cfg.display_name(h) for h, p in cfg.people.items()}
+    names = {p.login(h).lower(): cfg.display_name(h) for h, p in cfg.people.items()}
 
     lines = [t["wk_hello"].format(name=cfg.display_name(lead)), ""]
     lines += _block(t["wk_closed"], [_label(x) for x in closed])
@@ -163,7 +163,7 @@ async def weekly_digest(
         t["wk_collisions"],
         [
             t["collision"].format(
-                who=names.get(c.login, c.login),
+                who=names.get(c.login.lower(), c.login),
                 tasks=", ".join(f"#{x.ref.id}" for x in c.tasks),
                 by=c.by.isoformat(),
             )

@@ -1,0 +1,25 @@
+# A one-person studio that plans in a spreadsheet. Try (from the repository root):
+#   uv run agent-pm deps  --config examples/solo/team.yaml --date 2026-11-16
+#   uv run agent-pm brief --config examples/solo/team.yaml --person me --date 2026-11-16
+project:
+  tracker: spreadsheet
+  repo: studio                     # name of this sheet in references like studio:P-7
+  leads: [me]                      # solo: you are the lead, so you also see sheet warnings
+  timezone: Europe/Vienna
+  tracker_options:
+    path: examples/solo/tasks.csv  # .xlsx works the same; relative to where you run agent-pm
+    columns: {id: ID, title: Task, status: Status, due: Due, owner: Owner,
+              depends_on: Depends On, estimate: Estimate}   # Client and Fee stay untouched
+
+people:
+  me:
+    name: Mia
+    role: owner
+    archetype: reader
+    language: de
+    channels: {email: mia@example.com}
+    brief: {when: "07:30", format: email}
+
+llm:                               # optional, for the short summary with --llm
+  model: "qwen3.5"
+  reasoning_effort: none

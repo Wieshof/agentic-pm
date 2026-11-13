@@ -23,6 +23,7 @@ The matrix is generated from [`catalog.yaml`](../src/agentic_pm/adapters/catalog
 |---|---|---|---|---|---|---|---|---|---|---|
 | **GitHub Issues** | ✅ available | 1 | ✅ | 🧩 | 🧩 | ✅ | ⚡ | ✅ | REST + GraphQL · Token / GitHub App | Due/estimate via body lines or milestone; Projects fields planned |
 | **OpenProject** | ✅ available | 1 | ✅ | ✅ | ✅ | — | ⚡ | 👥 | REST v3 (HAL) · API key | Relations blocks/precedes/follows; tested with recorded responses *(not yet verified live)* |
+| **Spreadsheet (.xlsx / .csv)** | ✅ available | 1 | 🔗 | 🧩 | 🧩 | ✅ | 🔄 | — | local file (openpyxl / csv) · none | Zero-setup start for solo operators and small teams; read on every run, every skipped row reported |
 | **Gitea / Forgejo** | ✅ available ([#36](https://github.com/Wieshof/agentic-pm/issues/36)) | 2 | ✅ | — | ✅ | ✅ | ⚡ | 👥 | REST · Token | Native issue dependencies; no estimates (time tracking only) *(not yet verified live)* |
 | **Asana** | 🗓️ planned ([#30](https://github.com/Wieshof/agentic-pm/issues/30)) | 1 | ✅ | 🧩 | ✅ | — | ⚡ | ✅ | REST · PAT / OAuth | Dependencies need a paid plan; estimates via custom field *(not yet verified live)* |
 | **Azure DevOps Boards** | 🗓️ planned ([#62](https://github.com/Wieshof/agentic-pm/issues/62)) | 1 | ✅ | ✅ | ✅ | — | ⚡ | ✅ | REST + WIQL · PAT / Entra ID | Predecessor/successor links; effort/story points by process template; service hooks *(not yet verified live)* |

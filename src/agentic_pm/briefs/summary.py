@@ -16,10 +16,11 @@ from agentic_pm.briefs.morning import BriefData
 from agentic_pm.llm.base import ChatMessage, LLMError, LLMProvider
 
 MAX_WORDS = 70
-_TASK_NO = re.compile(r"#(\d+)")
+# Task ids: 12 (GitHub), P-7 (spreadsheets), APP-12 (Jira/Linear). Trailing punctuation excluded.
+_TASK_NO = re.compile(r"#([A-Za-z0-9](?:[A-Za-z0-9_-]*[A-Za-z0-9])?)")
 _FORMAL_DE = re.compile(r"\b(Sie|Ihnen|Ihr|Ihre|Ihren|Ihrem|Ihrer)\b")
 _LOWER_DU = re.compile(r"\b(du|dich|dir|dein|deine|deinen|deinem|deiner|deines)\b")
-_STRAY_HASH = re.compile(r"#(?!\d+\b)\S*")
+_STRAY_HASH = re.compile(r"#(?![A-Za-z0-9])\S*")  # e.g. "#{15}", "# " - not an id
 
 SCHEMA: dict[str, Any] = {
     "type": "object",

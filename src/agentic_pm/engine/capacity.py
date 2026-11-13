@@ -52,8 +52,8 @@ def find_collisions(
     for t in graph.tasks.values():
         if t.due is None or t.due > horizon:
             continue
-        for login in t.assignees:
-            by_person.setdefault(login, []).append(t)
+        for login in t.assignees:  # "Sam" and "sam" are the same person
+            by_person.setdefault(login.lower(), []).append(t)
 
     out: list[Collision] = []
     for login, tasks in sorted(by_person.items()):

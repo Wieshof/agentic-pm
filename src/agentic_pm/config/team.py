@@ -280,6 +280,17 @@ class TeamConfig(_Strict):
                 f"project.tracker: unknown tracker '{self.project.tracker}' "
                 f"(known: {', '.join(sorted(known_trackers()))})"
             )
+        if self.project.tracker == "spreadsheet":
+            from pydantic import ValidationError
+
+            from agentic_pm.adapters.spreadsheet import SpreadsheetOptions
+
+            try:
+                SpreadsheetOptions.model_validate(self.project.tracker_options)
+            except ValidationError as e:
+                for err in e.errors():
+                    loc = ".".join(str(x) for x in err["loc"])
+                    errors.append(f"project.tracker_options.{loc}: {err['msg']}")
         if self.project.tracker == "openproject" and not self.project.base_url:
             errors.append("project.base_url is required for tracker 'openproject'")
         for lead in self.project.leads:

@@ -8,6 +8,8 @@ In Phase 1, agentic-pm **reads** your tracker, finds dependency risks and sends 
 
 ## 1. Try it with demo data (no accounts needed)
 
+> Working alone or in a tiny team with a spreadsheet? Start with [your `.xlsx` or `.csv`](spreadsheets.md) instead.
+
 ```bash
 uv sync
 uv run agent-pm deps  --demo                 # dependency risks and cycles
