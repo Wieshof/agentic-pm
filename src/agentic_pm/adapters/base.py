@@ -59,6 +59,9 @@ class Task(_Model):
         default=False, description="Due date is committed to an external client"
     )
     url: str | None = None
+    description: str | None = Field(
+        default=None, description="Free text (issue body, notes column); untrusted input"
+    )
     updated_at: datetime | None = Field(
         default=None, description="Last change in the tracker; used for polling trackers"
     )

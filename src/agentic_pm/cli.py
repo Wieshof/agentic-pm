@@ -83,6 +83,20 @@ async def _deps(args: argparse.Namespace) -> int:
         )
     for c in graph.cycles():
         print("  🔁 " + " → ".join(f"#{ref.id}" for ref in c))
+    from agentic_pm.engine.completeness import check_completeness
+
+    report = check_completeness(cfg, graph)
+    print(
+        f"readiness: {round(report.readiness * 100)}% of {report.active} open tasks complete"
+        + (
+            f" ({', '.join(f'{n} {c}' for c, n in sorted(report.counts().items()))})"
+            if report.gaps
+            else ""
+        )
+    )
+    for g in report.gaps:
+        detail = f" {g.params}" if g.params else ""
+        print(f"  🧩 #{g.task.ref.id} {g.code}{detail}")
     cov = graph.coverage
     if cov is not None:
         print(f"coverage {cov.source}: {cov.tasks_loaded}/{cov.rows_scanned} rows loaded")

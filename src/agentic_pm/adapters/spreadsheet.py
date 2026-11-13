@@ -419,6 +419,7 @@ class SpreadsheetAdapter:
                     id=task_id,
                     value=values.get(cols.estimate),
                 )
+        notes = self._text(values.get(cols.notes)) if cols.notes else ""
         owners: list[str] = []
         if cols.owner:
             owners = [o for o in _OWNER_SPLIT.split(self._text(values.get(cols.owner))) if o]
@@ -450,6 +451,7 @@ class SpreadsheetAdapter:
                 assignees=owners,
                 due=due,
                 estimate_hours=estimate,
+                description=notes or None,
             ),
             depends_on=deps,
             location=location,

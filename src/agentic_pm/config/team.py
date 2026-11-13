@@ -206,6 +206,22 @@ class Project(_Strict):
     )
 
 
+class Completeness(_Strict):
+    """Which details every open task should have (data completeness check)."""
+
+    require_owner: bool = True
+    require_due: bool = True
+    require_estimate: bool = False
+    require_blocker_reason: bool = True
+    detect_hints: bool = Field(
+        default=True, description="Suggest links for 'waiting on #14' & co. in task text"
+    )
+    triage: list[Handle] = Field(
+        default_factory=list, description="Who gets unowned tasks (default: project.leads)"
+    )
+    max_per_brief: int = Field(default=5, ge=1, le=20)
+
+
 class LLMSettings(_Strict):
     """Model access; local-first per ADR-0001."""
 
@@ -244,6 +260,7 @@ class TeamConfig(_Strict):
     people: dict[Handle, Person] = Field(min_length=1)
     llm: LLMSettings = LLMSettings()
     cadence: Cadence = Cadence()
+    completeness: Completeness = Completeness()
 
     # ------------------------------------------------------------ lookups
 
@@ -293,6 +310,9 @@ class TeamConfig(_Strict):
                     errors.append(f"project.tracker_options.{loc}: {err['msg']}")
         if self.project.tracker == "openproject" and not self.project.base_url:
             errors.append("project.base_url is required for tracker 'openproject'")
+        for h in self.completeness.triage:
+            if h not in self.people:
+                errors.append(f"completeness.triage: '{h}' is not defined under people")
         for lead in self.project.leads:
             if lead not in self.people:
                 errors.append(f"project.leads: '{lead}' is not defined under people")

@@ -122,6 +122,7 @@ class OpenProjectAdapter:
             due=due,
             estimate_hours=parse_duration_hours(wp.get("estimatedTime")),
             url=f"{self.base_url}/work_packages/{wp['id']}",
+            description=((wp.get("description") or {}).get("raw") or None),
             updated_at=(
                 datetime.fromisoformat(wp["updatedAt"].replace("Z", "+00:00"))
                 if wp.get("updatedAt")

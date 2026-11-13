@@ -112,6 +112,7 @@ class GiteaAdapter:
             labels=labels,
             client_facing=any(label.lower() == "client-facing" for label in labels),
             url=issue.get("html_url"),
+            description=issue.get("body") or None,
             updated_at=datetime.fromisoformat(updated.replace("Z", "+00:00")) if updated else None,
             comments=[
                 Comment(

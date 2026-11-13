@@ -42,7 +42,7 @@ class TrackerTools:
 
     async def list_tasks(self, project: str, include_closed: bool = False) -> list[dict[str, Any]]:
         tasks = await self.adapter.list_tasks(project, include_closed=include_closed)
-        return [t.model_dump(mode="json", exclude={"comments"}) for t in tasks]
+        return [t.model_dump(mode="json", exclude={"comments", "description"}) for t in tasks]
 
     async def list_dependencies(self, project: str, task_id: str) -> list[dict[str, Any]]:
         edges = await self.adapter.list_dependencies(self._ref(project, task_id))

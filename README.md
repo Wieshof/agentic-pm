@@ -168,6 +168,7 @@ uv run agent-pm onboarding --demo --person sam    # friendly intro: what the age
 | `agentic_pm.knowledge` | Knowledge Extractor: replies → how-tos in the ticket language |
 | `agentic_pm.cadence` · `runtime` | Operating cadence, scheduler, `agent-pm run` |
 | `agentic_pm.engine.capacity` | Deadline collisions (task-centric) |
+| `agentic_pm.engine.completeness` | Data completeness: missing owners, dates, links; readiness ratio |
 | `agentic_pm.mcp_server` | MCP tools over any adapter, with tier enforcement |
 | `agentic_pm.llm` | Provider-agnostic LLM interface, local OpenAI-compatible provider |
 
@@ -195,6 +196,7 @@ docs/
   running.md          running the agent: writes, approvals, email, cadence
   people-data.md      what the agent does with data about people
   spreadsheets.md     start with a spreadsheet (solo & small teams)
+  data-quality.md     data completeness checks: one question per gap
 examples/solo/        a one-person studio planning in a CSV
   adr/                architecture decision records
   de/                 German versions of all documents

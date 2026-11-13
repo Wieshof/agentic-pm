@@ -9,9 +9,11 @@ from __future__ import annotations
 from datetime import date, timedelta
 
 from agentic_pm.adapters.base import CLOSED_STATUSES, Task, TaskStatus, TrackerAdapter
+from agentic_pm.briefs.gap_text import render_readiness
 from agentic_pm.briefs.morning import plural, texts
 from agentic_pm.config.team import TeamConfig
 from agentic_pm.engine.capacity import find_collisions
+from agentic_pm.engine.completeness import check_completeness
 from agentic_pm.engine.dependencies import DependencyGraph
 
 T: dict[str, dict[str, str]] = {
@@ -176,6 +178,10 @@ async def weekly_digest(
     )
     if overdue:
         lines += [t["wk_overdue"].format(n=len(overdue)), ""]
+    report = check_completeness(cfg, graph)
+    if report.gaps:
+        heading, items = render_readiness(report, lang)
+        lines += _block(heading, items)
     if not risks and not collisions and not cycles:
         lines += [t["wk_calm"], ""]
     lines.append(t["wk_bye"])

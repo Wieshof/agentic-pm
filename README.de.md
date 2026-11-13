@@ -168,6 +168,7 @@ uv run agent-pm onboarding --demo --person sam    # freundliche Vorstellung: was
 | `agentic_pm.knowledge` | Wissensextraktion: Antworten → How-tos in der Ticketsprache |
 | `agentic_pm.cadence` · `runtime` | Arbeitstakt, Scheduler, `agent-pm run` |
 | `agentic_pm.engine.capacity` | Terminkollisionen (aufgabenbezogen) |
+| `agentic_pm.engine.completeness` | Datenqualität: fehlende Zuständige, Termine, Verknüpfungen; Bereitschaftsquote |
 | `agentic_pm.mcp_server` | MCP-Werkzeuge über jedem Adapter, mit Stufenprüfung |
 | `agentic_pm.llm` | Anbieterunabhängige LLM-Schnittstelle, lokaler OpenAI-kompatibler Anbieter |
 
@@ -195,6 +196,7 @@ docs/
   running.md          den Agenten betreiben: Schreiben, Freigaben, E-Mail, Takt
   people-data.md      was der Agent mit Daten über Menschen macht
   spreadsheets.md     mit einer Tabelle starten (Selbstständige & kleine Teams)
+  data-quality.md     Datenqualität: eine Frage pro Lücke
 examples/solo/        ein Ein-Personen-Studio, das in einer CSV plant
   adr/                Architekturentscheidungen (ADRs)
   de/                 deutsche Fassungen aller Dokumente

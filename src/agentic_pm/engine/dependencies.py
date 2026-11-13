@@ -68,13 +68,19 @@ class DependencyGraph:
         self.tasks: dict[str, Task] = {
             str(t.ref): t for t in tasks if t.status not in CLOSED_STATUSES
         }
+        closed = {str(t.ref): t for t in tasks if t.status in CLOSED_STATUSES}
         self._up: dict[str, set[str]] = defaultdict(set)
         self._down: dict[str, set[str]] = defaultdict(set)
+        self._done_up: dict[str, list[Task]] = defaultdict(list)
         for e in edges:
             s, t = str(e.source), str(e.target)
-            if e.kind is EdgeKind.BLOCKS and s in self.tasks and t in self.tasks and s != t:
+            if e.kind is not EdgeKind.BLOCKS or s == t or t not in self.tasks:
+                continue
+            if s in self.tasks:
                 self._up[t].add(s)
                 self._down[s].add(t)
+            elif s in closed and closed[s] not in self._done_up[t]:
+                self._done_up[t].append(closed[s])  # finished blockers: don't block, but tell
 
     @classmethod
     async def build(
@@ -111,6 +117,15 @@ class DependencyGraph:
 
     def blockers(self, ref: TaskRef) -> list[Task]:
         return [self.tasks[k] for k in sorted(self._up[str(ref)])]
+
+    def done_blockers(self, ref: TaskRef) -> list[Task]:
+        """Linked blockers that are already finished (they no longer block)."""
+        return sorted(self._done_up[str(ref)], key=lambda t: t.ref.id)
+
+    def linked(self, a: TaskRef, b: TaskRef) -> bool:
+        """True if a "blocks" edge exists between the two tasks, in either direction."""
+        ka, kb = str(a), str(b)
+        return kb in self._down[ka] or ka in self._down[kb]
 
     def downstream(self, ref: TaskRef) -> list[Task]:
         """All tasks transitively waiting for `ref` (breadth-first)."""

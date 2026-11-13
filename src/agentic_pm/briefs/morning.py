@@ -15,8 +15,10 @@ from pydantic import BaseModel
 from agentic_pm.adapters.base import Task, TaskStatus, TrackerAdapter
 from agentic_pm.adapters.coverage import CoverageReport
 from agentic_pm.briefs.coverage_text import render_coverage
+from agentic_pm.briefs.gap_text import render_gaps, render_readiness
 from agentic_pm.config.team import TeamConfig
 from agentic_pm.engine.capacity import Collision, find_collisions
+from agentic_pm.engine.completeness import CompletenessReport, Gap, check_completeness
 from agentic_pm.engine.dependencies import DependencyGraph, Risk
 
 
@@ -46,6 +48,9 @@ class BriefData(BaseModel):
     open_count: int = 0
     limitations: list[str] = []
     coverage: CoverageReport | None = None
+    gaps: list[Gap] = []
+    gap_limit: int = 5
+    readiness: CompletenessReport | None = None  # leads only, team level
     my_collisions: list[Collision] = []
     team_collisions: list[Collision] = []
     names: dict[str, str] = {}
@@ -73,6 +78,7 @@ class BriefData(BaseModel):
             or self.my_collisions
             or self.team_collisions
             or self.coverage
+            or self.gaps
         )
 
 
@@ -94,6 +100,7 @@ async def collect(
     horizon = today + timedelta(days=cfg.project.brief_horizon_days)
     risks = graph.risks(today)
     collisions = find_collisions(graph, today)
+    completeness = check_completeness(cfg, graph)
     is_lead = handle in cfg.project.leads
     my_risks = [r for r in risks if login in _lower(r.task.assignees)]
     at_risk_ids = {str(r.task.ref) for r in my_risks}
@@ -129,6 +136,9 @@ async def collect(
         my_collisions=[c for c in collisions if c.login == login],
         team_collisions=[c for c in collisions if c.login != login] if is_lead else [],
         names={p.login(h).lower(): p.name or h.capitalize() for h, p in cfg.people.items()},
+        gaps=completeness.for_handle(handle),
+        gap_limit=cfg.completeness.max_per_brief,
+        readiness=completeness if is_lead and completeness.gaps else None,
         coverage=(
             graph.coverage
             if is_lead and graph.coverage is not None and not graph.coverage.is_complete
@@ -312,6 +322,10 @@ def _sections(d: BriefData) -> list[tuple[str, list[str]]]:
         (tr["cycles"], [" → ".join(c) for c in d.cycles]),
         (tr["limits"], [tr[f"limit_{x}"] for x in d.limitations]),
     ]
+    if d.gaps:
+        sections.append(render_gaps(d.gaps, lang, d.gap_limit))
+    if d.readiness is not None:
+        sections.append(render_readiness(d.readiness, lang))
     if d.coverage is not None:  # never present a partial picture as "all clear"
         heading, items = render_coverage(d.coverage, lang)
         sections.insert(0, (heading, items))

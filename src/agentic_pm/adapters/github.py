@@ -182,6 +182,7 @@ class GitHubAdapter:
             labels=labels,
             client_facing="client-facing" in (lbl.lower() for lbl in labels),
             url=issue.get("html_url"),
+            description=body or None,
             updated_at=_ts(issue.get("updated_at")),
             comments=[
                 Comment(

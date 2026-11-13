@@ -77,6 +77,8 @@ Das Öffnen des Links *zeigt* die Änderung nur an, Mail-Scanner können also ni
 - Briefings zeigen jetzt Terminkollisionen, z. B. „#12 und #31 sind bis Dienstag fällig und brauchen etwa 3 Tage, es bleiben aber nur 2 Arbeitstage. Vielleicht #31 verschieben oder übergeben?“
 - Teamleitungen bekommen die Abendnotiz (nur wenn nötig) und den Wochenrückblick.
 
+**Datenqualität.** Vor jedem Briefing prüft der Agent offene Aufgaben auf fehlende Zuständige, Termine und Verknüpfungen und stellt der richtigen Person pro Lücke eine kurze Frage ([Details](data-quality.md)).
+
 **Onboarding (#47).** `uv run agent-pm onboarding --all --send` schickt allen eine freundliche Vorstellung in ihrer Sprache, die erklärt, was der Agent mit ihren Daten macht ([Details](people-data.md)).
 
 ## 3. Sicherheitsmodell

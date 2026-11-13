@@ -197,6 +197,56 @@
       "title": "CheckIn",
       "type": "object"
     },
+    "Completeness": {
+      "additionalProperties": false,
+      "description": "Which details every open task should have (data completeness check).",
+      "properties": {
+        "require_owner": {
+          "default": true,
+          "title": "Require Owner",
+          "type": "boolean"
+        },
+        "require_due": {
+          "default": true,
+          "title": "Require Due",
+          "type": "boolean"
+        },
+        "require_estimate": {
+          "default": false,
+          "title": "Require Estimate",
+          "type": "boolean"
+        },
+        "require_blocker_reason": {
+          "default": true,
+          "title": "Require Blocker Reason",
+          "type": "boolean"
+        },
+        "detect_hints": {
+          "default": true,
+          "description": "Suggest links for 'waiting on #14' & co. in task text",
+          "title": "Detect Hints",
+          "type": "boolean"
+        },
+        "triage": {
+          "description": "Who gets unowned tasks (default: project.leads)",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "type": "string"
+          },
+          "title": "Triage",
+          "type": "array"
+        },
+        "max_per_brief": {
+          "default": 5,
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Max Per Brief",
+          "type": "integer"
+        }
+      },
+      "title": "Completeness",
+      "type": "object"
+    },
     "Interruptions": {
       "enum": [
         "any",
@@ -491,6 +541,18 @@
         "weekly_digest": null,
         "monthly_health_check": null,
         "inbox_poll_minutes": 2
+      }
+    },
+    "completeness": {
+      "$ref": "#/$defs/Completeness",
+      "default": {
+        "require_owner": true,
+        "require_due": true,
+        "require_estimate": false,
+        "require_blocker_reason": true,
+        "detect_hints": true,
+        "triage": [],
+        "max_per_brief": 5
       }
     }
   },

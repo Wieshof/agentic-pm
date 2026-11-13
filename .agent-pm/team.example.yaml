@@ -20,6 +20,11 @@ cadence:
   end_of_day: "17:30"        # short note to leads, only if something needs them
   weekly_digest: "Fri 15:00" # week roll-up for leads
 
+# Data completeness: one friendly question per gap in the briefs (docs/data-quality.md)
+completeness:
+  require_estimate: false    # turn on if your team estimates
+  triage: [alex]             # who gets tasks nobody owns (default: leads)
+
 # No secrets in this file! It is committed to the repository. Tokens and
 # passwords come from environment variables only (see README, "Secrets").
 

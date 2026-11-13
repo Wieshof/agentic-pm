@@ -77,6 +77,8 @@ Opening the link only *shows* the change, so mail scanners can't approve anythin
 - Briefs now show deadline collisions, e.g. "#12 and #31 are due by Tuesday and need about 3 days, but only 2 working days are left. Maybe move #31 or hand it over?"
 - Leads get the evening note (only when needed) and the weekly digest.
 
+**Data quality.** Before each brief the agent checks open tasks for missing owners, due dates and links, and asks the right person one short question per gap ([details](data-quality.md)).
+
 **Onboarding (#47).** `uv run agent-pm onboarding --all --send` sends everyone a friendly intro in their language that explains what the agent does with their data ([details](people-data.md)).
 
 ## 3. Security model
