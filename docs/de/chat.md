@@ -32,6 +32,21 @@ Bis wann soll es fertig sein?
 
 Die letzte Zeile ist das **Tag**. Wenn Du antwortest, erkennt der Agent daran, um welche Aufgabe es geht und welche Art Antwort er erwartet. Dafür muss nichts gespeichert werden ([Datenmodell](data-model.md#zuordnung-gespräch--ticket--transport-tagging)). An einem ruhigen Tag kommt gar nichts.
 
+## Nachfassen: sanft und pro Frage
+
+Bleibt eine Frage offen, fasst der Agent nach. Der Rhythmus hängt von der Frage ab, nie von der Person:
+
+| Frage | Wie oft | Wo |
+|-------|---------|----|
+| **Dringend**: niemand zuständig, blockiert ohne Grund, der Blocker ist schon erledigt, andere Arbeit wartet darauf, oder der Termin ist nah | bei jedem Briefing | als eigene Nachricht, mit einer Antwort erledigt |
+| Alles andere | einmal pro Woche | gebündelt im Briefing; antworte mit der Nummer, z. B. „#12 Freitag“ |
+
+- **Ein anderer Kanal.** Nach `escalate_after_ignored` Erinnerungen ohne Antwort (Standard 3) versucht der Agent den nächsten Kanal aus `prefer`, z. B. E-Mail statt Signal, und sagt dazu, warum.
+- **Die Teamleitung erfährt es.** Ist eine dringende Frage nach doppelt so vielen Erinnerungen noch offen, sieht die Teamleitung die **Aufgabe** in ihrem Briefing („#12: blockiert, Grund unbekannt, vor 6 Arbeitstagen nachgefragt“). Wer nicht geantwortet hat, sieht sie nie.
+- **`interruptions: none`** behält alle Fragen im Briefing, ohne zusätzliche Nachrichten.
+
+**Was er sich merkt, und wo.** Wenn der Agent zum ersten Mal fragt, hinterlässt er eine kurze Notiz im Ticket: „🙋 Sam nach einer fehlenden Angabe gefragt: kein Termin.“ Alles Weitere wird aus dem Ticket berechnet. Jede Antwort oder jeder Kommentar der Person setzt die Zählung zurück. Pro Person wird nichts gespeichert, und eine Kennzahl für „Antwortverhalten“ gibt es nicht ([ADR-0005](../adr/0005-chat-channels.de.md)). Bei Projekten nur mit Leserechten geht diese Notiz nicht, dann zählt die letzte Änderung der Aufgabe.
+
 ## Triangulation: wenn es nicht zusammenpasst
 
 Wenn eine Nachricht oder ein frischer Ticket-Kommentar etwas anderes sagt als der Tracker, fragt der Agent **einmal** nach. Beispiele: „erledigt“, obwohl die Aufgabe offen ist; „ich hänge fest“, obwohl sie in Arbeit ist; „angefangen“, obwohl sie noch offen ist.

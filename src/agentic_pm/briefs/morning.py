@@ -15,11 +15,13 @@ from pydantic import BaseModel
 from agentic_pm.adapters.base import CLOSED_STATUSES, Task, TaskStatus, TrackerAdapter
 from agentic_pm.adapters.coverage import CoverageReport
 from agentic_pm.briefs.coverage_text import render_coverage
-from agentic_pm.briefs.gap_text import render_gaps, render_readiness
+from agentic_pm.briefs.gap_text import render_gaps, render_readiness, render_stalled
 from agentic_pm.config.team import TeamConfig
 from agentic_pm.engine.capacity import Collision, find_collisions
 from agentic_pm.engine.completeness import CompletenessReport, Gap, check_completeness
 from agentic_pm.engine.dependencies import DependencyGraph, Risk
+from agentic_pm.engine.followup import FollowUp
+from agentic_pm.engine.followup import plan as plan_followups
 from agentic_pm.engine.triangulation import Conflict, comment_conflicts
 
 
@@ -55,6 +57,8 @@ class BriefData(BaseModel):
     my_collisions: list[Collision] = []
     team_collisions: list[Collision] = []
     conflicts: list[Conflict] = []  # my tasks whose latest comment claims another status
+    followups: list[FollowUp] = []  # my open questions with today's follow-up plan
+    stalled: list[FollowUp] = []  # leads: urgent questions long unanswered (task-centric)
     names: dict[str, str] = {}
 
     @property
@@ -82,6 +86,7 @@ class BriefData(BaseModel):
             or self.coverage
             or self.gaps
             or self.conflicts
+            or self.stalled
         )
 
 
@@ -105,6 +110,8 @@ async def collect(
     collisions = find_collisions(graph, today)
     completeness = check_completeness(cfg, graph)
     is_lead = handle in cfg.project.leads
+    followups = plan_followups(cfg, completeness, graph, today, writes=adapter.capabilities.writes)
+    mine_fu = [f for f in followups if handle in f.gap.recipients]
     my_risks = [r for r in risks if login in _lower(r.task.assignees)]
     at_risk_ids = {str(r.task.ref) for r in my_risks}
     # Each task appears once, in its most important section.
@@ -139,7 +146,9 @@ async def collect(
         my_collisions=[c for c in collisions if c.login == login],
         team_collisions=[c for c in collisions if c.login != login] if is_lead else [],
         names={p.login(h).lower(): p.name or h.capitalize() for h, p in cfg.people.items()},
-        gaps=completeness.for_handle(handle),
+        gaps=[f.gap for f in mine_fu if f.due_today],
+        followups=mine_fu,
+        stalled=[f for f in followups if f.stalled] if is_lead else [],
         conflicts=[
             c
             for c in comment_conflicts(mine, datetime.now(UTC))
@@ -334,6 +343,8 @@ def _sections(d: BriefData) -> list[tuple[str, list[str]]]:
         sections.append(render_conflicts(d, lang))
     if d.gaps:
         sections.append(render_gaps(d.gaps, lang, d.gap_limit))
+    if d.stalled:
+        sections.append(render_stalled(d.stalled, lang))
     if d.readiness is not None:
         sections.append(render_readiness(d.readiness, lang))
     if d.coverage is not None:  # never present a partial picture as "all clear"

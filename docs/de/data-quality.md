@@ -64,4 +64,4 @@ completeness:
 
 Prüfungen, die ein Tracker nicht unterstützt, werden übersprungen. Bei einem Tracker ohne Termine wird nie nach Terminen gefragt.
 
-`uv run agent-pm deps` zeigt die Datenqualität und jede Lücke an. Wer ein [Chat-Briefing](chat.md#briefings-im-chat) bekommt, erhält jede Frage als eigene Chat-Nachricht. Du antwortest einfach („Freitag“, „2 Tage“), und nach einem kurzen „ja“ wird das Ticket aktualisiert.
+`uv run agent-pm deps` zeigt die Datenqualität und jede Lücke an. Nachgefasst wird sanft: Dringendes täglich, der Rest wöchentlich ([Nachfassen](chat.md#nachfassen-sanft-und-pro-frage)). Wer ein [Chat-Briefing](chat.md#briefings-im-chat) bekommt, erhält jede dringende Frage als eigene Chat-Nachricht. Du antwortest einfach („Freitag“, „2 Tage“), und nach einem kurzen „ja“ wird das Ticket aktualisiert.

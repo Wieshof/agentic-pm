@@ -688,6 +688,16 @@ async def test_due_answer_round_trip() -> None:
     assert (await tr.get_task(ref())).due == date(2026, 11, 20)
 
 
+async def test_answer_to_a_bundled_question_names_the_task() -> None:
+    _, _tr, _, chat = setup()
+    t = FakeChat()
+    assert await chat.handle(t, evt("#12 Freitag")) == "due_confirm_asked"
+    assert await chat.handle(t, evt("#12 2 Tage")) == "estimate_confirm_asked"
+    # a real sentence with a date is a note, not an answer
+    out = await chat.handle(t, evt("#12 the client meeting moved to Friday, we'll see after"))
+    assert out == "note"
+
+
 async def test_unreadable_answer_is_kept_as_a_note() -> None:
     _, tr, _, chat = setup()
     out = await chat.handle(
@@ -743,8 +753,10 @@ async def test_chat_brief_sends_gaps_and_conflicts_as_single_questions() -> None
     sent = rt.notifier.sent  # type: ignore[attr-defined]
     assert all(s.channel == "signal" for s in sent)
     texts = [s.text for s in sent]
-    assert "Bis wann soll es fertig sein?" in texts[1] and texts[1].endswith("— #12 · due?")
-    assert "Kim" in texts[2] and "Soll ich es auf erledigt setzen?" in texts[2]
-    tag = tags.parse(texts[2])
+    # #12 isn't urgent (nothing waits on it, no date soon): bundled into the brief
+    assert "🧩" in texts[0] and "Bis wann soll es fertig sein?" in texts[0]
+    assert "🔍" not in texts[0]  # the conflict comes as its own question
+    assert "Kim" in texts[1] and "Soll ich es auf erledigt setzen?" in texts[1]
+    tag = tags.parse(texts[1])
     assert tag and tags.verified_patch(tag, KEY) is not None
-    assert "🔍" not in texts[0] and "🧩" not in texts[0]  # questions come one by one
+    assert len(texts) == 2

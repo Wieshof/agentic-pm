@@ -386,6 +386,7 @@
         },
         "escalate_after_ignored": {
           "default": 3,
+          "description": "Unanswered nudges for one question before the next channel in `prefer` is tried (counted per question, never per person)",
           "maximum": 20,
           "minimum": 1,
           "title": "Escalate After Ignored",

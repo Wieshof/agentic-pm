@@ -26,13 +26,16 @@ from typing import TYPE_CHECKING, Any
 from zoneinfo import ZoneInfo
 
 from agentic_pm.actions import Guard
-from agentic_pm.adapters.base import TrackerAdapter
+from agentic_pm.adapters.base import AuditMeta, Channel, ReadOnlyAdapterError, TrackerAdapter
 from agentic_pm.approvals import Signer
 from agentic_pm.briefs.digest import end_of_day, weekly_digest
 from agentic_pm.briefs.morning import build_email, collect, render_text
 from agentic_pm.cadence import Job, run_scheduler
-from agentic_pm.config.team import BriefFormat, TeamConfig
+from agentic_pm.chat.tags import Tag
+from agentic_pm.config.team import BriefFormat, Interruptions, TeamConfig
+from agentic_pm.engine.completeness import Gap
 from agentic_pm.engine.dependencies import DependencyGraph
+from agentic_pm.engine.followup import FollowUp
 from agentic_pm.inbound import HowToLoop, Router
 from agentic_pm.llm.base import LLMProvider
 from agentic_pm.notify import (
@@ -65,7 +68,9 @@ class Runtime:
     send_email: Callable[[Any], None] | None = None
     chats: list[ChatTransport] = field(default_factory=list)
     chat_router: ChatRouter | None = None
+    dry_run: bool = False
     log_lines: list[str] = field(default_factory=list)
+    _asked: set[str] = field(default_factory=set)  # this run only: don't note twice
 
     def today(self) -> date:
         return datetime.now(ZoneInfo(self.cfg.project.timezone)).date()
@@ -104,16 +109,20 @@ class Runtime:
             else:
                 await asyncio.to_thread(self.send_email or (lambda m: smtp.send(m, self.env)), msg)
             sent += 1
+            due = [f for f in data.followups if f.due_today][: data.gap_limit]
+            await self._switch(handle, [f for f in due if f.switch], "email")
+            await self._record_asked(due)
         self.say(f"briefs: sent {sent}")
         return sent
 
     async def _chat_brief(self, handle: str, today: date, graph: DependencyGraph) -> int:
-        """Short brief in chat, then each gap / conflict as its own question.
+        """Short brief in chat; urgent questions one by one, the rest bundled in.
 
         A question carries a tag (agentic_pm.chat.tags) so the person can just
         reply: "Friday" to "when should it be done?", "yes" to a proposal.
+        Adaptive follow-up (agentic_pm.engine.followup) decides what's asked
+        today and when to try another channel.
         """
-        from agentic_pm.briefs.gap_text import render_gap
         from agentic_pm.chat import tags
         from agentic_pm.messages import render, status_name, tracker_name
 
@@ -124,34 +133,95 @@ class Runtime:
         lang = data.language
         if data.is_quiet:
             return 0
-        brief = render_text(data.model_copy(update={"gaps": [], "conflicts": []}))
+        due = [f for f in data.followups if f.due_today][: data.gap_limit]
+        own_message = self.cfg.people[handle].interruptions is not Interruptions.NONE
+        separate = [f for f in due if f.urgent and own_message]
+        keys = {f.key for f in separate}
+        inline = [f.gap for f in due if f.key not in keys]
+        brief = render_text(data.model_copy(update={"gaps": inline, "conflicts": []}))
         if not await self.notifier.notify(handle, "", brief, channel=ch):
             return 0
+        stay = [f for f in separate if not f.switch]
+        moved = [f for f in separate if f.switch]
+        if not await self._switch(handle, moved, ch):
+            stay += moved
+        for f in stay:
+            await self.notifier.notify(handle, "", self._question(f.gap, lang), channel=ch)
         signer = self.guard.signer
-        can_propose = signer is not None and self.adapter.capabilities.writes
-        asks = {"MISSING_DUE": "due", "IMPLICIT_DUE": "due", "MISSING_ESTIMATE": "estimate"}
-        for gap in data.gaps[: data.gap_limit]:
-            ask = asks.get(gap.code) if can_propose else None
-            tag = tags.Tag(id=gap.task.ref.id, ask=ask)
-            text = f"{render_gap(gap, lang)}\n\n{tag.render()}"
-            await self.notifier.notify(handle, "", text, channel=ch)
-        for c in data.conflicts:
-            if signer is None or not can_propose:
-                break
-            text = render(
-                lang,
-                "confirm_status_owner",
-                who=data.names.get((c.by or "").lower()) or c.by or render(lang, "someone"),
-                evidence=c.claim.evidence,
-                id=c.task.ref.id,
-                title=c.task.title,
-                status=status_name(c.task.status, lang),
-                new=status_name(c.proposed, lang),
-                tracker=tracker_name(self.cfg.project.tracker),
-            )
-            tag = tags.proposal(signer.key, c.task.ref.id, "status", c.proposed.value)
-            await self.notifier.notify(handle, "", f"{text}\n\n{tag.render()}", channel=ch)
+        if signer is not None and self.adapter.capabilities.writes:
+            for c in data.conflicts:
+                text = render(
+                    lang,
+                    "confirm_status_owner",
+                    who=data.names.get((c.by or "").lower()) or c.by or render(lang, "someone"),
+                    evidence=c.claim.evidence,
+                    id=c.task.ref.id,
+                    title=c.task.title,
+                    status=status_name(c.task.status, lang),
+                    new=status_name(c.proposed, lang),
+                    tracker=tracker_name(self.cfg.project.tracker),
+                )
+                tag = tags.proposal(signer.key, c.task.ref.id, "status", c.proposed.value)
+                await self.notifier.notify(handle, "", f"{text}\n\n{tag.render()}", channel=ch)
+        await self._record_asked(due)
         return 1
+
+    def _question(self, gap: Gap, lang: str) -> str:
+        """One gap as a chat question, tagged so a plain reply finds its task."""
+        from agentic_pm.briefs.gap_text import render_gap
+
+        can_propose = self.guard.signer is not None and self.adapter.capabilities.writes
+        asks = {"MISSING_DUE": "due", "IMPLICIT_DUE": "due", "MISSING_ESTIMATE": "estimate"}
+        ask = asks.get(gap.code) if can_propose else None
+        return f"{render_gap(gap, lang)}\n\n{Tag(id=gap.task.ref.id, ask=ask).render()}"
+
+    async def _switch(self, handle: str, items: list[FollowUp], current: str) -> bool:
+        """Ask `items` on the person's next channel; False if there is none."""
+        from agentic_pm.briefs.gap_text import gap_text, render_gap
+        from agentic_pm.messages import CHANNEL_LABELS
+
+        if not items:
+            return True
+        nxt = next((c for c in self.cfg.reach_order(handle) if c != current), None)
+        if nxt is None:
+            return False
+        lang = self.cfg.language_of(handle)
+        labels = CHANNEL_LABELS.get(lang.split("-")[0], CHANNEL_LABELS["en"])
+        intro = gap_text(lang, "switch_intro", channel=labels.get(current, current))
+        if nxt == "email":
+            body = "\n\n".join([intro, *(f"• {render_gap(f.gap, lang)}" for f in items)])
+            subject = gap_text(lang, "switch_subject")
+            return await self.notifier.notify(handle, subject, body, channel=nxt)
+        if not await self.notifier.notify(handle, "", intro, channel=nxt):
+            return False
+        for f in items:
+            await self.notifier.notify(handle, "", self._question(f.gap, lang), channel=nxt)
+        return True
+
+    async def _record_asked(self, items: list[FollowUp]) -> None:
+        """First time a question is asked: one audited note on the ticket.
+
+        That note is the follow-up's only memory (agentic_pm.engine.followup).
+        """
+        from agentic_pm.briefs.gap_text import gap_label, gap_text
+        from agentic_pm.engine.followup import REASON_PREFIX
+
+        if self.dry_run or not self.adapter.capabilities.writes:
+            return
+        lang = self.cfg.project.ticket_language
+        for f in items:
+            if f.asked_on is not None or f.key in self._asked:
+                continue
+            self._asked.add(f.key)
+            names = ", ".join(self.cfg.display_name(h) for h in f.gap.recipients)
+            meta = AuditMeta(
+                actor="agent-pm", channel=Channel.SYSTEM, reason=f"{REASON_PREFIX}{f.gap.code}"
+            )
+            text = gap_text(lang, "asked_note", names=names, what=gap_label(f.gap, lang))
+            try:
+                await self.guard.comment(f.gap.task.ref, text, meta)
+            except ReadOnlyAdapterError:
+                return
 
     def brief_handles(self, at: str | None = None) -> list[str]:
         """People whose email or chat brief runs at `at` (None = all of them)."""
@@ -338,6 +408,7 @@ def build_runtime(
         env=env,
         chats=chats,
         chat_router=chat_router,
+        dry_run=dry_run,
     )
 
 

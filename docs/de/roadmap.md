@@ -33,7 +33,7 @@ Siehe [Den Agenten betreiben](running.md).
 - ✅ Chat über **Matrix und Signal**: Zuordnung über den Antwortkontext, Chat-Briefings mit einer Frage pro Lücke, Bestätigung mit Ja/Nein ([Chat](chat.md), [ADR-0005](../adr/0005-chat-channels.de.md))
 - ✅ Sprachnachrichten, lokal transkribiert (faster-whisper / whisper.cpp), nur im Arbeitsspeicher
 - ✅ Widerspruchs-Triangulation + Mikro-Interviews (#15)
-- ⏳ Adaptive Nachfass-Taktung (#14), pro Frage statt pro Person
+- ✅ Adaptive Nachfass-Taktung (#14): pro Frage statt pro Person; Dringendes täglich, der Rest wöchentlich und gebündelt; nach N Erinnerungen der nächste Kanal
 - ⏳ WhatsApp Business hinter derselben Chat-Schnittstelle (#12)
 - ⏳ Sprachagent: eingehende Anrufe, ausgehende 60-Sekunden-Check-ins, Transkriptionshinweis, Transkripte nur im Arbeitsspeicher (#13)
 - **Abschluss:** Blocker werden in < 2 h sichtbar; mindestens eine Person ohne Tracker-Konto ist pro Pilotteam aktiv

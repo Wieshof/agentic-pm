@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from agentic_pm.engine.completeness import CompletenessReport, Gap
+from agentic_pm.engine.followup import FollowUp
 
 TEXTS: dict[str, dict[str, str]] = {
     "en": {
@@ -34,6 +35,21 @@ TEXTS: dict[str, dict[str, str]] = {
         "count_BLOCKED_WITHOUT_REASON": "{n} blocked without a reason",
         "count_BLOCKER_DONE": "{n} blocked by something already done",
         "count_UNLINKED_DEPENDENCY": "{n} unlinked dependencies",
+        "what_MISSING_OWNER": "no owner",
+        "what_OWNER_NOT_IN_TEAM": "owner not in the team file",
+        "what_MISSING_DUE": "no due date",
+        "what_IMPLICIT_DUE": "due date only in the text",
+        "what_MISSING_ESTIMATE": "no estimate",
+        "what_BLOCKED_WITHOUT_REASON": "blocked, reason unknown",
+        "what_BLOCKER_DONE": "blocked, but its blocker is done",
+        "what_UNLINKED_DEPENDENCY": "dependency not linked",
+        "stalled_heading": "⏰ Still waiting for an answer",
+        "stalled_item": "#{id} {title}: {what}, asked {days} working days ago",
+        "switch_intro": (
+            "I've asked on {channel} a few times, so I'm trying here in case it's easier."
+        ),
+        "switch_subject": "🧩 A few open questions",
+        "asked_note": "🙋 Asked {names} about a missing detail: {what}.",
     },
     "de": {
         "heading": "🧩 Hier fehlen noch ein paar Angaben",
@@ -65,6 +81,22 @@ TEXTS: dict[str, dict[str, str]] = {
         "count_BLOCKED_WITHOUT_REASON": "{n} blockiert ohne Grund",
         "count_BLOCKER_DONE": "{n} blockiert durch bereits Erledigtes",
         "count_UNLINKED_DEPENDENCY": "{n} unverknüpfte Abhängigkeiten",
+        "what_MISSING_OWNER": "niemand zuständig",
+        "what_OWNER_NOT_IN_TEAM": "Zuständige nicht in der Team-Datei",
+        "what_MISSING_DUE": "kein Termin",
+        "what_IMPLICIT_DUE": "Termin nur im Text",
+        "what_MISSING_ESTIMATE": "keine Schätzung",
+        "what_BLOCKED_WITHOUT_REASON": "blockiert, Grund unbekannt",
+        "what_BLOCKER_DONE": "blockiert, obwohl der Blocker erledigt ist",
+        "what_UNLINKED_DEPENDENCY": "Abhängigkeit nicht verknüpft",
+        "stalled_heading": "⏰ Wartet noch auf eine Antwort",
+        "stalled_item": "#{id} {title}: {what}, vor {days} Arbeitstagen nachgefragt",
+        "switch_intro": (
+            "Ich habe auf {channel} schon ein paar Mal gefragt, deshalb versuche ich es hier, "
+            "falls das einfacher ist."
+        ),
+        "switch_subject": "🧩 Ein paar offene Fragen",
+        "asked_note": "🙋 {names} nach einer fehlenden Angabe gefragt: {what}.",
     },
 }
 
@@ -96,3 +128,27 @@ def render_readiness(report: CompletenessReport, lang: str) -> tuple[str, list[s
         parts = [t[f"count_{code}"].format(n=n) for code, n in sorted(counts.items())]
         lines.append(t["readiness_counts"].format(counts=", ".join(parts)))
     return t["readiness_heading"], lines
+
+
+def gap_label(gap: Gap, lang: str) -> str:
+    """Short label of what's missing, e.g. 'no due date' / 'kein Termin'."""
+    return _t(lang)[f"what_{gap.code}"]
+
+
+def gap_text(lang: str, key: str, **kw: str) -> str:
+    return _t(lang)[key].format(**kw)
+
+
+def render_stalled(items: list[FollowUp], lang: str) -> tuple[str, list[str]]:
+    """Task-centric: which tasks still miss something, never who didn't answer."""
+    t = _t(lang)
+    lines = [
+        t["stalled_item"].format(
+            id=f.gap.task.ref.id,
+            title=f.gap.task.title,
+            what=gap_label(f.gap, lang),
+            days=f.ignored,
+        )
+        for f in items
+    ]
+    return t["stalled_heading"], lines

@@ -9,7 +9,9 @@ Order of handling for one message from a known person:
    otherwise it becomes a normal approval request.
 4. Reply to a "due?" / "estimate?" question + a readable date or estimate
    → one confirmation question back (never applied directly).
-5. Everything else → the shared `Router` (note, how-to, scope, triangulation),
+5. "#12 Friday" (an answer to a bundled question, no tag) → as in 4, if #12
+   really has no due date (or estimate) yet.
+6. Everything else → the shared `Router` (note, how-to, scope, triangulation),
    with the task taken from the replied-to message or a single "#12".
 
 Senders not in team.yaml are ignored.
@@ -107,6 +109,9 @@ class ChatRouter:
             ids = {m.group(1) for m in _ID.finditer(text)}
             if len(ids) == 1:
                 ref = self._ref(ids.pop())
+                short = await self._short_answer(transport, evt, handle, ref, text)
+                if short is not None:
+                    return short
         msg = InboundMessage(
             sender=evt.sender,
             handle=handle,
@@ -155,6 +160,26 @@ class ChatRouter:
         names = ", ".join(self.cfg.display_name(h) for h in outcome.waiting_for)
         await self._say(transport, evt, handle, "confirm_pending", names=names)
         return "confirm_pending"
+
+    async def _short_answer(
+        self, transport: ChatTransport, evt: ChatEvent, handle: str, ref: TaskRef, text: str
+    ) -> str | None:
+        """'#12 Friday' / '#12 2 days': an answer to a bundled question without a tag."""
+        rest = _ID.sub(" ", text).strip(" :,-\u2013")
+        if not rest or len(rest.split()) > 5:
+            return None
+        try:
+            task = await self.guard.adapter.get_task(ref)
+        except TaskNotFoundError:
+            return None
+        ask: tags.Ask | None = None
+        if task.due is None and parse_date(rest, self.today()):
+            ask = "due"
+        elif task.estimate_hours is None and parse_estimate(rest):
+            ask = "estimate"
+        if ask is None:
+            return None
+        return await self._answer(transport, evt, handle, tags.Tag(id=ref.id, ask=ask), rest)
 
     async def _answer(
         self, transport: ChatTransport, evt: ChatEvent, handle: str, tag: tags.Tag, text: str

@@ -31,7 +31,7 @@ A plain-language summary for everyone on a team that uses agentic-pm. The design
 
 ## What it writes, and when it asks first
 
-- **Automatically, with an audit note:** comments, how-tos and labels.
+- **Automatically, with an audit note:** comments, how-tos and labels, plus one short note when it first asks about a missing detail ("🙋 Asked Sam about a missing detail: no due date"). That note is how it knows when to follow up. Nothing about you is stored elsewhere.
 - **Your OK first:** changes to your task's dates or status. You get a friendly email with a link, or in chat a question you answer with "yes" or "no". Nothing changes until you decide.
 - **A lead's OK first:** client deadlines, new owners, deleting things.
 

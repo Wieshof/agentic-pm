@@ -55,7 +55,7 @@ people:
     check_in:
       window: "14:00-16:00"
       max_call_seconds: 90
-    escalate_after_ignored: 3   # switch modality after N unanswered nudges
+    escalate_after_ignored: 3   # after N unanswered nudges for one question, try the next channel
 
   kim:
     role: product-owner

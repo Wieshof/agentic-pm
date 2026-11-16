@@ -33,7 +33,7 @@ See [Running the agent](running.md).
 - ✅ Chat on **Matrix and Signal**: reply-context routing, chat briefs with one question per gap, yes/no confirmations ([chat](chat.md), [ADR-0005](adr/0005-chat-channels.md))
 - ✅ Voice notes, transcribed locally (faster-whisper / whisper.cpp), RAM only
 - ✅ Inconsistency Triangulation + micro-interviews (#15)
-- ⏳ Adaptive Follow-Up Cadence (#14), per question, not per person
+- ✅ Adaptive Follow-Up Cadence (#14): per question, not per person; urgent daily, the rest weekly and bundled; next channel after N nudges
 - ⏳ WhatsApp Business behind the same chat interface (#12)
 - ⏳ Voice agent: inbound calls, outbound 60-second check-ins, consent disclosure, RAM-only transcripts (#13)
 - **Exit:** blocker surfacing < 2 h; at least one non-tracker user active per pilot team

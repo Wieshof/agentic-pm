@@ -31,7 +31,7 @@ Eine verständliche Zusammenfassung für alle in einem Team, das agentic-pm nutz
 
 ## Was er schreibt und wann er vorher fragt
 
-- **Automatisch, mit Audit-Vermerk:** Kommentare, How-tos und Labels.
+- **Automatisch, mit Audit-Vermerk:** Kommentare, How-tos und Labels, dazu eine kurze Notiz, wenn er zum ersten Mal nach einer fehlenden Angabe fragt („🙋 Sam nach einer fehlenden Angabe gefragt: kein Termin“). Daran erkennt er, wann er nachfassen soll. Woanders wird nichts über Dich gespeichert.
 - **Erst mit Deinem OK:** Änderungen an Terminen oder Status Deiner Aufgabe. Du bekommst eine freundliche Mail mit Link oder im Chat eine Frage, die Du mit „ja“ oder „nein“ beantwortest. Nichts ändert sich, bevor Du entschieden hast.
 - **Erst mit dem OK einer Teamleitung:** Kundentermine, neue Verantwortliche, Löschen.
 

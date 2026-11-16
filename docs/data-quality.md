@@ -64,4 +64,4 @@ completeness:
 
 Checks a tracker can't support are skipped. A tracker without due dates is never asked for them.
 
-`uv run agent-pm deps` prints the readiness ratio and every gap. People with a [chat brief](chat.md#briefs-in-chat) get each question as its own chat message. They can just reply ("Friday", "2 days"), and after a quick "yes" the ticket is updated.
+`uv run agent-pm deps` prints the readiness ratio and every gap. Questions follow up gently: urgent ones daily, the rest weekly ([follow-up](chat.md#follow-up-gentle-per-question)). People with a [chat brief](chat.md#briefs-in-chat) get each urgent question as its own chat message. They can just reply ("Friday", "2 days"), and after a quick "yes" the ticket is updated.

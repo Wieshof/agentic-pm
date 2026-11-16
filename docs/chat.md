@@ -32,6 +32,21 @@ Bis wann soll es fertig sein?
 
 The last line is the **tag**. It tells the agent which task, and what kind of answer it expects, when someone replies. Nothing has to be stored for that ([data model](data-model.md#conversation--ticket-routing--transport-level-tagging)). A quiet day sends nothing.
 
+## Follow-up: gentle, per question
+
+If a question stays open, the agent follows up. The rhythm depends on the question, never on the person:
+
+| Question | How often | Where |
+|----------|-----------|-------|
+| **Urgent**: no owner, blocked without a reason, its blocker is already done, other work waits on it, or it's due soon | every brief | its own message, answerable with one reply |
+| Everything else | once a week | bundled into the brief; reply with the number, e.g. "#12 Friday" |
+
+- **Another channel.** After `escalate_after_ignored` nudges without an answer (default 3), the agent tries the person's next channel from `prefer`, e.g. email instead of Signal, and says why.
+- **Telling the leads.** If an urgent question is still open after twice that, the leads see the **task** in their brief ("#12: blocked, reason unknown, asked 6 working days ago"). They never see who didn't answer.
+- **`interruptions: none`** keeps every question inside the brief, with no extra messages.
+
+**What it remembers, and where.** When the agent asks for the first time, it leaves one short note on the ticket: "🙋 Asked Sam about a missing detail: no due date." Every count is worked out from the ticket. Any reply or comment from the person restarts it. Nothing is stored per person, and there's no "responsiveness" number ([ADR-0005](adr/0005-chat-channels.md)). Read-only projects can't leave the note, so the task's last update is used instead.
+
 ## Triangulation: when the story doesn't add up
 
 When a message or a fresh ticket comment says something the tracker doesn't, the agent asks **once**. Examples: "done" while the task is open, "I'm stuck" while it's in progress, or "started" while it's still open.

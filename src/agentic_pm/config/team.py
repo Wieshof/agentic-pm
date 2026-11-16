@@ -153,7 +153,13 @@ class Person(_Strict):
     check_in: CheckIn | None = None
     interruptions: Interruptions = Interruptions.ANY
     quiet_hours: TimeWindow | None = None
-    escalate_after_ignored: int = Field(default=3, ge=1, le=20)
+    escalate_after_ignored: int = Field(
+        default=3,
+        ge=1,
+        le=20,
+        description="Unanswered nudges for one question before the next channel in `prefer` "
+        "is tried (counted per question, never per person)",
+    )
     name: str | None = Field(default=None, description="How the agent greets this person")
     language: LanguageCode = Field(
         default="en",

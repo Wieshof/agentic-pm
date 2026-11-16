@@ -171,6 +171,7 @@ uv run agent-pm onboarding --demo --person sam    # friendly intro: what the age
 | `agentic_pm.cadence` · `runtime` | Operating cadence, scheduler, `agent-pm run` |
 | `agentic_pm.engine.capacity` | Deadline collisions (task-centric) |
 | `agentic_pm.engine.completeness` | Data completeness: missing owners, dates, links; readiness ratio |
+| `agentic_pm.engine.followup` | Adaptive follow-up per question: rhythm, next channel, stalled tasks for leads (#14) |
 | `agentic_pm.engine.triangulation` | Status claims that contradict the tracker → one question (#15) |
 | `agentic_pm.chat` | Matrix & Signal transports, reply tags, short-answer parsing, chat router |
 | `agentic_pm.speech` | Local speech-to-text for voice notes (faster-whisper, whisper.cpp) |

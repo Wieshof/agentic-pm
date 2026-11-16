@@ -171,6 +171,7 @@ uv run agent-pm onboarding --demo --person sam    # freundliche Vorstellung: was
 | `agentic_pm.cadence` · `runtime` | Arbeitstakt, Scheduler, `agent-pm run` |
 | `agentic_pm.engine.capacity` | Terminkollisionen (aufgabenbezogen) |
 | `agentic_pm.engine.completeness` | Datenqualität: fehlende Zuständige, Termine, Verknüpfungen; Bereitschaftsquote |
+| `agentic_pm.engine.followup` | Adaptives Nachfassen pro Frage: Rhythmus, nächster Kanal, hängende Aufgaben für die Teamleitung (#14) |
 | `agentic_pm.engine.triangulation` | Status-Aussagen, die dem Tracker widersprechen → eine Rückfrage (#15) |
 | `agentic_pm.chat` | Matrix- & Signal-Anbindung, Antwort-Tags, Auswertung kurzer Antworten, Chat-Router |
 | `agentic_pm.speech` | Lokale Spracherkennung für Sprachnachrichten (faster-whisper, whisper.cpp) |
