@@ -1,0 +1,26 @@
+# Weekly dependency updates. Security fixes arrive as soon as they're published
+# (with Dependabot alerts enabled in the repository settings).
+version: 2
+updates:
+  - package-ecosystem: "uv"          # pyproject.toml + uv.lock
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    groups:
+      python-minor-and-patch:         # one PR for routine updates instead of many
+        update-types: ["minor", "patch"]
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "ci"

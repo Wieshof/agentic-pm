@@ -11,6 +11,10 @@ Danke für Dein Interesse an agentic-pm!
 - **Architekturentscheidungen** werden als ADRs in [`docs/adr/`](docs/adr/) festgehalten, mit der Vorlage [`0000-template.de.md`](docs/adr/0000-template.de.md).
 - **Kleine PRs** mit klarer Beschreibung und Verweis auf das Issue.
 
+## Sicherheit
+
+Bitte melde Schwachstellen nicht in öffentlichen Issues. Den vertraulichen Weg findest Du in [SECURITY.de.md](SECURITY.de.md).
+
 ## Labels
 
 | Label | Bedeutung |

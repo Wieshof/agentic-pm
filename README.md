@@ -206,6 +206,8 @@ examples/solo/        a one-person studio planning in a CSV
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Design discussion happens in GitHub Issues. Each roadmap phase has a milestone.
 
+**Found a security problem?** Please report it privately, see [SECURITY.md](SECURITY.md).
+
 **Which trackers?** See the [support matrix](docs/trackers.md) for Jira, Azure DevOps, Asana, monday.com, Smartsheet, Notion, Trello, Planner, Linear, GitLab, Redmine and more, and the [adapter epic #18](https://github.com/Wieshof/agentic-pm/issues/18).
 
 **Reference adapter: GitHub Issues** ([`adapters/github.py`](src/agentic_pm/adapters/github.py)), built in Phase 1 together with OpenProject. New tracker adapters (Plane, Taiga, GitLab, Jira, Linear, see #18) implement the same `TrackerAdapter` protocol and pass the shared contract suite (`agentic_pm.testing`). Copy the GitHub adapter and its tests, which use recorded API responses, so no account is needed.

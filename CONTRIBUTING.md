@@ -11,6 +11,10 @@ Thanks for your interest in agentic-pm!
 - **Architecture decisions** are recorded as ADRs in [`docs/adr/`](docs/adr/), using [`0000-template.md`](docs/adr/0000-template.md).
 - **Small PRs** with a clear description and a link to the issue.
 
+## Security
+
+Please don't report vulnerabilities in public issues. See [SECURITY.md](SECURITY.md) for the private way.
+
 ## Labels
 
 | Label | Meaning |
