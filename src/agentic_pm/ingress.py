@@ -10,7 +10,7 @@ bursts of events for one ticket (edit + label + assign within seconds).
 1. **duplicate_delivery** - the same delivery id (e.g. `X-GitHub-Delivery`)
    was already seen within `dedup_ttl` seconds.
 2. **self_authored** - the sender is one of the agent's service accounts, or
-   the text carries the agent's audit footer (`agentic_pm.audit`).
+   the text carries the agent's cryptographically signed audit footer (`agentic_pm.audit`).
 3. **coalesced** - an event of the same kind for the same ticket was admitted
    less than `coalesce_window` seconds ago.
 
@@ -21,12 +21,13 @@ bounded (oldest entries are evicted), so a restart simply starts fresh.
 
 from __future__ import annotations
 
+import os
 import time
 from collections import OrderedDict
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 
-from agentic_pm.audit import AUDIT_MARKER
+from agentic_pm.audit import verify_audit_footer
 
 
 class _ExpiringSet:
@@ -66,11 +67,18 @@ class Decision:
     reason: str  # "admitted" | "duplicate_delivery" | "self_authored" | "coalesced"
 
 
-def is_self_authored(actor: str | None, text: str | None, agent_accounts: Iterable[str]) -> bool:
+def is_self_authored(
+    actor: str | None,
+    text: str | None,
+    agent_accounts: Iterable[str],
+    signing_key: str | bytes | None = None,
+) -> bool:
     accounts = {a.lower() for a in agent_accounts}
     if actor and actor.lower() in accounts:
         return True
-    return bool(text and AUDIT_MARKER in text)
+    if not text:
+        return False
+    return verify_audit_footer(text, signing_key=signing_key)
 
 
 class WebhookGate:
@@ -81,8 +89,12 @@ class WebhookGate:
         coalesce_window: float = 10.0,
         max_entries: int = 10_000,
         clock: Callable[[], float] = time.monotonic,
+        signing_key: str | bytes | None = None,
     ) -> None:
         self.agent_accounts = tuple(agent_accounts)
+        self.signing_key = (
+            signing_key if signing_key is not None else os.environ.get("AGENT_PM_SIGNING_KEY")
+        )
         self._deliveries = _ExpiringSet(dedup_ttl, max_entries, clock)
         self._recent = _ExpiringSet(coalesce_window, max_entries, clock)
 
@@ -99,7 +111,7 @@ class WebhookGate:
             if self._deliveries.seen_recently(delivery_id):
                 return Decision(False, "duplicate_delivery")
             self._deliveries.add(delivery_id)
-        if is_self_authored(actor, text, self.agent_accounts):
+        if is_self_authored(actor, text, self.agent_accounts, signing_key=self.signing_key):
             return Decision(False, "self_authored")
         key = f"{ticket}|{kind}"
         if self._recent.seen_recently(key):

@@ -81,6 +81,38 @@ async def test_medium_goes_to_owner_and_applies_after_ok(env: Any) -> None:
     assert again.status == "stale"  # replay is harmless
 
 
+async def test_medium_owner_confirmed_applies_if_actor_is_owner(env: Any) -> None:
+    cfg, tracker, _, _, guard = env
+    new_due = TODAY + timedelta(days=4)
+    meta_owner = AuditMeta(actor="sam", channel=Channel.VOICE, reason="owner confirmed on call")
+    out = await guard.propose(
+        ref(cfg, 12), TaskPatch(due=new_due), meta_owner, owner_confirmed=True
+    )
+    assert out.applied and out.status == "applied"
+    task = await tracker.get_task(ref(cfg, 12))
+    assert task.due == new_due
+
+
+async def test_medium_owner_confirmed_rejected_if_actor_is_not_owner(env: Any) -> None:
+    cfg, _tracker, _, _, guard = env
+    new_due = TODAY + timedelta(days=5)
+    meta_fake = AuditMeta(actor="attacker", channel=Channel.VOICE, reason="untrusted claim")
+    out = await guard.propose(ref(cfg, 12), TaskPatch(due=new_due), meta_fake, owner_confirmed=True)
+    assert not out.applied and out.status == "pending"
+    assert out.waiting_for == ["sam"]
+
+
+async def test_high_risk_never_self_attested(env: Any) -> None:
+    cfg, _, _, _, guard = env
+    new_due = TODAY + timedelta(days=9)
+    meta_lead = AuditMeta(
+        actor="alex", channel=Channel.SYSTEM, reason="bypass attempt", approved_by="alex"
+    )
+    out = await guard.propose(ref(cfg, 13), TaskPatch(due=new_due), meta_lead, owner_confirmed=True)
+    assert not out.applied and out.status == "pending"
+    assert out.waiting_for == ["alex"]
+
+
 async def test_high_goes_to_leads(env: Any) -> None:
     cfg, _, notifier, _, guard = env
     out = await guard.propose(ref(cfg, 13), TaskPatch(due=TODAY + timedelta(days=9)), META)

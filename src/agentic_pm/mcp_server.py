@@ -13,25 +13,41 @@ from typing import Any
 
 from mcp.server.mcpserver import MCPServer
 
+from agentic_pm.actions import Guard
 from agentic_pm.adapters.base import (
     AuditMeta,
     Channel,
     Edge,
     EdgeKind,
+    ReadOnlyAdapterError,
     Task,
     TaskPatch,
     TaskRef,
     TaskStatus,
     TrackerAdapter,
 )
-from agentic_pm.audit import classify_patch, is_allowed
+from agentic_pm.approvals import InvalidToken
+from agentic_pm.audit import RiskTier, classify_patch
 
 
 class TrackerTools:
     """Plain-Python implementation of the MCP tools (easy to unit-test)."""
 
-    def __init__(self, adapter: TrackerAdapter) -> None:
-        self.adapter = adapter
+    def __init__(self, adapter: TrackerAdapter | Guard, guard: Guard | None = None) -> None:
+        if isinstance(adapter, Guard):
+            self.guard: Guard | None = adapter
+            self.adapter: TrackerAdapter = adapter.adapter
+        else:
+            self.adapter = adapter
+            self.guard = guard
+
+    def _require_writes(self) -> None:
+        if self.guard is not None:
+            self.guard._require_writes()
+        elif not self.adapter.capabilities.writes:
+            raise ReadOnlyAdapterError(
+                "writes are disabled for this project (set project.allow_writes: true)"
+            )
 
     def _ref(self, project: str, task_id: str) -> TaskRef:
         return TaskRef(tracker=self.adapter.name, project=project, id=task_id)
@@ -51,8 +67,13 @@ class TrackerTools:
     async def add_comment(
         self, project: str, task_id: str, markdown: str, actor: str, channel: str, reason: str
     ) -> dict[str, Any]:
+        self._require_writes()
         meta = AuditMeta(actor=actor, channel=Channel(channel), reason=reason)
-        await self.adapter.add_comment(self._ref(project, task_id), markdown, meta)
+        ref = self._ref(project, task_id)
+        if self.guard is not None:
+            await self.guard.comment(ref, markdown, meta)
+        else:
+            await self.adapter.add_comment(ref, markdown, meta)
         return {"applied": True, "tier": "low"}
 
     async def update_fields(
@@ -63,29 +84,74 @@ class TrackerTools:
         actor: str,
         channel: str,
         reason: str,
-        owner_confirmed: bool = False,
-        approved_by: str | None = None,
+        approval_token: str | None = None,
     ) -> dict[str, Any]:
+        self._require_writes()
         ref = self._ref(project, task_id)
         parsed = TaskPatch.model_validate(patch)
-        meta = AuditMeta(
-            actor=actor, channel=Channel(channel), reason=reason, approved_by=approved_by
-        )
-        current = await self.adapter.get_task(ref)
-        tier = classify_patch(current, parsed)
-        if not is_allowed(tier, meta, owner_confirmed=owner_confirmed):
-            who = "the task owner" if tier == "medium" else "a team lead"
+        meta = AuditMeta(actor=actor, channel=Channel(channel), reason=reason)
+
+        if approval_token is not None:
+            if self.guard is None or self.guard.signer is None:
+                return {
+                    "applied": False,
+                    "error": (
+                        "Approval token verification requires a configured Guard with signing key."
+                    ),
+                }
+            try:
+                req = self.guard.signer.verify(approval_token)
+            except InvalidToken as e:
+                return {"applied": False, "error": f"Invalid approval token: {e}"}
+
+            if req.ref != ref:
+                return {
+                    "applied": False,
+                    "error": f"Approval token is for {req.ref}, not {ref}.",
+                }
+
+            outcome = await self.guard.decide(approval_token, approve=True)
+            if outcome.applied:
+                return {
+                    "applied": True,
+                    "tier": outcome.tier.value,
+                    "task": outcome.task.model_dump(mode="json") if outcome.task else None,
+                }
             return {
                 "applied": False,
-                "tier": tier.value,
-                "pending_approval": f"Change needs confirmation from {who}.",
+                "tier": outcome.tier.value,
+                "status": outcome.status,
+                "message": outcome.message,
             }
-        updated = await self.adapter.update_fields(ref, parsed, meta)
-        return {"applied": True, "tier": tier.value, "task": updated.model_dump(mode="json")}
+
+        current = await self.adapter.get_task(ref)
+        tier = classify_patch(current, parsed)
+        if tier is RiskTier.LOW:
+            if self.guard is not None:
+                outcome = await self.guard.propose(ref, parsed, meta)
+                return {
+                    "applied": True,
+                    "tier": tier.value,
+                    "task": outcome.task.model_dump(mode="json") if outcome.task else None,
+                }
+            updated = await self.adapter.update_fields(ref, parsed, meta)
+            return {"applied": True, "tier": tier.value, "task": updated.model_dump(mode="json")}
+
+        who = "the task owner" if tier is RiskTier.MEDIUM else "a team lead"
+        result: dict[str, Any] = {
+            "applied": False,
+            "tier": tier.value,
+            "pending_approval": f"Change needs confirmation from {who}.",
+        }
+        if self.guard is not None and self.guard.signer is not None:
+            outcome = await self.guard.propose(ref, parsed, meta)
+            result["status"] = outcome.status
+            result["waiting_for"] = outcome.waiting_for
+        return result
 
 
-def build_server(adapter: TrackerAdapter) -> MCPServer:
-    tools = TrackerTools(adapter)
+def build_server(adapter: TrackerAdapter | Guard, guard: Guard | None = None) -> MCPServer:
+    tools = TrackerTools(adapter, guard=guard)
     server = MCPServer("agentic-pm-tracker")
 
     @server.tool()
@@ -118,16 +184,16 @@ def build_server(adapter: TrackerAdapter) -> MCPServer:
         actor: str,
         channel: str,
         reason: str,
-        owner_confirmed: bool = False,
-        approved_by: str | None = None,
+        approval_token: str | None = None,
     ) -> dict[str, Any]:
         """Update status / due / estimate / assignees / labels, subject to permission tiers.
 
         Returns `pending_approval` instead of applying when the change's risk tier
-        requires confirmation that has not been given.
+        requires confirmation that has not been given. For medium/high risk changes,
+        a cryptographic approval_token is required.
         """
         return await tools.update_fields(
-            project, task_id, patch, actor, channel, reason, owner_confirmed, approved_by
+            project, task_id, patch, actor, channel, reason, approval_token=approval_token
         )
 
     return server

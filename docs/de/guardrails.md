@@ -9,8 +9,10 @@ Wer einer KI Schreibzugriff auf Projekt-Repositorys und direkte Kommunikationska
 | Stufe | Beispiele | Verhalten |
 |-------|-----------|-----------|
 | **Geringes Risiko** | Kommentare protokollieren, nachträgliche Doku anhängen, Blocker markieren, Labels setzen | Läuft automatisch, mit Audit-Trail |
-| **Mittleres Risiko** | Interne Termine ändern, Status im Namen der zuständigen Person aktualisieren | Läuft automatisch, wenn die Person im Kanal bestätigt hat; sonst wird sie gefragt |
+| **Mittleres Risiko** | Interne Termine ändern, Status im Namen der zuständigen Person aktualisieren | Läuft automatisch, wenn die zuständige Person selbst im Kanal bestätigt hat; sonst wird sie gefragt |
 | **Hohe Tragweite** | Aufgaben löschen, Zuständige neu zuweisen, externe Kundentermine verschieben | **Bestätigungsanfrage an die zuständige Teamleitung**, bevor etwas ausgeführt wird |
+
+Eine Bestätigung zählt nur, wenn sie von der zuständigen Person selbst kommt, und eine Freigabe der Teamleitung nur über einen signierten Freigabe-Link. Niemand kann eine Änderung freigeben, nur indem er behauptet, zuständig oder Teamleitung zu sein.
 
 Die Stufen sollen pro Projekt in `.agent-pm/policy.yaml` konfigurierbar sein (geplant).
 

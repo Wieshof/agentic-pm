@@ -9,8 +9,10 @@ Giving an AI write access to project repositories and direct communication chann
 | Tier | Examples | Behaviour |
 |------|----------|-----------|
 | **Low risk** | Log comments, attach retroactive docs, tag blockers, add labels | Runs automatically, with an audit trail |
-| **Medium risk** | Change internal due dates, update status on the owner's behalf | Runs automatically if the owner confirmed in-channel; otherwise asks the owner |
+| **Medium risk** | Change internal due dates, update status on the owner's behalf | Runs automatically if the owner themselves confirmed in-channel; otherwise asks the owner |
 | **High impact** | Delete tasks, reassign owners, move external/client deadlines | **Confirmation prompt to the relevant team lead** before running |
+
+A confirmation only counts when it comes from the owner, and a lead's approval only through a signed approval link. Nobody can approve a change by simply claiming to be the owner or a lead.
 
 Tiers can be configured per project in `.agent-pm/policy.yaml` (planned).
 

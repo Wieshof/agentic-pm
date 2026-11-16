@@ -41,7 +41,7 @@ Every write the agent makes (a comment, a how-to section) causes the tracker to 
 | Dropped | How it's recognised |
 |---------|---------------------|
 | Retries of the same delivery | Delivery id (e.g. `X-GitHub-Delivery`), remembered for 1 h |
-| The agent's own changes | Sender is in `project.agent_accounts`, or the text carries the audit footer |
+| The agent's own changes | Sender is in `project.agent_accounts`, or the text carries a cryptographically signed audit footer |
 | Bursts for one ticket | Same ticket + event kind within 10 s |
 
 Dropping is safe because the agent fetches the live ticket on every admitted event anyway. The memory is process-local and bounded; a restart simply starts fresh. With several agent processes, route webhooks for one repository to the same process (or accept the occasional duplicate question).

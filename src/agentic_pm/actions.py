@@ -23,7 +23,7 @@ from agentic_pm.adapters.base import (
     TrackerAdapter,
 )
 from agentic_pm.approvals import DEFAULT_TTL, ApprovalRequest, Signer, snapshot
-from agentic_pm.audit import AUDIT_MARKER, RiskTier, classify_patch, is_allowed
+from agentic_pm.audit import RiskTier, audit_meta_in, classify_patch, is_allowed
 from agentic_pm.config.team import TeamConfig
 from agentic_pm.messages import describe_patch, render
 from agentic_pm.notify import Notifier
@@ -92,7 +92,12 @@ class Guard:
         self._require_writes()
         task = await self.adapter.get_task(ref)
         tier = classify_patch(task, patch)
-        if is_allowed(tier, meta, owner_confirmed=owner_confirmed):
+        confirmed = False
+        if owner_confirmed:
+            approvers = self._approvers(task, RiskTier.MEDIUM)
+            if meta.actor in approvers:
+                confirmed = True
+        if is_allowed(tier, meta, owner_confirmed=confirmed):
             updated = await self.adapter.update_fields(ref, patch, meta)
             return Outcome(applied=True, tier=tier, status="applied", task=updated)
         if self.signer is None:
@@ -166,9 +171,10 @@ class Guard:
             request_id=req.request_id,
         )
         if not approve:
-            marker = f'"request_id": "{req.request_id}"'
             if any(
-                AUDIT_MARKER in c.body and marker in c.body for c in task.comments if "🙅" in c.body
+                (m := audit_meta_in(c.body)) is not None and m.request_id == req.request_id
+                for c in task.comments
+                if "🙅" in c.body
             ):
                 return Outcome(applied=False, tier=tier, status="already_declined", task=task)
             change, _ = describe_patch(task, req.patch, lang)

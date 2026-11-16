@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import os
 import re
 from datetime import UTC, datetime
 from typing import Any
@@ -89,11 +90,17 @@ class GitHubAdapter:
         transport: httpx.AsyncBaseTransport | None = None,
         gate: WebhookGate | None = None,
         allow_writes: bool = False,
+        signing_key: str | bytes | None = None,
     ) -> None:
         # Writes are opt-in per project (`project.allow_writes`); Phase 1 behaviour otherwise.
         self.capabilities = load_catalog()["github"].capabilities(writes=allow_writes)
+        self.signing_key = (
+            signing_key
+            if signing_key is not None
+            else (gate.signing_key if gate is not None else os.environ.get("AGENT_PM_SIGNING_KEY"))
+        )
         # Self-trigger protection + de-duplication for incoming webhooks.
-        self.gate = gate or WebhookGate()
+        self.gate = gate or WebhookGate(signing_key=self.signing_key)
         headers = {
             "Accept": "application/vnd.github+json",
             "X-GitHub-Api-Version": "2022-11-28",
@@ -235,7 +242,7 @@ class GitHubAdapter:
         return list(unique.values())
 
     async def add_comment(self, ref: TaskRef, markdown: str, meta: AuditMeta) -> None:
-        body = f"{markdown}\n\n{render_audit_footer(meta)}"
+        body = f"{markdown}\n\n{render_audit_footer(meta, signing_key=self.signing_key)}"
         await self._send("POST", f"/repos/{ref.project}/issues/{ref.id}/comments", {"body": body})
 
     async def update_fields(self, ref: TaskRef, patch: TaskPatch, meta: AuditMeta) -> Task:

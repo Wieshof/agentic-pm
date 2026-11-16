@@ -41,7 +41,7 @@ Jede Änderung des Agenten (ein Kommentar, ein How-to-Abschnitt) lässt den Trac
 | Verworfen | So wird es erkannt |
 |-----------|--------------------|
 | Wiederholungen derselben Zustellung | Zustell-ID (z. B. `X-GitHub-Delivery`), 1 h gemerkt |
-| Eigene Änderungen des Agenten | Absender steht in `project.agent_accounts`, oder der Text trägt die Audit-Fußzeile |
+| Eigene Änderungen des Agenten | Absender steht in `project.agent_accounts`, oder der Text trägt eine kryptographisch signierte Audit-Fußzeile |
 | Stürme zu einem Ticket | Gleiches Ticket + gleiche Ereignisart innerhalb von 10 s |
 
 Das Verwerfen ist sicher, weil der Agent bei jedem zugelassenen Ereignis ohnehin das aktuelle Ticket live abruft. Der Speicher liegt nur im Prozess und ist begrenzt; nach einem Neustart beginnt er einfach leer. Bei mehreren Agent-Prozessen leite die Webhooks eines Repositorys an denselben Prozess (oder nimm gelegentlich eine doppelte Nachfrage in Kauf).

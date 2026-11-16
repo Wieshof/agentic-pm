@@ -35,11 +35,13 @@ def _github(project: Project, env: Mapping[str, str]) -> TrackerAdapter:
     from agentic_pm.adapters.github import GitHubAdapter
     from agentic_pm.ingress import WebhookGate
 
+    signing_key = env.get("AGENT_PM_SIGNING_KEY")
     return GitHubAdapter(
         token=env.get("AGENT_PM_GITHUB_TOKEN") or env.get("GITHUB_TOKEN"),
         api_url=project.base_url or "https://api.github.com",
-        gate=WebhookGate(agent_accounts=project.agent_accounts),
+        gate=WebhookGate(agent_accounts=project.agent_accounts, signing_key=signing_key),
         allow_writes=project.allow_writes,
+        signing_key=signing_key,
     )
 
 
@@ -60,7 +62,10 @@ def _gitea(project: Project, env: Mapping[str, str]) -> TrackerAdapter:
     return GiteaAdapter(
         project.base_url,
         token=env.get("AGENT_PM_GITEA_TOKEN"),
-        gate=WebhookGate(agent_accounts=project.agent_accounts),
+        gate=WebhookGate(
+            agent_accounts=project.agent_accounts,
+            signing_key=env.get("AGENT_PM_SIGNING_KEY"),
+        ),
     )
 
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from datetime import UTC, datetime
 
 from agentic_pm.adapters.base import (
@@ -35,10 +36,18 @@ class InMemoryTracker:
         writes=True,
     )
 
-    def __init__(self, tasks: list[Task] | None = None, edges: list[Edge] | None = None) -> None:
+    def __init__(
+        self,
+        tasks: list[Task] | None = None,
+        edges: list[Edge] | None = None,
+        signing_key: str | bytes | None = None,
+    ) -> None:
         self._tasks: dict[str, Task] = {str(t.ref): t for t in tasks or []}
         self._edges: list[Edge] = list(edges or [])
         self._handlers: list[EventHandler] = []
+        self.signing_key = (
+            signing_key if signing_key is not None else os.environ.get("AGENT_PM_SIGNING_KEY")
+        )
 
     def _require(self, ref: TaskRef) -> Task:
         try:
@@ -72,7 +81,7 @@ class InMemoryTracker:
     async def add_comment(self, ref: TaskRef, markdown: str, meta: AuditMeta) -> None:
         self._check_writes()
         task = self._require(ref)
-        body = f"{markdown}\n\n{render_audit_footer(meta)}"
+        body = f"{markdown}\n\n{render_audit_footer(meta, signing_key=self.signing_key)}"
         comment = Comment(author="agent-pm", body=body, created_at=datetime.now(UTC))
         self._tasks[str(ref)] = task.model_copy(update={"comments": [*task.comments, comment]})
         await self._emit(TrackerEventKind.COMMENTED, ref, ["comments"])

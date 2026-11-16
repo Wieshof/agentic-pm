@@ -87,6 +87,9 @@ Das Öffnen des Links *zeigt* die Änderung nur an, Mail-Scanner können also ni
 - **Freigabe-Links** sind signiert, laufen nach 72 h ab, gelten für genau eine Person und prüfen die Aufgabe live nach. Wer den Link hat, kann entscheiden, also behandle Freigabe-Mails wie andere vertrauliche Mails.
 - **E-Mails lassen sich fälschen.** Deshalb führt eine E-Mail immer nur zu Schreibvorgängen mit geringem Risiko (Kommentaren). Sie gibt nie etwas frei, weist nie neu zu und verschiebt nie Termine.
 - **Webhooks** brauchen eine gültige Signatur und laufen durch den [Webhook-Filter](data-model.md#webhook-eingang-keine-schleifen-keine-stürme), damit der Agent nie auf seine eigenen Änderungen reagiert.
+- **Die Audit-Fußzeile ist signiert** mit `AGENT_PM_SIGNING_KEY`. Nur eine signierte Fußzeile gilt als „das hat der Agent geschrieben“. So kann niemand den Agenten stummschalten oder „schon nachgefragt“ bzw. „schon abgelehnt“ vortäuschen, indem er eine Fußzeile in einen Kommentar kopiert.
+- **Setz den Signierschlüssel und `agent_accounts`.** Ohne Schlüssel erkennt der Agent seine eigenen Kommentare nur am Login in `project.agent_accounts`. Schreibt er mit Deinem persönlichen Token, könnte er sonst auf sich selbst antworten.
+- **MCP-Clients können ihre eigenen Änderungen nicht freigeben.** `update_fields` übernimmt Änderungen mit geringem Risiko direkt. Alles andere braucht das signierte `approval_token` aus einem Freigabe-Link; ein Client kann nicht mehr einfach `owner_confirmed` oder `approved_by` behaupten.
 
 ## 4. Qualität des lokalen Modells
 

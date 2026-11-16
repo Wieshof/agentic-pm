@@ -32,6 +32,7 @@ from agentic_pm.adapters.base import (
     TrackerEvent,
     TrackerEventKind,
 )
+from agentic_pm.audit import audit_meta_in
 from agentic_pm.config.team import TeamConfig
 from agentic_pm.email_routing import InboundMessage
 from agentic_pm.knowledge import HOWTO_MARKERS, analyze, render_howto, render_note
@@ -165,7 +166,9 @@ class HowToLoop:
         if task.status is not TaskStatus.DONE:
             return []
         for c in task.comments:
-            if any(m in c.body for m in HOWTO_MARKERS) or f'"reason": "{HOWTO_REQUEST}"' in c.body:
+            if any(m in c.body for m in HOWTO_MARKERS):
+                return []
+            if (meta := audit_meta_in(c.body)) is not None and meta.reason == HOWTO_REQUEST:
                 return []
         handles = [
             h

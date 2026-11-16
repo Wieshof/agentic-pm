@@ -87,6 +87,9 @@ Opening the link only *shows* the change, so mail scanners can't approve anythin
 - **Approval links** are signed, expire after 72 h, are bound to one approver and re-check the live task. Anyone who has the link can decide, so treat approval emails like any other sensitive email.
 - **Email can be forged.** That's why email only ever leads to low-risk writes (comments). It never approves, reassigns or moves dates.
 - **Webhooks** must carry a valid signature and pass the [webhook gate](data-model.md#webhook-ingress-no-loops-no-storms), so the agent never reacts to its own changes.
+- **The audit footer is signed** with `AGENT_PM_SIGNING_KEY`. Only a signed footer counts as "the agent wrote this", so nobody can silence the agent, or fake "already asked" or "already declined", by pasting a footer into a comment.
+- **Set the signing key and `agent_accounts`.** Without a key, the agent recognises its own comments only by the login in `project.agent_accounts`. If it writes with your personal token, it could otherwise answer itself.
+- **MCP clients can't approve their own changes.** `update_fields` applies low-risk changes directly. Anything else needs the signed `approval_token` from an approval link; a client can no longer just claim `owner_confirmed` or `approved_by`.
 
 ## 4. Local model quality
 
