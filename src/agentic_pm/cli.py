@@ -290,7 +290,7 @@ def main(argv: list[str] | None = None) -> int:
     common(r)
     r.add_argument(
         "--once",
-        choices=["briefs", "end_of_day", "weekly_digest", "monthly_health_check", "inbox"],
+        choices=["briefs", "end_of_day", "weekly_digest", "monthly_health_check", "inbox", "chat"],
         help="run one job now and exit (for cron)",
     )
     r.add_argument("--dry-run", action="store_true", help="print messages instead of sending")

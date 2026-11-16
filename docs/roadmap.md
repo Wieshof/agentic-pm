@@ -29,11 +29,13 @@ See [Running the agent](running.md).
 - **People-data boundaries** written down and enforced ([ADR-0004](adr/0004-people-data-boundaries.md))
 - **Exit:** ≥ 50 % of closed pilot tickets carry an agent-written how-to; weekly digest replaces the manual status mail
 
-## Phase 3 — Omnichannel (chat & voice)
-- WhatsApp Business integration (reply-context routing, voice notes)
-- Voice agent: inbound calls, outbound 60-second check-ins, consent disclosure, RAM-only transcripts
-- Adaptive Follow-Up Cadence
-- Inconsistency Triangulation + micro-interviews
+## Phase 3 — Omnichannel (chat & voice) 🚧 in progress
+- ✅ Chat on **Matrix and Signal**: reply-context routing, chat briefs with one question per gap, yes/no confirmations ([chat](chat.md), [ADR-0005](adr/0005-chat-channels.md))
+- ✅ Voice notes, transcribed locally (faster-whisper / whisper.cpp), RAM only
+- ✅ Inconsistency Triangulation + micro-interviews (#15)
+- ⏳ Adaptive Follow-Up Cadence (#14), per question, not per person
+- ⏳ WhatsApp Business behind the same chat interface (#12)
+- ⏳ Voice agent: inbound calls, outbound 60-second check-ins, consent disclosure, RAM-only transcripts (#13)
 - **Exit:** blocker surfacing < 2 h; at least one non-tracker user active per pilot team
 
 ## Phase 4 — Plan & Control (new)

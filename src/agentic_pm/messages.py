@@ -6,9 +6,10 @@ Other languages fall back to English (see briefs.morning.base_language).
 
 from __future__ import annotations
 
+from datetime import date
 from typing import Any
 
-from agentic_pm.adapters.base import Task, TaskPatch
+from agentic_pm.adapters.base import Task, TaskPatch, TaskStatus
 from agentic_pm.config.team import TeamConfig
 
 LANGUAGE_NAMES = {
@@ -78,6 +79,52 @@ TEXTS: dict[str, dict[str, str]] = {
         ),
         "onboarding_no_brief": "none for now",
         "reply_subject": "Re: #{id} {title}",
+        "chat_unknown_task": (
+            "Hi {name}, thanks for your message! Which task is it about? Reply to one of my "
+            "messages, or mention the number like #142."
+        ),
+        "chat_encrypted": (
+            "Hi {name}, sorry, I can't read encrypted messages yet. Could you write to me in an "
+            "unencrypted direct chat?"
+        ),
+        "chat_voice_off": (
+            "Thanks for the voice note, {name}! I can't listen to voice notes here yet. "
+            "Could you type it for me?"
+        ),
+        "chat_voice_failed": (
+            "Sorry {name}, I couldn't make out that voice note. Could you try again, or type it?"
+        ),
+        "confirm_due": (
+            "Should I set the due date of #{id} {title} to {date}? Just reply yes or no."
+        ),
+        "confirm_estimate": (
+            "Should I set the estimate of #{id} {title} to {hours}? Just reply yes or no."
+        ),
+        "confirm_status_self": (
+            "You wrote “{evidence}”, but #{id} {title} is still {status} in {tracker}. "
+            "Should I set it to {new}? Just reply yes or no."
+        ),
+        "confirm_status_owner": (
+            "{who} wrote “{evidence}” on #{id} {title}, but it's still {status} in {tracker}. "
+            "Should I set it to {new}? Just reply yes or no."
+        ),
+        "status_check_asked": (
+            "Thanks! In {tracker}, #{id} is still {status}, so I've asked {names} to confirm "
+            "it's {new}."
+        ),
+        "confirm_applied": "Done ✅ I've updated #{id}: {change}.",
+        "confirm_pending": "Thanks! This one also needs {names}'s OK, so I've asked.",
+        "confirm_declined": "Alright, I'll leave #{id} as it is. 👍",
+        "confirm_stale": "#{id} has changed in the meantime, so I've left it as it is.",
+        "confirm_unverified": (
+            "Hmm, I can't confirm that question came from me, so I've left #{id} as it is."
+        ),
+        "conflicts_heading": "🔍 Doesn't quite add up",
+        "conflict_item": (
+            "{who} wrote “{evidence}” on #{id} {title}, but it's still {status}. "
+            "Should it be {new}?"
+        ),
+        "someone": "Someone",
         "status_due": "move the due date from {old} to {new}",
         "status_due_short": "new due date",
         "assign": "hand it over from {old} to {new}",
@@ -155,6 +202,56 @@ TEXTS: dict[str, dict[str, str]] = {
         ),
         "onboarding_no_brief": "vorerst keins",
         "reply_subject": "Re: #{id} {title}",
+        "chat_unknown_task": (
+            "Hallo {name}, danke für Deine Nachricht! Um welche Aufgabe geht es? Antworte auf "
+            "eine meiner Nachrichten oder nenn die Nummer, z. B. #142."
+        ),
+        "chat_encrypted": (
+            "Hallo {name}, verschlüsselte Nachrichten kann ich leider noch nicht lesen. Magst Du "
+            "mir in einem unverschlüsselten Direktchat schreiben?"
+        ),
+        "chat_voice_off": (
+            "Danke für die Sprachnachricht, {name}! Sprachnachrichten kann ich hier noch nicht "
+            "anhören. Magst Du es mir kurz schreiben?"
+        ),
+        "chat_voice_failed": (
+            "Sorry {name}, die Sprachnachricht konnte ich nicht verstehen. Versuchst Du es noch "
+            "einmal, oder schreibst Du es mir?"
+        ),
+        "confirm_due": (
+            "Soll ich den Termin von #{id} {title} auf {date} setzen? Antworte einfach mit ja "
+            "oder nein."
+        ),
+        "confirm_estimate": (
+            "Soll ich die Schätzung von #{id} {title} auf {hours} setzen? Antworte einfach mit "
+            "ja oder nein."
+        ),
+        "confirm_status_self": (
+            "Du hast „{evidence}“ geschrieben, aber #{id} {title} steht in {tracker} noch auf "
+            "{status}. Soll ich es auf {new} setzen? Antworte einfach mit ja oder nein."
+        ),
+        "confirm_status_owner": (
+            "{who} hat zu #{id} {title} „{evidence}“ geschrieben, aber in {tracker} steht es "
+            "noch auf {status}. Soll ich es auf {new} setzen? Antworte einfach mit ja oder nein."
+        ),
+        "status_check_asked": (
+            "Danke! In {tracker} steht #{id} noch auf {status}, deshalb habe ich {names} "
+            "gebeten zu bestätigen, dass es {new} ist."
+        ),
+        "confirm_applied": "Erledigt ✅ Ich habe #{id} aktualisiert: {change}.",
+        "confirm_pending": "Danke! Dafür braucht es noch das OK von {names}, ich habe gefragt.",
+        "confirm_declined": "Alles klar, ich lasse #{id} so, wie es ist. 👍",
+        "confirm_stale": "#{id} hat sich inzwischen geändert, deshalb habe ich nichts geändert.",
+        "confirm_unverified": (
+            "Hm, ich kann nicht bestätigen, dass die Frage von mir kam, deshalb habe ich #{id} "
+            "so gelassen."
+        ),
+        "conflicts_heading": "🔍 Passt nicht ganz zusammen",
+        "conflict_item": (
+            "{who} hat zu #{id} {title} „{evidence}“ geschrieben, aber es steht noch auf "
+            "{status}. Soll es {new} sein?"
+        ),
+        "someone": "Jemand",
         "status_due": "den Termin von {old} auf {new} verschieben",
         "status_due_short": "neuer Termin",
         "assign": "die Aufgabe von {old} an {new} übergeben",
@@ -200,7 +297,7 @@ def describe_patch(task: Task, patch: TaskPatch, lang: str) -> tuple[str, str]:
             )
         )
     if patch.status is not None and patch.status != task.status:
-        parts.append((t["status"].format(new=patch.status.value), t["status_short"]))
+        parts.append((t["status"].format(new=status_name(patch.status, lang)), t["status_short"]))
     if patch.estimate_hours is not None and patch.estimate_hours != task.estimate_hours:
         parts.append(
             (t["estimate"].format(new=format_hours(patch.estimate_hours)), t["estimate_short"])
@@ -215,9 +312,59 @@ def render(lang: str, key: str, **kw: Any) -> str:
 
 
 CHANNEL_LABELS = {
-    "en": {"email": "email", "phone": "phone number", "whatsapp": "WhatsApp", "chat": "chat"},
-    "de": {"email": "E-Mail", "phone": "Telefonnummer", "whatsapp": "WhatsApp", "chat": "Chat"},
+    "en": {
+        "email": "email",
+        "phone": "phone number",
+        "whatsapp": "WhatsApp",
+        "chat": "chat",
+        "matrix": "Matrix",
+        "signal": "Signal",
+    },
+    "de": {
+        "email": "E-Mail",
+        "phone": "Telefonnummer",
+        "whatsapp": "WhatsApp",
+        "chat": "Chat",
+        "matrix": "Matrix",
+        "signal": "Signal",
+    },
 }
+
+STATUS_NAMES = {
+    "en": {
+        "open": "open",
+        "in_progress": "in progress",
+        "in_review": "in review",
+        "blocked": "blocked",
+        "done": "done",
+        "closed": "closed",
+    },
+    "de": {
+        "open": "offen",
+        "in_progress": "in Arbeit",
+        "in_review": "in Prüfung",
+        "blocked": "blockiert",
+        "done": "erledigt",
+        "closed": "geschlossen",
+    },
+}
+_WEEKDAY_SHORT = {
+    "en": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    "de": ["Mo.", "Di.", "Mi.", "Do.", "Fr.", "Sa.", "So."],
+}
+_MONTH_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+
+def status_name(status: TaskStatus, lang: str) -> str:
+    names = STATUS_NAMES.get(lang.split("-")[0], STATUS_NAMES["en"])
+    return names.get(status.value, status.value)
+
+
+def friendly_date(d: date, lang: str) -> str:
+    """'Fri 21 Nov 2026' / 'Fr., 21.11.2026'."""
+    if lang.split("-")[0] == "de":
+        return f"{_WEEKDAY_SHORT['de'][d.weekday()]}, {d:%d.%m.%Y}"
+    return f"{_WEEKDAY_SHORT['en'][d.weekday()]} {d.day} {_MONTH_SHORT[d.month - 1]} {d.year}"
 
 
 def tracker_name(key: str) -> str:

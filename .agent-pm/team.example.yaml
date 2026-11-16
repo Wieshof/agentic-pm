@@ -48,6 +48,10 @@ people:
     channels:
       phone: "+43 000 000000"
       whatsapp: "+43 000 000000"
+      signal: "+43 000 000000"  # Phase 3: chat with the agent on Signal (or matrix: "@sam:example.org")
+    brief:
+      when: "09:00"
+      format: chat              # short brief in chat, then one question per missing detail
     check_in:
       window: "14:00-16:00"
       max_call_seconds: 90
@@ -63,6 +67,12 @@ people:
       when: "Mon 09:00"
       format: voice             # spoken briefing with Q&A
     quiet_hours: "18:00-08:00"
+
+# Voice notes in chat are transcribed locally; audio and text stay in memory (docs/chat.md).
+speech:
+  engine: none                  # faster-whisper (uv sync --extra voice) | whisper-cpp
+  # model: small                # faster-whisper model size
+  # url: http://localhost:8080/inference   # whisper.cpp server
 
 # Model access (ADR-0001: local-first). Any OpenAI-compatible server works:
 # Ollama, vLLM, llama.cpp server, LM Studio.

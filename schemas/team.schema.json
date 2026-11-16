@@ -111,6 +111,13 @@
           "minimum": 1,
           "title": "Inbox Poll Minutes",
           "type": "integer"
+        },
+        "chat_poll_seconds": {
+          "default": 15,
+          "maximum": 600,
+          "minimum": 2,
+          "title": "Chat Poll Seconds",
+          "type": "integer"
         }
       },
       "title": "Cadence",
@@ -170,6 +177,34 @@
           "default": null,
           "description": "Slack/Teams handle",
           "title": "Chat"
+        },
+        "matrix": {
+          "anyOf": [
+            {
+              "pattern": "^@[^:\\s]+:[^\\s]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Matrix user id, e.g. @sam:matrix.org",
+          "title": "Matrix"
+        },
+        "signal": {
+          "anyOf": [
+            {
+              "pattern": "^\\+[0-9 ]{6,20}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Signal phone number, e.g. +43 660 1234567",
+          "title": "Signal"
         }
       },
       "title": "Channels",
@@ -376,6 +411,19 @@
           "title": "Language",
           "type": "string"
         },
+        "prefer": {
+          "description": "Channels to reach this person on, in order (default: chat first for writers, talkers and listeners, email first for readers)",
+          "items": {
+            "enum": [
+              "email",
+              "matrix",
+              "signal"
+            ],
+            "type": "string"
+          },
+          "title": "Prefer",
+          "type": "array"
+        },
         "tracker_login": {
           "anyOf": [
             {
@@ -507,6 +555,44 @@
       ],
       "title": "Project",
       "type": "object"
+    },
+    "Speech": {
+      "additionalProperties": false,
+      "description": "Speech-to-text for voice notes. Runs locally; audio and transcripts stay in RAM.",
+      "properties": {
+        "engine": {
+          "default": "none",
+          "description": "faster-whisper (pip extra 'voice') or a whisper.cpp server at `url`",
+          "enum": [
+            "none",
+            "faster-whisper",
+            "whisper-cpp"
+          ],
+          "title": "Engine",
+          "type": "string"
+        },
+        "model": {
+          "default": "small",
+          "description": "Whisper model size for faster-whisper",
+          "title": "Model",
+          "type": "string"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "whisper.cpp server, e.g. http://localhost:8080/inference",
+          "title": "Url"
+        }
+      },
+      "title": "Speech",
+      "type": "object"
     }
   },
   "additionalProperties": false,
@@ -540,7 +626,8 @@
         "end_of_day": null,
         "weekly_digest": null,
         "monthly_health_check": null,
-        "inbox_poll_minutes": 2
+        "inbox_poll_minutes": 2,
+        "chat_poll_seconds": 15
       }
     },
     "completeness": {
@@ -553,6 +640,14 @@
         "detect_hints": true,
         "triage": [],
         "max_per_brief": 5
+      }
+    },
+    "speech": {
+      "$ref": "#/$defs/Speech",
+      "default": {
+        "engine": "none",
+        "model": "small",
+        "url": null
       }
     }
   },

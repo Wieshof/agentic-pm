@@ -12,6 +12,15 @@
 Every write is a low-risk comment with the audit footer. Messages from
 senders who are not in team.yaml are never acted on.
 
+The same router serves email and chat (`msg.channel`); replies go back on the
+channel the message came from. After filing the message, a status claim
+that contradicts the tracker ("#12 is done" while it's open) becomes one
+question to the person who can settle it (inconsistency triangulation, #15):
+
+* chat, from the task owner: "Should I set it to done?" (reply yes/no)
+* otherwise: a normal approval request to the owner (email can be forged,
+  so an email claim never counts as the owner's confirmation)
+
 `HowToLoop` asks whoever closed a task for a short explanation. Whether it has
 already asked is read from its own audited comment on the ticket, so no state
 is kept anywhere else.
@@ -26,22 +35,30 @@ from agentic_pm.adapters.base import (
     AuditMeta,
     Channel,
     ReadOnlyAdapterError,
+    Task,
     TaskNotFoundError,
+    TaskPatch,
     TaskRef,
     TaskStatus,
     TrackerEvent,
     TrackerEventKind,
 )
-from agentic_pm.audit import audit_meta_in
+from agentic_pm.audit import RiskTier, audit_meta_in
+from agentic_pm.chat import tags
 from agentic_pm.config.team import TeamConfig
 from agentic_pm.email_routing import InboundMessage
+from agentic_pm.engine.triangulation import conflict, detect_claim
 from agentic_pm.knowledge import HOWTO_MARKERS, analyze, render_howto, render_note
 from agentic_pm.llm.base import LLMProvider
-from agentic_pm.messages import language_name, render
+from agentic_pm.messages import language_name, render, status_name, tracker_name
 from agentic_pm.notify import Notifier
 
 HOWTO_REQUEST = "howto-request"
-CHANNEL_NAMES = {"en": {"email": "email"}, "de": {"email": "E-Mail"}}
+CHANNEL_NAMES = {
+    "en": {"email": "email", "matrix": "Matrix", "signal": "Signal"},
+    "de": {"email": "E-Mail", "matrix": "Matrix", "signal": "Signal"},
+}
+CHAT_CHANNELS = (Channel.MATRIX, Channel.SIGNAL)
 
 
 class Router:
@@ -63,12 +80,15 @@ class Router:
     ) -> None:
         lang = self.cfg.language_of(handle)
         subject = msg.subject if msg.subject.lower().startswith("re:") else f"Re: {msg.subject}"
+        if msg.channel is not Channel.EMAIL:
+            subject = ""  # chat has no subject line
         await self.notifier.notify(
             handle,
             subject,
             render(lang, key, name=self.cfg.display_name(handle), **kw),
             ref=ref,
             in_reply_to=msg.message_id,
+            channel=msg.channel.value,
         )
 
     async def handle(self, msg: InboundMessage) -> str:
@@ -78,20 +98,24 @@ class Router:
         if msg.handle is None:
             return "ignored_unknown_sender"
         handle = msg.handle
+        unknown = "ack_unknown_task" if msg.channel is Channel.EMAIL else "chat_unknown_task"
         if msg.ref is None:
-            await self._reply(handle, msg, None, "ack_unknown_task")
+            await self._reply(handle, msg, None, unknown)
             return "asked_for_task"
         try:
             task = await self.adapter.get_task(msg.ref)
         except TaskNotFoundError:
-            await self._reply(handle, msg, None, "ack_unknown_task")
+            await self._reply(handle, msg, None, unknown)
             return "asked_for_task"
         if not msg.text.strip():
             return "ignored_empty"
 
         ticket_lang = self.cfg.project.ticket_language
         name = self.cfg.display_name(handle)
-        channel = CHANNEL_NAMES.get(ticket_lang.split("-")[0], CHANNEL_NAMES["en"])["email"]
+        labels = CHANNEL_NAMES.get(ticket_lang.split("-")[0], CHANNEL_NAMES["en"])
+        channel = labels.get(msg.channel.value, msg.channel.value)
+        if msg.voice:
+            channel += " (Sprachnachricht)" if ticket_lang.startswith("de") else " (voice note)"
         analysis, problems = (None, ["no llm"])
         if self.provider is not None:
             analysis, problems = await analyze(
@@ -114,12 +138,17 @@ class Router:
                     channel=channel,
                     source_language=self.cfg.language_of(handle),
                 )
-                meta = AuditMeta(actor=handle, channel=Channel.EMAIL, reason="how-to from email")
+                meta = AuditMeta(
+                    actor=handle, channel=msg.channel, reason=f"how-to from {msg.channel.value}"
+                )
                 await self.guard.comment(msg.ref, md, meta)
                 await self._reply(handle, msg, msg.ref, "ack_howto", id=task.ref.id, url=url)
-                return "howto"
+                checked = await self.triangulate(msg, task, handle)
+                return f"howto+{checked}" if checked else "howto"
             note = render_note(msg.text, ticket_language=ticket_lang, author=name, channel=channel)
-            meta = AuditMeta(actor=handle, channel=Channel.EMAIL, reason="note from email")
+            meta = AuditMeta(
+                actor=handle, channel=msg.channel, reason=f"note from {msg.channel.value}"
+            )
             await self.guard.comment(msg.ref, note, meta)
         except ReadOnlyAdapterError:
             return "writes_disabled"
@@ -145,7 +174,43 @@ class Router:
             await self._reply(handle, msg, msg.ref, "ack_scope", leads=names)
             return "scope_flagged"
         await self._reply(handle, msg, msg.ref, "ack_note", id=task.ref.id, url=url)
-        return "note"
+        checked = await self.triangulate(msg, task, handle)
+        return f"note+{checked}" if checked else "note"
+
+    async def triangulate(self, msg: InboundMessage, task: Task, handle: str) -> str | None:
+        """Ask once when a status claim in `msg` contradicts the tracker (#15)."""
+        claim = detect_claim(msg.text)
+        found = conflict(task, claim) if claim else None
+        signer = self.guard.signer
+        if found is None or signer is None or not self.adapter.capabilities.writes:
+            return None
+        lang = self.cfg.language_of(handle)
+        common = {
+            "id": task.ref.id,
+            "title": task.title,
+            "status": status_name(task.status, lang),
+            "new": status_name(found.proposed, lang),
+            "tracker": tracker_name(self.cfg.project.tracker),
+        }
+        approvers = self.guard._approvers(task, RiskTier.MEDIUM)
+        if msg.channel in CHAT_CHANNELS and handle in approvers:
+            tag = tags.proposal(signer.key, task.ref.id, "status", found.proposed.value)
+            text = render(lang, "confirm_status_self", evidence=found.claim.evidence, **common)
+            await self.notifier.notify(
+                handle, "", f"{text}\n\n{tag.render()}", channel=msg.channel.value
+            )
+            return "status_confirm_asked"
+        meta = AuditMeta(
+            actor=handle,
+            channel=msg.channel,
+            reason=f"{self.cfg.display_name(handle)}: “{found.claim.evidence}”",
+        )
+        outcome = await self.guard.propose(task.ref, TaskPatch(status=found.proposed), meta)
+        if outcome.status != "pending":
+            return None
+        names = ", ".join(self.cfg.display_name(h) for h in outcome.waiting_for or [])
+        await self._reply(handle, msg, msg.ref, "status_check_asked", names=names, **common)
+        return "status_check_requested"
 
 
 class HowToLoop:

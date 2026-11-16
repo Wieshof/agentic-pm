@@ -96,6 +96,8 @@ class Channel(StrEnum):
     WHATSAPP = "whatsapp"
     VOICE = "voice"
     CHAT = "chat"
+    MATRIX = "matrix"
+    SIGNAL = "signal"
     WEB = "web"
     SYSTEM = "system"
 

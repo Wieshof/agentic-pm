@@ -64,4 +64,4 @@ completeness:
 
 Prüfungen, die ein Tracker nicht unterstützt, werden übersprungen. Bei einem Tracker ohne Termine wird nie nach Terminen gefragt.
 
-`uv run agent-pm deps` zeigt die Datenqualität und jede Lücke an. Später, in Phase 3, gehen dieselben Fragen als einzelne WhatsApp- oder Sprach-Fragen raus, und eine Antwort kann nach Bestätigung das Ticket aktualisieren.
+`uv run agent-pm deps` zeigt die Datenqualität und jede Lücke an. Wer ein [Chat-Briefing](chat.md#briefings-im-chat) bekommt, erhält jede Frage als eigene Chat-Nachricht. Du antwortest einfach („Freitag“, „2 Tage“), und nach einem kurzen „ja“ wird das Ticket aktualisiert.

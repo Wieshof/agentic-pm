@@ -86,6 +86,10 @@ class Signer:
         env = dict(os.environ) if env is None else env
         return cls(env.get("AGENT_PM_SIGNING_KEY", ""))
 
+    @property
+    def key(self) -> bytes:
+        return self._key
+
     def now(self) -> int:
         return int(self._clock())
 

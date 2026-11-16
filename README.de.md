@@ -12,7 +12,7 @@ agentic-pm ersetzt Deinen Issue-Tracker nicht. Es ist eine intelligente Orchestr
 
 Der zugrunde liegende Tracker bleibt die einzige, synchronisierte Quelle der Wahrheit. Der Agent speichert selbst **keinen dauerhaften Aufgabenzustand**.
 
-> Status: ✍️ Phase 2 (Zurückschreiben, How-tos, Freigaben, Takt) gebaut, bereit für ein Pilotteam. Hier geht's los: [Erste Schritte](docs/de/getting-started.md) · [Den Agenten betreiben](docs/de/running.md). Siehe [Roadmap](docs/de/roadmap.md).
+> Status: ✍️ Phase 2 (Zurückschreiben, How-tos, Freigaben, Takt) gebaut, bereit für ein Pilotteam. 💬 Phase 3 in Arbeit: [Chat über Matrix und Signal](docs/de/chat.md) mit Sprachnachrichten und Triangulation. Hier geht's los: [Erste Schritte](docs/de/getting-started.md) · [Den Agenten betreiben](docs/de/running.md). Siehe [Roadmap](docs/de/roadmap.md).
 
 ---
 
@@ -114,7 +114,7 @@ Details: [docs/de/workflows.md](docs/de/workflows.md) · **So deckt sich das mit
 | Aufgaben, Termine, Abhängigkeiten | Im bestehenden Tracker, bei jedem Ereignis live abgerufen |
 | Präferenzen („Drucker-Profile“) | `.agent-pm/team.yaml` im Repository oder SSO-Verzeichnisattribute (Entra ID / Google Workspace) |
 | How-to-Dokus & Audit-Logs | Ticketkommentare oder Markdown in `/docs` |
-| Zuordnung Gespräch → Ticket | Transport-Tags: E-Mail-Plus-Adressierung / `Message-ID`, WhatsApp-Antwortkontext, Arbeitsspeicher der Anrufsitzung |
+| Zuordnung Gespräch → Ticket | Transport-Tags: E-Mail-Plus-Adressierung / `Message-ID`, ein signiertes Tag in Chat-Antworten (Matrix, Signal), Arbeitsspeicher der Anrufsitzung |
 
 Details: [docs/de/data-model.md](docs/de/data-model.md) · Beispielkonfiguration: [.agent-pm/team.example.yaml](.agent-pm/team.example.yaml)
 
@@ -150,7 +150,9 @@ uv run agent-pm onboarding --demo --person sam    # freundliche Vorstellung: was
 | `AGENT_PM_SIGNING_KEY` | Signieren von Freigabe-Links |
 | `AGENT_PM_GITHUB_WEBHOOK_SECRET` | Prüfung von GitHub-Webhooks |
 | `AGENT_PM_IMAP_HOST`, `_PORT`, `_USER`, `_PASSWORD`, `_FOLDER` | Lesen von Antworten im Postfach des Agenten |
-| `AGENT_PM_WHATSAPP_*`, `AGENT_PM_SIP_*` | WhatsApp und Sprache (Phase 3, geplant) |
+| `AGENT_PM_MATRIX_HOMESERVER`, `_USER`, `_TOKEN` | Chat über Matrix ([Chat](docs/de/chat.md)) |
+| `AGENT_PM_SIGNAL_API_URL`, `_NUMBER` | Chat über Signal mit signal-cli-rest-api |
+| `AGENT_PM_WHATSAPP_*`, `AGENT_PM_SIP_*` | WhatsApp und Anrufe (Phase 3, geplant) |
 
 ### Module
 
@@ -169,6 +171,9 @@ uv run agent-pm onboarding --demo --person sam    # freundliche Vorstellung: was
 | `agentic_pm.cadence` · `runtime` | Arbeitstakt, Scheduler, `agent-pm run` |
 | `agentic_pm.engine.capacity` | Terminkollisionen (aufgabenbezogen) |
 | `agentic_pm.engine.completeness` | Datenqualität: fehlende Zuständige, Termine, Verknüpfungen; Bereitschaftsquote |
+| `agentic_pm.engine.triangulation` | Status-Aussagen, die dem Tracker widersprechen → eine Rückfrage (#15) |
+| `agentic_pm.chat` | Matrix- & Signal-Anbindung, Antwort-Tags, Auswertung kurzer Antworten, Chat-Router |
+| `agentic_pm.speech` | Lokale Spracherkennung für Sprachnachrichten (faster-whisper, whisper.cpp) |
 | `agentic_pm.mcp_server` | MCP-Werkzeuge über jedem Adapter, mit Stufenprüfung |
 | `agentic_pm.llm` | Anbieterunabhängige LLM-Schnittstelle, lokaler OpenAI-kompatibler Anbieter |
 

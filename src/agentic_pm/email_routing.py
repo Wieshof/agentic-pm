@@ -21,7 +21,7 @@ from urllib.parse import quote, unquote
 
 from pydantic import BaseModel
 
-from agentic_pm.adapters.base import TaskRef
+from agentic_pm.adapters.base import Channel, TaskRef
 from agentic_pm.config.team import TeamConfig
 
 _SAFE_ID = re.compile(r"^[A-Za-z0-9_-]{1,40}$")
@@ -109,6 +109,8 @@ class InboundMessage(BaseModel):
     subject: str
     text: str
     message_id: str | None
+    channel: Channel = Channel.EMAIL
+    voice: bool = False  # transcribed from a voice note
 
 
 def parse_inbound(raw: bytes, cfg: TeamConfig) -> InboundMessage:

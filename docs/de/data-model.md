@@ -25,14 +25,16 @@ Es braucht keine Nachschlagetabelle, um zu wissen, welche Antwort zu welcher Auf
 | Kanal | Mechanismus |
 |-------|-------------|
 | E-Mail | Dynamische Plus-Adressierung (`pm+repo-task142@yourdomain.com`) oder `Message-ID`- / `In-Reply-To`-Header |
-| WhatsApp | Antwortkontext-Metadaten von WhatsApp Business oder ein kurzes Referenz-Tag in der Nachricht |
+| Matrix / Signal | Ein Tag in der letzten Zeile der Agenten-Nachricht (`— #12`, `— #12 · due?`). Eine Antwort bringt es zurück. Matrix: Das zitierte Ereignis wird geholt und muss vom Agenten stammen. Signal: Der Autor des Zitats muss der Agent sein. Vorgeschlagene Änderungen sind HMAC-signiert ([Chat](chat.md), [ADR-0005](../adr/0005-chat-channels.de.md)). |
+| WhatsApp (geplant) | Dasselbe Tag, über den Antwortkontext von WhatsApp |
 | Sprache | Das Transkript liegt nur im Arbeitsspeicher der Anrufsitzung, für die 2–3 Minuten des Gesprächs. Strukturierte Updates werden beim Auflegen in den Tracker geschrieben, danach wird das Transkript verworfen. |
 
 ## Was der Agent *doch* vorhält (nur flüchtig / betrieblich)
 
 - Kurzlebige Caches mit TTL, ohne Rolle als Quelle der Wahrheit
 - Zustell- und Wiederholungswarteschlangen für ausgehende Nachrichten
-- Reaktionszähler für die adaptive Taktung. Diese können auch in `team.yaml` oder SSO-Attributen abgelegt werden, wenn vollständige Zustandslosigkeit gefordert ist.
+- Keine Reaktionszähler pro Person: Das adaptive Nachfassen zählt unbeantwortete Erinnerungen **pro Frage**, anhand dessen, was im Gespräch und im Ticket sichtbar ist ([ADR-0005](../adr/0005-chat-channels.de.md))
+- Leseposition im Chat: die eigene Lesemarke des Agenten auf dem Matrix-Homeserver; Signal-Nachrichten verlassen beim Lesen die Signal-Warteschlange
 
 ## Webhook-Eingang: keine Schleifen, keine Stürme
 

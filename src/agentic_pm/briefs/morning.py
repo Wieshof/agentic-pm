@@ -7,12 +7,12 @@ Read-only. Facts are computed deterministically; an optional local-LLM summary
 from __future__ import annotations
 
 import html
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 from email.message import EmailMessage
 
 from pydantic import BaseModel
 
-from agentic_pm.adapters.base import Task, TaskStatus, TrackerAdapter
+from agentic_pm.adapters.base import CLOSED_STATUSES, Task, TaskStatus, TrackerAdapter
 from agentic_pm.adapters.coverage import CoverageReport
 from agentic_pm.briefs.coverage_text import render_coverage
 from agentic_pm.briefs.gap_text import render_gaps, render_readiness
@@ -20,6 +20,7 @@ from agentic_pm.config.team import TeamConfig
 from agentic_pm.engine.capacity import Collision, find_collisions
 from agentic_pm.engine.completeness import CompletenessReport, Gap, check_completeness
 from agentic_pm.engine.dependencies import DependencyGraph, Risk
+from agentic_pm.engine.triangulation import Conflict, comment_conflicts
 
 
 def _lower(values: list[str]) -> set[str]:
@@ -53,6 +54,7 @@ class BriefData(BaseModel):
     readiness: CompletenessReport | None = None  # leads only, team level
     my_collisions: list[Collision] = []
     team_collisions: list[Collision] = []
+    conflicts: list[Conflict] = []  # my tasks whose latest comment claims another status
     names: dict[str, str] = {}
 
     @property
@@ -79,6 +81,7 @@ class BriefData(BaseModel):
             or self.team_collisions
             or self.coverage
             or self.gaps
+            or self.conflicts
         )
 
 
@@ -137,6 +140,11 @@ async def collect(
         team_collisions=[c for c in collisions if c.login != login] if is_lead else [],
         names={p.login(h).lower(): p.name or h.capitalize() for h, p in cfg.people.items()},
         gaps=completeness.for_handle(handle),
+        conflicts=[
+            c
+            for c in comment_conflicts(mine, datetime.now(UTC))
+            if c.task.status not in CLOSED_STATUSES
+        ],
         gap_limit=cfg.completeness.max_per_brief,
         readiness=completeness if is_lead and completeness.gaps else None,
         coverage=(
@@ -322,6 +330,8 @@ def _sections(d: BriefData) -> list[tuple[str, list[str]]]:
         (tr["cycles"], [" → ".join(c) for c in d.cycles]),
         (tr["limits"], [tr[f"limit_{x}"] for x in d.limitations]),
     ]
+    if d.conflicts:
+        sections.append(render_conflicts(d, lang))
     if d.gaps:
         sections.append(render_gaps(d.gaps, lang, d.gap_limit))
     if d.readiness is not None:
@@ -330,6 +340,25 @@ def _sections(d: BriefData) -> list[tuple[str, list[str]]]:
         heading, items = render_coverage(d.coverage, lang)
         sections.insert(0, (heading, items))
     return [(h, items) for h, items in sections if items]
+
+
+def render_conflicts(d: BriefData, lang: str) -> tuple[str, list[str]]:
+    from agentic_pm.messages import render, status_name
+
+    items = [
+        render(
+            lang,
+            "conflict_item",
+            who=d.names.get((c.by or "").lower()) or c.by or render(lang, "someone"),
+            evidence=c.claim.evidence,
+            id=c.task.ref.id,
+            title=c.task.title,
+            status=status_name(c.task.status, lang),
+            new=status_name(c.proposed, lang),
+        )
+        for c in d.conflicts
+    ]
+    return render(lang, "conflicts_heading"), items
 
 
 def subject(d: BriefData) -> str:

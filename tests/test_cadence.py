@@ -141,8 +141,9 @@ async def test_runtime_jobs_and_dry_run(capsys: pytest.CaptureFixture[str]) -> N
         cfg, demo_tracker(cfg.project.repo, date.today()), env={}, dry_run=True, use_llm=False
     )
     names = [j.name for j in rt.jobs()]
-    assert names == ["briefs 08:00", "end_of_day", "weekly_digest"]
-    assert await rt.run_once("briefs") == 1  # only alex has an email brief
+    assert names == ["briefs 08:00", "briefs 09:00", "end_of_day", "weekly_digest"]
+    assert await rt.run_once("briefs") == 2  # alex by email, sam in chat (Signal)
+    assert {s.channel for s in rt.notifier.sent} >= {"signal"}  # type: ignore[attr-defined]
     assert await rt.run_once("monthly_health_check") == 0
     with pytest.raises(ValueError):
         await rt.run_once("nonsense")

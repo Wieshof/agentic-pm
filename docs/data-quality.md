@@ -64,4 +64,4 @@ completeness:
 
 Checks a tracker can't support are skipped. A tracker without due dates is never asked for them.
 
-`uv run agent-pm deps` prints the readiness ratio and every gap. Later, in Phase 3, the same questions will go out as single WhatsApp or voice prompts, and an answer can update the ticket after confirmation.
+`uv run agent-pm deps` prints the readiness ratio and every gap. People with a [chat brief](chat.md#briefs-in-chat) get each question as its own chat message. They can just reply ("Friday", "2 days"), and after a quick "yes" the ticket is updated.

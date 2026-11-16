@@ -37,7 +37,7 @@ cadence:
 | `"Fri 15:00"` | weekly |
 | `"last_friday 16:00"`, `"first_monday"` | monthly (default time 09:00) |
 
-**Secrets** (environment only): `GITHUB_TOKEN`, `AGENT_PM_SIGNING_KEY` (any long random string, for approval links), `AGENT_PM_GITHUB_WEBHOOK_SECRET`, `AGENT_PM_SMTP_*` (sending) and `AGENT_PM_IMAP_*` (receiving: `HOST`, `PORT`, `USER`, `PASSWORD`, `FOLDER`).
+**Secrets** (environment only): `GITHUB_TOKEN`, `AGENT_PM_SIGNING_KEY` (any long random string, for approval links), `AGENT_PM_GITHUB_WEBHOOK_SECRET`, `AGENT_PM_SMTP_*` (sending), `AGENT_PM_IMAP_*` (receiving: `HOST`, `PORT`, `USER`, `PASSWORD`, `FOLDER`), and for chat `AGENT_PM_MATRIX_*` (`HOMESERVER`, `USER`, `TOKEN`) or `AGENT_PM_SIGNAL_*` (`API_URL`, `NUMBER`) ([chat setup](chat.md)).
 
 **GitHub webhook:** in your repository settings, point a webhook to `https://pm.your-org.com/webhooks/github`, content type JSON, with the same secret. Subscribe to *Issues* and *Issue comments*.
 
@@ -78,6 +78,8 @@ Opening the link only *shows* the change, so mail scanners can't approve anythin
 - Leads get the evening note (only when needed) and the weekly digest.
 
 **Data quality.** Before each brief the agent checks open tasks for missing owners, due dates and links, and asks the right person one short question per gap ([details](data-quality.md)).
+
+**Chat and triangulation (Phase 3).** People can work with the agent on Matrix or Signal: replies, voice notes, "yes" to confirm. When someone says "#12 is done" while #12 is still open, the agent asks once instead of guessing ([chat](chat.md)).
 
 **Onboarding (#47).** `uv run agent-pm onboarding --all --send` sends everyone a friendly intro in their language that explains what the agent does with their data ([details](people-data.md)).
 

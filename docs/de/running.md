@@ -37,7 +37,7 @@ cadence:
 | `"Fri 15:00"` | wöchentlich |
 | `"last_friday 16:00"`, `"first_monday"` | monatlich (Standardzeit 09:00) |
 
-**Geheimnisse** (nur als Umgebungsvariablen): `GITHUB_TOKEN`, `AGENT_PM_SIGNING_KEY` (eine beliebige lange Zufallszeichenkette, für Freigabe-Links), `AGENT_PM_GITHUB_WEBHOOK_SECRET`, `AGENT_PM_SMTP_*` (Versand) und `AGENT_PM_IMAP_*` (Empfang: `HOST`, `PORT`, `USER`, `PASSWORD`, `FOLDER`).
+**Geheimnisse** (nur als Umgebungsvariablen): `GITHUB_TOKEN`, `AGENT_PM_SIGNING_KEY` (eine beliebige lange Zufallszeichenkette, für Freigabe-Links), `AGENT_PM_GITHUB_WEBHOOK_SECRET`, `AGENT_PM_SMTP_*` (Versand), `AGENT_PM_IMAP_*` (Empfang: `HOST`, `PORT`, `USER`, `PASSWORD`, `FOLDER`) und für Chat `AGENT_PM_MATRIX_*` (`HOMESERVER`, `USER`, `TOKEN`) oder `AGENT_PM_SIGNAL_*` (`API_URL`, `NUMBER`) ([Chat einrichten](chat.md)).
 
 **GitHub-Webhook:** Richte in den Repository-Einstellungen einen Webhook auf `https://pm.deine-org.de/webhooks/github` ein, Content-Type JSON, mit demselben Secret. Abonniere *Issues* und *Issue comments*.
 
@@ -78,6 +78,8 @@ Das Öffnen des Links *zeigt* die Änderung nur an, Mail-Scanner können also ni
 - Teamleitungen bekommen die Abendnotiz (nur wenn nötig) und den Wochenrückblick.
 
 **Datenqualität.** Vor jedem Briefing prüft der Agent offene Aufgaben auf fehlende Zuständige, Termine und Verknüpfungen und stellt der richtigen Person pro Lücke eine kurze Frage ([Details](data-quality.md)).
+
+**Chat und Triangulation (Phase 3).** Mit dem Agenten geht es auch über Matrix oder Signal: Antworten, Sprachnachrichten, „ja“ zum Bestätigen. Schreibt jemand „#12 ist erledigt“, während #12 noch offen ist, fragt der Agent einmal nach, statt zu raten ([Chat](chat.md)).
 
 **Onboarding (#47).** `uv run agent-pm onboarding --all --send` schickt allen eine freundliche Vorstellung in ihrer Sprache, die erklärt, was der Agent mit ihren Daten macht ([Details](people-data.md)).
 

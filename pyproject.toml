@@ -20,6 +20,8 @@ dependencies = [
 [project.optional-dependencies]
 # For adapter plugins that reuse the shared contract suite (agentic_pm.testing).
 testing = ["pytest>=8", "pytest-asyncio>=0.23"]
+# Local speech-to-text for chat voice notes (team.yaml speech.engine: faster-whisper).
+voice = ["faster-whisper>=1.0"]
 
 [project.entry-points."agentic_pm.adapters"]
 # Third-party adapters register here in their own pyproject, e.g.

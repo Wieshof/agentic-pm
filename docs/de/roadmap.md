@@ -29,11 +29,13 @@ Siehe [Den Agenten betreiben](running.md).
 - **Grenzen für Personendaten** festgeschrieben und umgesetzt ([ADR-0004](../adr/0004-people-data-boundaries.de.md))
 - **Abschluss:** ≥ 50 % der geschlossenen Pilot-Tickets enthalten ein vom Agenten verfasstes How-to; der Wochen-Digest ersetzt die manuelle Status-Mail
 
-## Phase 3 — Omnichannel (Chat & Sprache)
-- WhatsApp-Business-Integration (Routing über Antwortkontext, Sprachnachrichten)
-- Sprachagent: eingehende Anrufe, ausgehende 60-Sekunden-Check-ins, Transkriptionshinweis, Transkripte nur im Arbeitsspeicher
-- Adaptive Nachfass-Taktung
-- Widerspruchs-Triangulation + Mikro-Interviews
+## Phase 3 — Omnichannel (Chat & Sprache) 🚧 in Arbeit
+- ✅ Chat über **Matrix und Signal**: Zuordnung über den Antwortkontext, Chat-Briefings mit einer Frage pro Lücke, Bestätigung mit Ja/Nein ([Chat](chat.md), [ADR-0005](../adr/0005-chat-channels.de.md))
+- ✅ Sprachnachrichten, lokal transkribiert (faster-whisper / whisper.cpp), nur im Arbeitsspeicher
+- ✅ Widerspruchs-Triangulation + Mikro-Interviews (#15)
+- ⏳ Adaptive Nachfass-Taktung (#14), pro Frage statt pro Person
+- ⏳ WhatsApp Business hinter derselben Chat-Schnittstelle (#12)
+- ⏳ Sprachagent: eingehende Anrufe, ausgehende 60-Sekunden-Check-ins, Transkriptionshinweis, Transkripte nur im Arbeitsspeicher (#13)
 - **Abschluss:** Blocker werden in < 2 h sichtbar; mindestens eine Person ohne Tracker-Konto ist pro Pilotteam aktiv
 
 ## Phase 4 — Planung & Steuerung (neu)

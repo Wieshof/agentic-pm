@@ -10,7 +10,8 @@ A plain-language summary for everyone on a team that uses agentic-pm. The design
 |------|---------------------|----------|
 | Your name, channels (email, phone, …), language, brief time | The team file `.agent-pm/team.yaml`, which your team maintains | Reaching you the way you prefer |
 | Tasks assigned to you, their dates, estimates, dependencies | Your tracker (e.g. GitHub), read live | Briefs, risk warnings, deadline collisions |
-| Messages you send to the agent | The agent's mailbox | Adding them to the right task (how-to, note) |
+| Messages you send to the agent | The agent's mailbox, or your chat with it (Matrix, Signal) | Adding them to the right task (how-to, note) |
+| Voice notes you send in chat | Your chat, fetched into memory | Transcribed locally into text, then the audio is dropped |
 
 ## What it doesn't do
 
@@ -18,18 +19,20 @@ A plain-language summary for everyone on a team that uses agentic-pm. The design
 - **No history about you.** Every check looks at the tasks as they are right now. Deadline collisions name tasks ("#12 and #31 are both due Friday"), not people's performance.
 - **No guessing moods.** Messages aren't analysed for stress, sentiment or burnout.
 - **No outside training.** Messages are processed by a model running on your organisation's own servers by default, and they're never used to train models.
-- **No acting on strangers.** Email from senders who aren't in the team file is ignored.
+- **No acting on strangers.** Email or chat from senders who aren't in the team file is ignored.
+- **No reply-time tracking.** If a question goes unanswered, the agent counts nudges for that one question, never how quickly *you* usually answer.
 
 ## How long things are kept
 
 - The agent itself keeps **nothing permanently**. What it writes (how-tos, notes, audit entries) lives in your tracker, where your team can see and edit it.
 - Short-lived working data (for example to avoid processing the same webhook twice) stays in memory only and disappears on restart.
 - Emails stay in the agent's mailbox under your organisation's normal mail retention.
+- Chat: Signal messages leave Signal's queue once the agent has read them, and Matrix messages stay in your chat on your homeserver. **Voice notes and their transcripts are never stored by the agent.** Only the resulting note on the ticket remains.
 
 ## What it writes, and when it asks first
 
 - **Automatically, with an audit note:** comments, how-tos and labels.
-- **Your OK first:** changes to your task's dates or status. You get a friendly email with a link, and nothing changes until you decide.
+- **Your OK first:** changes to your task's dates or status. You get a friendly email with a link, or in chat a question you answer with "yes" or "no". Nothing changes until you decide.
 - **A lead's OK first:** client deadlines, new owners, deleting things.
 
 ## Your choices

@@ -12,7 +12,7 @@ agentic-pm doesn't replace your issue tracker. It's an intelligent orchestration
 
 The underlying tracker stays the single, synchronized source of truth. The agent keeps **no permanent task state** of its own.
 
-> Status: ✍️ Phase 2 (write-back, how-tos, approvals, cadence) built, ready for a pilot team. Start here: [Getting started](docs/getting-started.md) · [Running the agent](docs/running.md). See the [roadmap](docs/roadmap.md).
+> Status: ✍️ Phase 2 (write-back, how-tos, approvals, cadence) built, ready for a pilot team. 💬 Phase 3 in progress: [chat on Matrix and Signal](docs/chat.md) with voice notes and triangulation. Start here: [Getting started](docs/getting-started.md) · [Running the agent](docs/running.md). See the [roadmap](docs/roadmap.md).
 
 ---
 
@@ -114,7 +114,7 @@ Details: [docs/workflows.md](docs/workflows.md) · **How this maps to the full P
 | Tasks, deadlines, dependencies | The existing tracker, fetched live on every event |
 | User preferences ("Drucker profiles") | `.agent-pm/team.yaml` in the repo, or SSO directory attributes (Entra ID / Google Workspace) |
 | How-to docs & audit logs | Ticket comments, or Markdown committed to `/docs` |
-| Conversation → ticket routing | Transport-level tags: email plus-addressing / `Message-ID`, WhatsApp reply context, voice session RAM |
+| Conversation → ticket routing | Transport-level tags: email plus-addressing / `Message-ID`, a signed tag in chat replies (Matrix, Signal), voice session RAM |
 
 Details: [docs/data-model.md](docs/data-model.md) · example config: [.agent-pm/team.example.yaml](.agent-pm/team.example.yaml)
 
@@ -150,7 +150,9 @@ uv run agent-pm onboarding --demo --person sam    # friendly intro: what the age
 | `AGENT_PM_SIGNING_KEY` | Signing approval links |
 | `AGENT_PM_GITHUB_WEBHOOK_SECRET` | Verifying GitHub webhooks |
 | `AGENT_PM_IMAP_HOST`, `_PORT`, `_USER`, `_PASSWORD`, `_FOLDER` | Reading replies in the agent's mailbox |
-| `AGENT_PM_WHATSAPP_*`, `AGENT_PM_SIP_*` | WhatsApp and voice (Phase 3, planned) |
+| `AGENT_PM_MATRIX_HOMESERVER`, `_USER`, `_TOKEN` | Chat on Matrix ([chat](docs/chat.md)) |
+| `AGENT_PM_SIGNAL_API_URL`, `_NUMBER` | Chat on Signal via signal-cli-rest-api |
+| `AGENT_PM_WHATSAPP_*`, `AGENT_PM_SIP_*` | WhatsApp and voice calls (Phase 3, planned) |
 
 ### Modules
 
@@ -169,6 +171,9 @@ uv run agent-pm onboarding --demo --person sam    # friendly intro: what the age
 | `agentic_pm.cadence` · `runtime` | Operating cadence, scheduler, `agent-pm run` |
 | `agentic_pm.engine.capacity` | Deadline collisions (task-centric) |
 | `agentic_pm.engine.completeness` | Data completeness: missing owners, dates, links; readiness ratio |
+| `agentic_pm.engine.triangulation` | Status claims that contradict the tracker → one question (#15) |
+| `agentic_pm.chat` | Matrix & Signal transports, reply tags, short-answer parsing, chat router |
+| `agentic_pm.speech` | Local speech-to-text for voice notes (faster-whisper, whisper.cpp) |
 | `agentic_pm.mcp_server` | MCP tools over any adapter, with tier enforcement |
 | `agentic_pm.llm` | Provider-agnostic LLM interface, local OpenAI-compatible provider |
 

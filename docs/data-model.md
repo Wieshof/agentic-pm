@@ -25,14 +25,16 @@ No lookup table is needed to know which reply belongs to which task.
 | Channel | Mechanism |
 |---------|-----------|
 | Email | Dynamic plus-addressing (`pm+repo-task142@yourdomain.com`) or `Message-ID` / `In-Reply-To` headers |
-| WhatsApp | WhatsApp Business reply-context metadata, or a short reference tag in the prompt |
+| Matrix / Signal | A tag on the last line of the agent's message (`— #12`, `— #12 · due?`). A reply carries it back. Matrix: the replied-to event is fetched and must be the agent's own. Signal: the quote's author must be the agent. Proposed changes are HMAC-signed ([chat](chat.md), [ADR-0005](adr/0005-chat-channels.md)). |
+| WhatsApp (planned) | The same tag, via WhatsApp's reply context |
 | Voice | The transcript is held only in the call session's RAM for the 2–3 minute call. Structured updates are written to the tracker when the caller hangs up, then the transcript is discarded. |
 
 ## What the agent *does* keep (ephemeral / operational only)
 
 - Short-lived caches with a TTL and no source-of-truth role
 - Delivery and retry queues for outbound messages
-- Responsiveness counters for adaptive cadence. These can also be stored back in `team.yaml` or SSO attributes if full statelessness is required.
+- No per-person responsiveness counters: adaptive follow-up counts unanswered nudges **per question**, from what's visible in the conversation and on the ticket ([ADR-0005](adr/0005-chat-channels.md))
+- Chat read position: the agent's own read marker on the Matrix homeserver; Signal messages leave Signal's queue when read
 
 ## Webhook ingress: no loops, no storms
 

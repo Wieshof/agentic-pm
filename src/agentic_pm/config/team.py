@@ -84,11 +84,14 @@ class Cadence(BaseModel):
         default=None, description="Monthly check against baseline (arrives with issue #54)"
     )
     inbox_poll_minutes: int = Field(default=2, ge=1, le=60)
+    chat_poll_seconds: int = Field(default=15, ge=2, le=600)
 
 
 Handle = Annotated[str, StringConstraints(pattern=r"^[a-z0-9][a-z0-9._-]*$")]
 Phone = Annotated[str, StringConstraints(pattern=r"^\+[0-9 ]{6,20}$")]
 Email = Annotated[str, StringConstraints(pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")]
+MatrixId = Annotated[str, StringConstraints(pattern=r"^@[^:\s]+:[^\s]+$")]
+ChannelName = Literal["email", "matrix", "signal"]
 
 
 class _Strict(BaseModel):
@@ -119,6 +122,12 @@ class Channels(_Strict):
     phone: Phone | None = None
     whatsapp: Phone | None = None
     chat: str | None = Field(default=None, description="Slack/Teams handle")
+    matrix: MatrixId | None = Field(
+        default=None, description="Matrix user id, e.g. @sam:matrix.org"
+    )
+    signal: Phone | None = Field(
+        default=None, description="Signal phone number, e.g. +43 660 1234567"
+    )
 
     def has(self, name: str) -> bool:
         return getattr(self, name) is not None
@@ -149,6 +158,11 @@ class Person(_Strict):
     language: LanguageCode = Field(
         default="en",
         description="Language the agent uses with this person (briefs, calls, chats)",
+    )
+    prefer: list[ChannelName] = Field(
+        default_factory=list,
+        description="Channels to reach this person on, in order (default: chat first for "
+        "writers, talkers and listeners, email first for readers)",
     )
     tracker_login: str | None = Field(
         default=None,
@@ -234,15 +248,28 @@ class LLMSettings(_Strict):
 # Which channel each archetype / brief format needs to be reachable at all.
 _ARCHETYPE_NEEDS: dict[Archetype, tuple[str, ...]] = {
     Archetype.READER: ("email",),
-    Archetype.WRITER: ("whatsapp", "chat"),
-    Archetype.TALKER: ("phone", "whatsapp"),
+    Archetype.WRITER: ("whatsapp", "chat", "matrix", "signal"),
+    Archetype.TALKER: ("phone", "whatsapp", "signal", "matrix"),
     Archetype.LISTENER: ("phone",),
 }
 _FORMAT_NEEDS: dict[BriefFormat, tuple[str, ...]] = {
     BriefFormat.EMAIL: ("email",),
-    BriefFormat.CHAT: ("whatsapp", "chat"),
+    BriefFormat.CHAT: ("matrix", "signal"),
     BriefFormat.VOICE: ("phone",),
 }
+
+
+class Speech(_Strict):
+    """Speech-to-text for voice notes. Runs locally; audio and transcripts stay in RAM."""
+
+    engine: Literal["none", "faster-whisper", "whisper-cpp"] = Field(
+        default="none",
+        description="faster-whisper (pip extra 'voice') or a whisper.cpp server at `url`",
+    )
+    model: str = Field(default="small", description="Whisper model size for faster-whisper")
+    url: str | None = Field(
+        default=None, description="whisper.cpp server, e.g. http://localhost:8080/inference"
+    )
 
 
 class TeamConfig(_Strict):
@@ -261,6 +288,7 @@ class TeamConfig(_Strict):
     llm: LLMSettings = LLMSettings()
     cadence: Cadence = Cadence()
     completeness: Completeness = Completeness()
+    speech: Speech = Speech()
 
     # ------------------------------------------------------------ lookups
 
@@ -278,6 +306,33 @@ class TeamConfig(_Strict):
             ),
             None,
         )
+
+    def handle_for_chat(self, platform: str, address: str) -> str | None:
+        """matrix: '@sam:example.org' (case-insensitive), signal: '+43 660…' (spaces ignored)."""
+
+        def norm(v: str) -> str:
+            return v.replace(" ", "").lower()
+
+        return next(
+            (
+                h
+                for h, p in self.people.items()
+                if (v := getattr(p.channels, platform, None)) and norm(v) == norm(address)
+            ),
+            None,
+        )
+
+    def reach_order(self, handle: str) -> list[str]:
+        """Channels to try for this person, in order, limited to the ones they have."""
+        p = self.people[handle]
+        default = (
+            ["email", "matrix", "signal"]
+            if p.archetype is Archetype.READER
+            else ["signal", "matrix", "email"]
+        )
+        order = list(p.prefer) or default
+        order += [c for c in default if c not in order]
+        return [c for c in order if p.channels.has(c)]
 
     def display_name(self, handle: str) -> str:
         person = self.people.get(handle)
