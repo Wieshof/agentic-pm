@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>agentic-pm - Local-First Project Assistant</title>
+  <meta name="description" content="A quiet project buddy that keeps your work on track without sending your data to the cloud. 100% local AI, zero subscriptions." />
+  <style>
+    :root {
+      --bg: #fafaf8;
+      --surface: #ffffff;
+      --surface-subtle: #f2f2ee;
+      --text: #182026;
+      --text-muted: #4b5563;
+      --border: #e2e4df;
+      --accent: #1b6b4a;
+      --accent-hover: #145339;
+      --accent-soft: #e8f3ee;
+      --badge-bg: #eef4f0;
+      --badge-text: #17593e;
+      --shadow: 0 4px 20px rgba(24, 32, 38, 0.05);
+      --radius: 12px;
+      --max-w: 960px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #121516;
+        --surface: #1a1e20;
+        --surface-subtle: #22272a;
+        --text: #f1f3f2;
+        --text-muted: #9ca3af;
+        --border: #2c3336;
+        --accent: #38a173;
+        --accent-hover: #48b887;
+        --accent-soft: #182e25;
+        --badge-bg: #193026;
+        --badge-text: #6ee7b7;
+        --shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .container {
+      width: 100%;
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    /* Header */
+    header {
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 4rem;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--text);
+      text-decoration: none;
+      letter-spacing: -0.01em;
+    }
+
+    .brand-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: inline-block;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .nav-link {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .nav-link:hover {
+      color: var(--text);
+    }
+
+    .lang-toggle {
+      display: inline-flex;
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 2px;
+    }
+
+    .lang-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .lang-btn.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Hero */
+    .hero {
+      padding: 4.5rem 0 3.5rem;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      background: var(--badge-bg);
+      color: var(--badge-text);
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 0.35rem 0.8rem;
+      border-radius: 999px;
+      margin-bottom: 1.5rem;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4.5vw, 3rem);
+      line-height: 1.15;
+      letter-spacing: -0.025em;
+      font-weight: 800;
+      max-width: 22ch;
+      margin-bottom: 1.25rem;
+    }
+
+    .lead {
+      font-size: clamp(1.05rem, 2vw, 1.2rem);
+      color: var(--text-muted);
+      max-width: 62ch;
+      margin-bottom: 2rem;
+    }
+
+    .cta-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.85rem;
+      margin-bottom: 3rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.8rem 1.35rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--surface-subtle);
+    }
+
+    /* Briefing Preview Card */
+    .preview-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .preview-bar {
+      background: var(--surface-subtle);
+      padding: 0.65rem 1.1rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .preview-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--badge-text);
+      font-weight: 600;
+    }
+
+    .preview-body {
+      padding: 1.5rem;
+    }
+
+    .preview-meta {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .preview-subject {
+      font-weight: 700;
+      font-size: 1.05rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .preview-quote {
+      background: var(--accent-soft);
+      border-left: 3px solid var(--accent);
+      padding: 0.9rem 1.1rem;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.95rem;
+    }
+
+    /* Sections */
+    section {
+      padding: 3.5rem 0;
+      border-top: 1px solid var(--border);
+    }
+
+    h2 {
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+      margin-bottom: 1rem;
+    }
+
+    .section-intro {
+      color: var(--text-muted);
+      max-width: 64ch;
+      margin-bottom: 2.25rem;
+      font-size: 1.05rem;
+    }
+
+    .problem-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+    }
+
+    .problem-box p + p {
+      margin-top: 1rem;
+    }
+
+    .problem-highlight {
+      font-weight: 700;
+      color: var(--accent);
+      margin-top: 1.25rem;
+    }
+
+    /* Grid */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.6rem;
+      box-shadow: var(--shadow);
+    }
+
+    .card-num {
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--badge-text);
+      background: var(--badge-bg);
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+      margin-bottom: 0.75rem;
+    }
+
+    .card h3 {
+      font-size: 1.12rem;
+      line-height: 1.35;
+      margin-bottom: 0.65rem;
+    }
+
+    .card p, .card li {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .card ul {
+      padding-left: 1.15rem;
+      margin-top: 0.5rem;
+    }
+
+    .card li + li {
+      margin-top: 0.45rem;
+    }
+
+    .inline-example {
+      display: block;
+      margin-top: 0.75rem;
+      padding: 0.65rem 0.85rem;
+      background: var(--surface-subtle);
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-style: italic;
+      color: var(--text);
+    }
+
+    /* Privacy List */
+    .privacy-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 1.1rem;
+    }
+
+    .privacy-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.35rem;
+    }
+
+    .privacy-item h3 {
+      font-size: 1rem;
+      margin-bottom: 0.45rem;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .privacy-item p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* IT Handoff Box */
+    .handoff-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      box-shadow: var(--shadow);
+    }
+
+    .handoff-note {
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.1rem 1.25rem;
+      font-size: 0.95rem;
+      margin: 1.25rem 0;
+      color: var(--text);
+    }
+
+    .copy-feedback {
+      font-size: 0.88rem;
+      color: var(--accent);
+      font-weight: 600;
+      margin-left: 0.75rem;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .copy-feedback.visible {
+      opacity: 1;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: auto;
+      border-top: 1px solid var(--border);
+      padding: 2rem 0;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.25rem;
+    }
+
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+
+    .footer-links a:hover {
+      color: var(--text);
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <a href="#" class="brand">
+        <span class="brand-dot" aria-hidden="true"></span>
+        <span>agentic-pm</span>
+      </a>
+      <div class="nav-actions">
+        <a href="#privacy" class="nav-link" data-i18n="nav_privacy">Privacy</a>
+        <a href="#it-handoff" class="nav-link" data-i18n="nav_setup">Setup</a>
+        <a href="#" class="nav-link js-repo-link" target="_blank" rel="noopener">GitHub</a>
+        <div class="lang-toggle" role="group" aria-label="Language switcher">
+          <button type="button" class="lang-btn active" data-lang-btn="en">EN</button>
+          <button type="button" class="lang-btn" data-lang-btn="de">DE</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero -->
+    <div class="container hero">
+      <div class="pill">
+        <span aria-hidden="true">&#9679;</span>
+        <span data-i18n="hero_badge">100% Local AI &middot; Zero Cloud Accounts</span>
+      </div>
+      <h1 data-i18n="hero_title">A quiet project buddy that keeps your work on track: without sending your data to the cloud.</h1>
+      <p class="lead" data-i18n="hero_sub">
+        agentic-pm reads your existing task lists, emails, and voice notes, spots hidden bottlenecks before they become emergencies, and sends you a calm morning briefing. Runs 100% locally on your own computer. No subscriptions. No accounts in the US or China.
+      </p>
+      <div class="cta-group">
+        <a href="#" class="btn btn-primary js-spreadsheet-link" target="_blank" rel="noopener" data-i18n="cta_primary">
+          Try it with a simple Excel sheet
+        </a>
+        <a href="#it-handoff" class="btn btn-secondary" data-i18n="cta_secondary">
+          Send setup guide to your IT person
+        </a>
+      </div>
+
+      <!-- Visual Briefing Preview -->
+      <div class="preview-card" aria-label="Example morning briefing">
+        <div class="preview-bar">
+          <span>08:00 &middot; agentic-pm</span>
+          <span class="preview-status" data-i18n="preview_badge">&#10003; Offline &middot; Local LLM (Ollama)</span>
+        </div>
+        <div class="preview-body">
+          <div class="preview-meta" data-i18n="preview_meta">Morning Briefing &middot; 1 dependency warning</div>
+          <div class="preview-subject" data-i18n="preview_subject">Heads up before your Friday launch</div>
+          <div class="preview-quote" data-i18n="preview_quote">
+            "Friday's client launch depends on the printer proof in row 63, which hasn't been confirmed yet. Reply to this email if you want me to follow up."
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- The Problem -->
+    <section>
+      <div class="container">
+        <div class="problem-box">
+          <h2 data-i18n="problem_title">You don't need another productivity app.</h2>
+          <p data-i18n="problem_p1">
+            When you have too much on your plate, project tools usually create more work: logging into dashboards, updating statuses, copying notes from emails, and remembering which task blocks which.
+          </p>
+          <p data-i18n="problem_p2">
+            Meanwhile, using mainstream AI assistants means uploading your client lists, internal emails, and business plans to external servers (and hoping they stay private).
+          </p>
+          <p class="problem-highlight" data-i18n="problem_highlight">There is a simpler way.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Scenarios -->
+    <section>
+      <div class="container">
+        <h2 data-i18n="scenarios_title">How your project buddy helps you</h2>
+        <p class="section-intro" data-i18n="scenarios_intro">
+          No new interface to learn. It works quietly in the background on top of the files and channels you already use every day.
+        </p>
+
+        <div class="grid-2">
+          <article class="card">
+            <span class="card-num">01</span>
+            <h3 data-i18n="s1_title">One calm morning briefing instead of five open tabs</h3>
+            <p data-i18n="s1_body">
+              Every morning at 8:00 AM, you get a short email (or spoken summary) in your preferred language telling you what actually needs attention today and what can wait.
+            </p>
+          </article>
+
+          <article class="card">
+            <span class="card-num">02</span>
+            <h3 data-i18n="s2_title">Spots hidden chain reactions automatically</h3>
+            <p data-i18n="s2_body">
+              Your buddy connects the dots across your task list or team tracker so deadlines don't slip silently.
+            </p>
+            <span class="inline-example" data-i18n="s2_example">
+              "Heads up: Friday's client launch depends on the printer proof in row 63, which hasn't been confirmed yet."
+            </span>
+          </article>
+
+          <article class="card">
+            <span class="card-num">03</span>
+            <h3 data-i18n="s3_title">Talk or message normally: let it do the admin</h3>
+            <p data-i18n="s3_body">
+              Prefer sending a quick voice note, an email reply, or a chat message? Speak naturally, and your buddy turns messy updates into clean, structured documentation on the right task.
+            </p>
+            <span class="inline-example" data-i18n="s3_example">
+              "Fixed the login bug by increasing the cache size."
+            </span>
+          </article>
+
+          <article class="card">
+            <span class="card-num">04</span>
+            <h3 data-i18n="s4_title">Works for solo operators and small teams alike</h3>
+            <ul>
+              <li data-i18n="s4_li1"><strong>Working solo?</strong> Point it at a plain .xlsx or .csv file on your desktop. Zero setup overhead.</li>
+              <li data-i18n="s4_li2"><strong>Working with a team?</strong> Everyone stays in the channel they already use (email, Signal, Matrix, or voice). No new software to learn and no extra user licenses to buy.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Privacy & Sovereignty -->
+    <section id="privacy">
+      <div class="container">
+        <h2 data-i18n="privacy_title">Your business stays on your hardware.</h2>
+        <p class="section-intro" data-i18n="privacy_intro">
+          Built for people who want practical AI assistance without sacrificing data sovereignty or confidentiality.
+        </p>
+
+        <div class="privacy-grid">
+          <div class="privacy-item">
+            <h3 data-i18n="p1_title">100% Local AI</h3>
+            <p data-i18n="p1_body">Built to run on local models (like Ollama) directly on your Mac or PC. Turn off your Wi-Fi: it still works.</p>
+          </div>
+          <div class="privacy-item">
+            <h3 data-i18n="p2_title">Zero Cloud Lock-in</h3>
+            <p data-i18n="p2_body">No external cloud accounts, no monthly SaaS fees, and zero risk of your data being used to train third-party AI models.</p>
+          </div>
+          <div class="privacy-item">
+            <h3 data-i18n="p3_title">No Separate Database</h3>
+            <p data-i18n="p3_body">It never hoards your tasks in a proprietary format. Your Excel file, GitHub, Jira, or OpenProject stays your single source of truth.</p>
+          </div>
+          <div class="privacy-item">
+            <h3 data-i18n="p4_title">Open Source (Apache 2.0)</h3>
+            <p data-i18n="p4_body">Transparent, auditable code with no hidden tracking or telemetry.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Forward to Tech Friend -->
+    <section id="it-handoff">
+      <div class="container">
+        <div class="handoff-box">
+          <h2 data-i18n="handoff_title">Not a programmer? No problem.</h2>
+          <p class="section-intro" style="margin-bottom: 0;" data-i18n="handoff_sub">
+            Copy this short note and send it to your IT support or a tech-savvy friend to set it up for you:
+          </p>
+
+          <div class="handoff-note" id="handoff-text" data-i18n="handoff_note">
+            "Hey, could you help me set up agentic-pm on my machine? It's an open-source, local-first project assistant that connects to a local LLM (Ollama) and reads my Excel/CSV or issue tracker to send daily briefings. Here is the repository: https://github.com/your-org/agentic-pm"
+          </div>
+
+          <div>
+            <button type="button" class="btn btn-primary" id="copy-btn" data-i18n="copy_btn">Copy message</button>
+            <a href="#" class="btn btn-secondary js-repo-link" target="_blank" rel="noopener" data-i18n="github_btn">View on GitHub</a>
+            <span class="copy-feedback" id="copy-feedback" data-i18n="copied_msg">Copied to clipboard!</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <div>agentic-pm &middot; Apache License 2.0</div>
+      <div class="footer-links">
+        <a href="#" class="js-repo-link" target="_blank" rel="noopener">GitHub</a>
+        <a href="#" class="js-spreadsheet-link" target="_blank" rel="noopener" data-i18n="footer_sheets">Spreadsheet Guide</a>
+        <a href="#" class="js-getting-started-link" target="_blank" rel="noopener" data-i18n="footer_start">Getting Started</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Update this single URL to point to your GitHub repository
+    const REPO_URL = "https://github.com/your-org/agentic-pm";
+
+    const translations = {
+      en: {
+        page_title: "agentic-pm - Local-First Project Assistant",
+        nav_privacy: "Privacy",
+        nav_setup: "Setup",
+        hero_badge: "100% Local AI \u00b7 Zero Cloud Accounts",
+        hero_title: "A quiet project buddy that keeps your work on track: without sending your data to the cloud.",
+        hero_sub: "agentic-pm reads your existing task lists, emails, and voice notes, spots hidden bottlenecks before they become emergencies, and sends you a calm morning briefing. Runs 100% locally on your own computer. No subscriptions. No accounts in the US or China.",
+        cta_primary: "Try it with a simple Excel sheet",
+        cta_secondary: "Send setup guide to your IT person",
+        preview_badge: "\u2713 Offline \u00b7 Local LLM (Ollama)",
+        preview_meta: "Morning Briefing \u00b7 1 dependency warning",
+        preview_subject: "Heads up before your Friday launch",
+        preview_quote: "\"Friday's client launch depends on the printer proof in row 63, which hasn't been confirmed yet. Reply to this email if you want me to follow up.\"",
+        problem_title: "You don't need another productivity app.",
+        problem_p1: "When you have too much on your plate, project tools usually create more work: logging into dashboards, updating statuses, copying notes from emails, and remembering which task blocks which.",
+        problem_p2: "Meanwhile, using mainstream AI assistants means uploading your client lists, internal emails, and business plans to external servers (and hoping they stay private).",
+        problem_highlight: "There is a simpler way.",
+        scenarios_title: "How your project buddy helps you",
+        scenarios_intro: "No new interface to learn. It works quietly in the background on top of the files and channels you already use every day.",
+        s1_title: "One calm morning briefing instead of five open tabs",
+        s1_body: "Every morning at 8:00 AM, you get a short email (or spoken summary) in your preferred language telling you what actually needs attention today and what can wait.",
+        s2_title: "Spots hidden chain reactions automatically",
+        s2_body: "Your buddy connects the dots across your task list or team tracker so deadlines don't slip silently.",
+        s2_example: "\"Heads up: Friday's client launch depends on the printer proof in row 63, which hasn't been confirmed yet.\"",
+        s3_title: "Talk or message normally: let it do the admin",
+        s3_body: "Prefer sending a quick voice note, an email reply, or a chat message? Speak naturally, and your buddy turns messy updates into clean, structured documentation on the right task.",
+        s3_example: "\"Fixed the login bug by increasing the cache size.\"",
+        s4_title: "Works for solo operators and small teams alike",
+        s4_li1: "<strong>Working solo?</strong> Point it at a plain .xlsx or .csv file on your desktop. Zero setup overhead.",
+        s4_li2: "<strong>Working with a team?</strong> Everyone stays in the channel they already use (email, Signal, Matrix, or voice). No new software to learn and no extra user licenses to buy.",
+        privacy_title: "Your business stays on your hardware.",
+        privacy_intro: "Built for people who want practical AI assistance without sacrificing data sovereignty or confidentiality.",
+        p1_title: "100% Local AI",
+        p1_body: "Built to run on local models (like Ollama) directly on your Mac or PC. Turn off your Wi-Fi: it still works.",
+        p2_title: "Zero Cloud Lock-in",
+        p2_body: "No external cloud accounts, no monthly SaaS fees, and zero risk of your data being used to train third-party AI models.",
+        p3_title: "No Separate Database",
+        p3_body: "It never hoards your tasks in a proprietary format. Your Excel file, GitHub, Jira, or OpenProject stays your single source of truth.",
+        p4_title: "Open Source (Apache 2.0)",
+        p4_body: "Transparent, auditable code with no hidden tracking or telemetry.",
+        handoff_title: "Not a programmer? No problem.",
+        handoff_sub: "Copy this short note and send it to your IT support or a tech-savvy friend to set it up for you:",
+        handoff_note: `"Hey, could you help me set up agentic-pm on my machine? It's an open-source, local-first project assistant that connects to a local LLM (Ollama) and reads my Excel/CSV or issue tracker to send daily briefings. Here is the repository: ${REPO_URL}"`,
+        copy_btn: "Copy message",
+        github_btn: "View on GitHub",
+        copied_msg: "Copied to clipboard!",
+        footer_sheets: "Spreadsheet Guide",
+        footer_start: "Getting Started",
+        spreadsheet_path: "/blob/main/docs/spreadsheets.md",
+        getting_started_path: "/blob/main/docs/getting-started.md"
+      },
+      de: {
+        page_title: "agentic-pm - Lokaler Projekt-Assistent",
+        nav_privacy: "Datenschutz",
+        nav_setup: "Einrichtung",
+        hero_badge: "100 % lokale KI \u00b7 Ohne Cloud-Konten",
+        hero_title: "Ein ruhiger Projekt-Buddy, der Dir den R\u00fccken freih\u00e4lt: ganz ohne Cloud-Zwang.",
+        hero_sub: "agentic-pm liest Deine bestehenden Aufgabenlisten, E-Mails und Sprachnachrichten, erkennt versteckte Engp\u00e4sse, bevor sie zum Problem werden, und schickt Dir morgens eine kompakte \u00dcbersicht. L\u00e4uft zu 100 % lokal auf Deinem eigenen Rechner. Keine Abos. Keine Daten\u00fcbertragung in die USA oder nach China.",
+        cta_primary: "Mit einer einfachen Excel-Tabelle starten",
+        cta_secondary: "Anleitung an Deine IT weiterleiten",
+        preview_badge: "\u2713 Offline \u00b7 Lokales Sprachmodell (Ollama)",
+        preview_meta: "Morgen-Briefing \u00b7 1 Hinweis zu Abh\u00e4ngigkeiten",
+        preview_subject: "Kurzer Hinweis vor Deinem Launch am Freitag",
+        preview_quote: "\"Der Kunden-Launch am Freitag h\u00e4ngt an der Druckfreigabe in Zeile 63, die noch nicht best\u00e4tigt wurde. Antworte einfach auf diese E-Mail, wenn ich nachfassen soll.\"",
+        problem_title: "Du brauchst nicht noch eine Produktivit\u00e4ts-App.",
+        problem_p1: "Wenn der Schreibtisch ohnehin voll ist, machen klassische Projekt-Tools oft noch mehr Arbeit: sich in Dashboards einloggen, Statusfelder pflegen, Infos aus E-Mails abtippen und im Kopf behalten, welche Aufgabe gerade eine andere blockiert.",
+        problem_p2: "Gleichzeitig bedeutet der Einsatz g\u00e4ngiger KI-Assistenten, dass Kundenlisten, interne E-Mails und Gesch\u00e4ftspl\u00e4ne auf fremde Server hochgeladen werden (und man nur hoffen kann, dass sie dort sicher bleiben).",
+        problem_highlight: "Es geht auch einfacher.",
+        scenarios_title: "So hilft Dir Dein Projekt-Buddy",
+        scenarios_intro: "Keine neue Oberfl\u00e4che zum Einarbeiten. Der Assistent arbeitet leise im Hintergrund auf Basis der Dateien und Kan\u00e4le, die Du ohnehin t\u00e4glich nutzt.",
+        s1_title: "Ein entspanntes Morgen-Briefing statt f\u00fcnf offener Tabs",
+        s1_body: "Jeden Morgen um 8:00 Uhr bekommst Du eine kurze E-Mail (oder eine gesprochene Zusammenfassung) in Deiner Wunschsprache. Du siehst sofort, was heute wirklich z\u00e4hlt und was warten kann.",
+        s2_title: "Erkennt versteckte Kettenreaktionen automatisch",
+        s2_body: "Dein Buddy verkn\u00fcpft die Punkte in Deiner Aufgabenliste oder im Team-Tracker, damit Deadlines nicht unbemerkt kippen.",
+        s2_example: "\"Kurzer Hinweis: Der Kunden-Launch am Freitag h\u00e4ngt an der Druckfreigabe in Zeile 63, die noch nicht best\u00e4tigt wurde.\"",
+        s3_title: "Einfach sprechen oder schreiben: die Dokumentation l\u00e4uft nebenbei",
+        s3_body: "Du schickst lieber eine kurze Sprachnachricht, eine E-Mail-Antwort oder eine Chat-Nachricht? Sprich ganz normal, und Dein Buddy macht daraus eine saubere, strukturierte Notiz direkt bei der richtigen Aufgabe.",
+        s3_example: "\"Login-Problem gel\u00f6st, habe den Cache vergr\u00f6\u00dfert.\"",
+        s4_title: "F\u00fcr Einzelk\u00e4mpfer genauso wie f\u00fcr kleine Teams",
+        s4_li1: "<strong>Allein unterwegs?</strong> Verkn\u00fcpfe einfach eine normale .xlsx- oder .csv-Datei auf Deinem Desktop. Kein Einrichtungs-Overhead.",
+        s4_li2: "<strong>Im Team?</strong> Alle bleiben in dem Kanal, den sie ohnehin nutzen (E-Mail, Signal, Matrix oder Sprache). Keine neue Software zum Einarbeiten und keine teuren Zusatz-Lizenzen.",
+        privacy_title: "Dein Unternehmen bleibt auf Deiner Hardware.",
+        privacy_intro: "Entwickelt f\u00fcr alle, die praktische KI-Unterst\u00fctzung suchen, ohne Datensouver\u00e4nit\u00e4t oder Vertraulichkeit aufzugeben.",
+        p1_title: "100 % lokale KI",
+        p1_body: "Entwickelt f\u00fcr lokale Sprachmodelle (z. B. \u00fcber Ollama) direkt auf Deinem Mac oder PC. Schalte das WLAN aus: Es funktioniert trotzdem.",
+        p2_title: "Kein Cloud-Zwang",
+        p2_body: "Keine externen Cloud-Konten, keine monatlichen SaaS-Geb\u00fchren und null Risiko, dass Deine Gesch\u00e4ftsdaten zum Training fremder KI-Modelle genutzt werden.",
+        p3_title: "Keine zweite Datenbank",
+        p3_body: "Deine Aufgaben werden nicht in ein geschlossenes System kopiert. Deine Excel-Datei, GitHub, Jira oder OpenProject bleibt die alleinige Datenquelle.",
+        p4_title: "Open Source (Apache 2.0)",
+        p4_body: "Transparenter, \u00fcberpr\u00fcfbarer Quellcode ohne verstecktes Tracking oder Telemetrie.",
+        handoff_title: "Kein Programmierer? Kein Problem.",
+        handoff_sub: "Kopiere diese kurze Nachricht und schick sie an Deinen IT-Support oder einen technikaffinen Kollegen:",
+        handoff_note: `"Hallo, k\u00f6nntest Du mir helfen, agentic-pm auf meinem Rechner einzurichten? Das ist ein lokaler Open-Source-Projektassistent, der mit einem lokalen Sprachmodell (Ollama) l\u00e4uft und meine Excel-/CSV-Listen oder unseren Tracker auswertet, um mir t\u00e4gliche Briefings zu schicken. Hier ist das Repository: ${REPO_URL}"`,
+        copy_btn: "Nachricht kopieren",
+        github_btn: "Auf GitHub ansehen",
+        copied_msg: "In die Zwischenablage kopiert!",
+        footer_sheets: "Start mit Tabellen",
+        footer_start: "Erste Schritte",
+        spreadsheet_path: "/blob/main/docs/de/spreadsheets.md",
+        getting_started_path: "/blob/main/docs/de/getting-started.md"
+      }
+    };
+
+    function setLanguage(lang) {
+      const dict = translations[lang] || translations.en;
+      document.documentElement.lang = lang;
+      document.title = dict.page_title;
+
+      document.querySelectorAll("[data-i18n]").forEach((el) => {
+        const key = el.getAttribute("data-i18n");
+        if (dict[key]) {
+          el.innerHTML = dict[key];
+        }
+      });
+
+      document.querySelectorAll(".js-repo-link").forEach((el) => {
+        el.href = REPO_URL;
+      });
+      document.querySelectorAll(".js-spreadsheet-link").forEach((el) => {
+        el.href = REPO_URL + dict.spreadsheet_path;
+      });
+      document.querySelectorAll(".js-getting-started-link").forEach((el) => {
+        el.href = REPO_URL + dict.getting_started_path;
+      });
+
+      document.querySelectorAll("[data-lang-btn]").forEach((btn) => {
+        btn.classList.toggle("active", btn.getAttribute("data-lang-btn") === lang);
+      });
+    }
+
+    document.querySelectorAll("[data-lang-btn]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        setLanguage(btn.getAttribute("data-lang-btn"));
+      });
+    });
+
+    document.getElementById("copy-btn").addEventListener("click", async () => {
+      const text = document.getElementById("handoff-text").textContent.trim();
+      const feedback = document.getElementById("copy-feedback");
+      try {
+        await navigator.clipboard.writeText(text);
+        feedback.classList.add("visible");
+        setTimeout(() => feedback.classList.remove("visible"), 2500);
+      } catch (err) {
+        const range = document.createRange();
+        range.selectNodeContents(document.getElementById("handoff-text"));
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    });
+
+    const initialLang = navigator.language && navigator.language.toLowerCase().startsWith("de") ? "de" : "en";
+    setLanguage(initialLang);
+  </script>
+</body>
+</html>
