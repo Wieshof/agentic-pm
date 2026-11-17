@@ -1,5 +1,43 @@
 # agentic-pm
 
+🇬🇧 English · 🇩🇪 Deutsch
+
+**A quiet, local-first project assistant that sits on top of the tools you already use—without sending your data to external AI clouds.**
+
+Most people don't fail at project management because they lack tools. They fail because updating tickets, chasing status updates across emails, and tracking hidden dependencies takes too much time. At the same time, handing internal business data over to US or Chinese cloud AI providers isn't an option for privacy-conscious teams and solo operators.
+
+`agentic-pm` solves both problems: it acts as a smart, proactive buddy that **runs 100% locally on your own hardware**, reads your existing task lists or trackers, and communicates with you through email, chat, or voice.
+
+> **Not a developer?** You don't need to touch code or complicated setups to benefit from this.  
+> 👉 **[Start with a simple Excel/CSV spreadsheet (No accounts required)](docs/spreadsheets.md)**  
+> 👉 **[Send this overview to your IT support or tech-savvy friend](docs/getting-started.md)**
+
+---
+
+### What it actually does for you
+
+* **Catches hidden bottlenecks early:** If a task slips, it checks what else depends on it and alerts you before a deadline is missed (*"Friday's client launch is waiting on the printer proof in row 63"*).
+* **Meets people where they are:** Readers get a calm morning email brief; talkers get spoken briefings; team members can reply via email, Signal, Matrix, or voice notes in their own language (e.g., chatting in German while tickets stay in English).
+* **Turns messy updates into clean notes:** Mention how you solved a problem in a voice note or email reply, and the agent writes a structured how-to directly onto the task.
+* **Shrinks your software stack:** No new dashboards to check, no extra tracker seat licenses for stakeholders, and no separate wikis that go stale.
+
+### Private & stateless by design
+
+* **Zero data leaves your machine:** Runs natively with local open-weights models (via Ollama or any OpenAI-compatible local server).
+* **No second database:** Your existing tool (Excel/CSV, OpenProject, GitHub, GitLab, Jira, Linear, Plane, Taiga) remains the single source of truth. The agent keeps no permanent task state of its own.
+* **Human-in-the-loop guardrails:** Low-risk summaries run automatically; high-impact changes require explicit approval.
+
+---
+
+**Project Status:**  
+✍️ **Phase 2 complete** (write-back, how-to extraction, approvals, daily cadence) — ready for pilot teams and solo users.  
+💬 **Phase 3 in progress** (chat on Matrix & Signal with voice notes and status triangulation).  
+📖 [Getting Started](docs/getting-started.md) · [Spreadsheet Mode](docs/spreadsheets.md) · [Roadmap](docs/roadmap.md)
+
+---
+
+# agentic-pm
+
 🇬🇧 English · 🇩🇪 [Deutsch](README.de.md)
 
 **An omnichannel, agentic project-management layer that sits on top of the issue trackers you already run.**
