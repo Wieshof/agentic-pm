@@ -74,7 +74,8 @@ async def test_proposal_scenario_adapted() -> None:
                 description="Waiting on github:acme/api#42 before publishing",
             ),
             task("T-04", status=TaskStatus.DONE, due=None),
-        ]
+        ],
+        c=cfg(backlog="check"),  # T-02 alone would be backlog
     )
     assert (r.active, r.ready, r.readiness) == (3, 0, 0.0)
 
@@ -175,7 +176,7 @@ async def test_owner_not_in_team_goes_to_triage() -> None:
 
 
 async def test_policy_and_capabilities() -> None:
-    c = cfg(require_due=False, require_estimate=True, triage=["alex"])
+    c = cfg(require_due=False, require_estimate=True, triage=["alex"], backlog="check")
     r = await report([task("1", due=None), task("2", owner="sam", estimate_hours=4)], c=c)
     assert {(g.task.ref.id, g.code, tuple(g.recipients)) for g in r.gaps} == {
         ("1", "MISSING_OWNER", ("alex",)),
@@ -206,7 +207,7 @@ async def test_untrusted_text_is_only_quoted_briefly() -> None:
 
 
 async def test_briefs_route_gaps_and_keep_leads_team_level() -> None:
-    c = cfg()
+    c = cfg(backlog="check")
     tracker = InMemoryTracker(
         [task("1", owner="sam", due=None), task("2", owner="sam", due=None), task("3", due=None)]
     )
@@ -219,3 +220,25 @@ async def test_briefs_route_gaps_and_keep_leads_team_level() -> None:
     assert "📊 Data readiness" in markus and "0% of 3 open tasks" in markus
     assert "3 without due date" in markus and "1 without owner" in markus
     assert "#1" not in markus and "Sam" not in markus  # no per-person view for leads (ADR-0004)
+
+
+async def test_unplanned_backlog_is_one_line_not_many_questions() -> None:
+    tasks = [task(str(i), due=None) for i in range(1, 47)]  # a roadmap: no owner, no date
+    tasks += [
+        task("100", owner="sam"),  # planned: has an owner and a date
+        task("101", due=None, status=TaskStatus.IN_PROGRESS),  # started: planned
+        task("102", due=None),  # something waits on it: planned
+        task("103", due=None),
+    ]
+    r = await report(tasks, [Edge(source=ref("102"), target=ref("103"))])
+    assert r.backlog == 46 and r.active == 4
+    assert {g.task.ref.id for g in r.gaps} == {"101", "102", "103"}
+    c = cfg()
+    text = render_text(await collect(c, "markus", InMemoryTracker(tasks[:46]), TODAY))
+    assert "Who takes it?" not in text  # no 46 questions for a backlog
+    from agentic_pm.briefs.gap_text import render_readiness
+
+    _, lines = render_readiness(r, "en")
+    assert lines[-1].startswith("46 more in the backlog")
+    _, lines_de = render_readiness(r, "de")
+    assert lines_de[-1].startswith("46 weitere im Backlog")

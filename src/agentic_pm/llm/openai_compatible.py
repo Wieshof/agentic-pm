@@ -57,6 +57,14 @@ class OpenAICompatibleProvider:
             }
         try:
             resp = await self._client.post("/chat/completions", json=body)
+        except httpx.HTTPError as e:
+            raise LLMError(
+                f"can't reach the model server at {self._client.base_url} "
+                f"({e.__class__.__name__}). Is it running? For Ollama: `ollama serve`"
+            ) from e
+        if resp.status_code == 404:
+            raise LLMError(await self._not_found())
+        try:
             resp.raise_for_status()
         except httpx.HTTPError as e:
             raise LLMError(f"{self.name} request failed: {e}") from e
@@ -79,6 +87,19 @@ class OpenAICompatibleProvider:
             finish_reason=finish_reason,
             input_tokens=usage.get("prompt_tokens"),
             output_tokens=usage.get("completion_tokens"),
+        )
+
+    async def _not_found(self) -> str:
+        """A 404 almost always means the model isn't installed: say which ones are."""
+        try:
+            listed = (await self._client.get("/models")).json().get("data", [])
+            names = sorted(str(m.get("id")) for m in listed if m.get("id"))
+        except (httpx.HTTPError, ValueError, AttributeError):
+            names = []
+        hint = f" Available: {', '.join(names)}." if names else ""
+        return (
+            f"model '{self.model}' isn't available on {self._client.base_url}.{hint} "
+            f"Set llm.model in team.yaml, or install it (Ollama: `ollama pull {self.model}`)."
         )
 
     async def aclose(self) -> None:

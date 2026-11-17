@@ -87,7 +87,12 @@ async def _deps(args: argparse.Namespace) -> int:
 
     report = check_completeness(cfg, graph)
     print(
-        f"readiness: {round(report.readiness * 100)}% of {report.active} open tasks complete"
+        (
+            f"readiness: {round(report.readiness * 100)}% of {report.active} planned tasks complete"
+            if report.active
+            else "readiness: no planned tasks yet"
+        )
+        + (f" · {report.backlog} in the backlog" if report.backlog else "")
         + (
             f" ({', '.join(f'{n} {c}' for c, n in sorted(report.counts().items()))})"
             if report.gaps

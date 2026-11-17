@@ -27,6 +27,7 @@ TEXTS: dict[str, dict[str, str]] = {
         "readiness_heading": "📊 Data readiness",
         "readiness": "{pct}% of {n} open tasks have everything the checks need",
         "readiness_counts": "missing: {counts}",
+        "backlog": "{n} more in the backlog, not planned yet (no owner, date or progress)",
         "count_MISSING_OWNER": "{n} without owner",
         "count_OWNER_NOT_IN_TEAM": "{n} with an owner outside the team file",
         "count_MISSING_DUE": "{n} without due date",
@@ -73,6 +74,8 @@ TEXTS: dict[str, dict[str, str]] = {
         "readiness_heading": "📊 Datenqualität",
         "readiness": "{pct} % von {n} offenen Aufgaben haben alles, was die Prüfungen brauchen",
         "readiness_counts": "es fehlen: {counts}",
+        "backlog": "{n} weitere im Backlog, noch nicht eingeplant (ohne Zuständige, Termin "
+        "oder Fortschritt)",
         "count_MISSING_OWNER": "{n} ohne Zuständige",
         "count_OWNER_NOT_IN_TEAM": "{n} mit Zuständigen außerhalb der Team-Datei",
         "count_MISSING_DUE": "{n} ohne Termin",
@@ -122,11 +125,13 @@ def render_readiness(report: CompletenessReport, lang: str) -> tuple[str, list[s
     """Team-level only: a ratio and counts by kind, never names (ADR-0004)."""
     t = _t(lang)
     pct = round(report.readiness * 100)
-    lines = [t["readiness"].format(pct=pct, n=report.active)]
+    lines = [t["readiness"].format(pct=pct, n=report.active)] if report.active else []
     counts = report.counts()
     if counts:
         parts = [t[f"count_{code}"].format(n=n) for code, n in sorted(counts.items())]
         lines.append(t["readiness_counts"].format(counts=", ".join(parts)))
+    if report.backlog:
+        lines.append(t["backlog"].format(n=report.backlog))
     return t["readiness_heading"], lines
 
 

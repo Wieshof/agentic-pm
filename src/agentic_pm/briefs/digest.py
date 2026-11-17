@@ -179,7 +179,7 @@ async def weekly_digest(
     if overdue:
         lines += [t["wk_overdue"].format(n=len(overdue)), ""]
     report = check_completeness(cfg, graph)
-    if report.gaps:
+    if report.gaps or report.backlog:  # the weekly place for the backlog line
         heading, items = render_readiness(report, lang)
         lines += _block(heading, items)
     if not risks and not collisions and not cycles:

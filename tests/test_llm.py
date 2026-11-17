@@ -100,3 +100,25 @@ async def test_live_local_model() -> None:
         max_tokens=50,
     )
     assert json.loads(out.text)["ok"] is True
+
+
+async def test_missing_model_says_which_ones_exist() -> None:
+    import httpx as _httpx
+
+    from agentic_pm.llm import ChatMessage as _Msg
+    from agentic_pm.llm.base import LLMError as _Err
+    from agentic_pm.llm.openai_compatible import OpenAICompatibleProvider
+
+    def handler(req: _httpx.Request) -> _httpx.Response:
+        if req.url.path.endswith("/models"):
+            return _httpx.Response(200, json={"data": [{"id": "qwen3.5:latest"}, {"id": "gemma4"}]})
+        return _httpx.Response(404, json={"error": "model not found"})
+
+    p = OpenAICompatibleProvider("llama3.1:8b", transport=_httpx.MockTransport(handler))
+    try:
+        await p.complete([_Msg(role="user", content="hi")])
+    except _Err as e:
+        assert "llama3.1:8b" in str(e) and "gemma4, qwen3.5:latest" in str(e)
+        assert "ollama pull llama3.1:8b" in str(e)
+    else:
+        raise AssertionError("expected LLMError")

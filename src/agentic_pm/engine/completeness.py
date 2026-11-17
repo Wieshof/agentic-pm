@@ -58,9 +58,10 @@ class Gap(BaseModel):
 
 
 class CompletenessReport(BaseModel):
-    active: int
+    active: int  # planned open tasks that were checked
     ready: int
     gaps: list[Gap]
+    backlog: int = 0  # open but not planned yet: not asked about (policy.backlog)
 
     @property
     def readiness(self) -> float:
@@ -120,6 +121,22 @@ def dependency_hints(task: Task, text: str) -> list[tuple[TaskRef, str]]:
     return list(found.values())
 
 
+def is_backlog(task: Task, graph: DependencyGraph) -> bool:
+    """Not planned yet: nobody owns it, no date, not started, nothing links it.
+
+    Every real tracker has many of these (ideas, roadmap items). Asking "who
+    takes it?" about each of them every morning is noise, not help.
+    """
+    return (
+        not task.assignees
+        and task.due is None
+        and task.status is TaskStatus.OPEN
+        and not graph.blockers(task.ref)
+        and not graph.done_blockers(task.ref)
+        and not graph.downstream(task.ref)
+    )
+
+
 def check_completeness(cfg: TeamConfig, graph: DependencyGraph) -> CompletenessReport:
     policy = cfg.completeness
     caps = graph.capabilities
@@ -129,9 +146,12 @@ def check_completeness(cfg: TeamConfig, graph: DependencyGraph) -> CompletenessR
     check_links = caps is None or caps.dependencies != "none"
 
     gaps: list[Gap] = []
-    active = ready = 0
+    active = ready = backlog = 0
     for task in sorted(graph.tasks.values(), key=lambda t: str(t.ref)):
         if task.status in (TaskStatus.DONE, TaskStatus.CLOSED):
+            continue
+        if policy.backlog == "separate" and is_backlog(task, graph):
+            backlog += 1
             continue
         active += 1
         mine: list[Gap] = []
@@ -208,4 +228,4 @@ def check_completeness(cfg: TeamConfig, graph: DependencyGraph) -> CompletenessR
             gaps.extend(mine)
         else:
             ready += 1
-    return CompletenessReport(active=active, ready=ready, gaps=gaps)
+    return CompletenessReport(active=active, ready=ready, gaps=gaps, backlog=backlog)

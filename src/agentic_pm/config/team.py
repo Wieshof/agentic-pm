@@ -246,6 +246,12 @@ class Completeness(_Strict):
         default_factory=list, description="Who gets unowned tasks (default: project.leads)"
     )
     max_per_brief: int = Field(default=5, ge=1, le=20)
+    backlog: Literal["separate", "check"] = Field(
+        default="separate",
+        description="'separate': open tasks with no owner, no due date, no progress and no "
+        "dependencies are backlog, counted on one line instead of asked about. "
+        "'check': ask about every open task",
+    )
 
 
 class LLMSettings(_Strict):
