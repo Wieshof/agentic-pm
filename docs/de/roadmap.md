@@ -38,13 +38,13 @@ Siehe [Den Agenten betreiben](running.md).
 - ⏳ Sprachagent: eingehende Anrufe, ausgehende 60-Sekunden-Check-ins, Transkriptionshinweis, Transkripte nur im Arbeitsspeicher (#13)
 - **Abschluss:** Blocker werden in < 2 h sichtbar; mindestens eine Person ohne Tracker-Konto ist pro Pilotteam aktiv
 
-## Phase 4 — Planung & Steuerung (neu)
-Die Einträge liegen im Tracker oder im Repository, nie in einer Datenbank des Agenten ([ADR-0003](../adr/0003-pm-records-without-a-database.de.md)).
+## Phase 4 — Planung & Steuerung 📋 im Detail geplant
+Die Einträge liegen im Tracker oder im Repository, nie in einer Datenbank des Agenten ([ADR-0003](../adr/0003-pm-records-without-a-database.de.md)). **Reihenfolge und Entscheidungen: [Plan für Phase 4](plan-phase-4.md)**: 4.0 Grundlage (Einträge anlegen) → PSP-Generator → RAID → Änderungssteuerung → Basispläne → Gesundheitscheck → Entscheidungen → Abschluss. Kalender zurückgestellt.
 - **Projektstart / PSP-Generator:** Ein Sponsor beschreibt ein Ziel per Sprache, E-Mail oder Chat; der Agent entwirft Meilensteine, Arbeitspakete, Abnahmekriterien und erste Abhängigkeiten im Tracker, **als Entwurf zur Freigabe**
 - **RAID-Register:** Risiken, Annahmen, Probleme und Abhängigkeiten als Tracker-Einträge (`type:risk` …) mit Wahrscheinlichkeit × Auswirkung, Verantwortlichen und Gegenmaßnahme
 - **Änderungssteuerung:** Neuer Umfang, der über irgendeinen Kanal kommt („könntet ihr noch … einbauen“), wird mit seiner Auswirkung auf den Zeitplan markiert und **vor** dem Anlegen von Arbeitspaketen der Teamleitung zur Freigabe vorgelegt
 - **Entscheidungslog & Besprechungsnotizen:** Tagesordnungen aus offenen Punkten, Entscheidungen und Aufgaben zurück in den Tracker
-- **Basispläne & kritischer Pfad:** Basisplan-Schnappschüsse, Puffer, Verzug gegenüber dem Basisplan; Kalender als Quelle für Verfügbarkeit
+- **Basispläne & kritischer Pfad:** Basisplan-Schnappschüsse, Puffer, Verzug gegenüber dem Basisplan; Kalender als Quelle für Verfügbarkeit *(zurückgestellt)*
 - **Monatlicher Gesundheitscheck** gegen Basisplan und Erfolgskriterien; Projekt-KPIs (Termintreue, Änderungsvolumen, Risikolösung, Fehlertrend)
 - **Qualität & Abschluss:** Abnahmekriterien und UAT-Status, Fehlertrends, Abschlussbericht und Lessons Learned
 - **Abschluss:** Ein Pilotprojekt läuft einen Monat lang mit RAID, Änderungssteuerung und Gesundheitscheck, gepflegt vom Agenten
