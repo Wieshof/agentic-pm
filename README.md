@@ -2,85 +2,99 @@
 
 🇬🇧 English · 🇩🇪 [Deutsch](README.de.md)
 
-**A quiet, local-first project assistant that sits on top of the tools you already use—without sending your data to external AI clouds.**
+**A calm project assistant that works on top of the tools you already use, and runs its AI on your own hardware.**
 
-Most people don't fail at project management because they lack tools. They fail because updating tickets, chasing status updates across emails, and tracking hidden dependencies takes too much time. At the same time, handing internal business data over to US or Chinese cloud AI providers isn't an option for privacy-conscious teams and solo operators.
+agentic-pm reads your task list or tracker, notices what's slipping, and talks to each person the way they prefer: a short email in the morning, a chat message, a quick "yes" to confirm a change. It keeps no database of its own. Your spreadsheet or tracker stays the one place where the truth lives.
 
-`agentic-pm` solves both problems: it acts as a smart, proactive buddy that **runs 100% locally on your own hardware**, reads your existing task lists or trackers, and communicates with you through email, chat, or voice.
-
-> **Not a developer?** You don't need to touch code or complicated setups to benefit from this.  
-> 👉 **[Start with a simple Excel/CSV spreadsheet (No accounts required)](docs/spreadsheets.md)**  
-> 👉 **[Send this overview to your IT support or tech-savvy friend](docs/getting-started.md)**
+🌐 [Website](https://wieshof.github.io/agentic-pm/) · 🚀 [Getting started](docs/getting-started.md) · 📊 [Start with a spreadsheet](docs/spreadsheets.md) · 🗺️ [Roadmap](docs/roadmap.md)
 
 ---
 
-### What it actually does for you
+## Why it exists
 
-* **Catches hidden bottlenecks early:** If a task slips, it checks what else depends on it and alerts you before a deadline is missed (*"Friday's client launch is waiting on the printer proof in row 63"*).
-* **Meets people where they are:** Readers get a calm morning email brief; talkers get spoken briefings; team members can reply via email, Signal, Matrix, or voice notes in their own language (e.g., chatting in German while tickets stay in English).
-* **Turns messy updates into clean notes:** Mention how you solved a problem in a voice note or email reply, and the agent writes a structured how-to directly onto the task.
-* **Shrinks your software stack:** No new dashboards to check, no extra tracker seat licenses for stakeholders, and no separate wikis that go stale.
+Projects rarely fail for lack of tools. They slip because nobody has time to keep tickets up to date, chase status across emails, or notice that Friday's launch quietly depends on something nobody is working on. At the same time, many teams and freelancers don't want to send their internal plans to a cloud AI.
 
-### Private & stateless by design
+agentic-pm takes on that busywork, and its language model runs on your machine (with [Ollama](https://ollama.com) or any OpenAI-compatible server).
 
-* **Zero data leaves your machine:** Runs natively with local open-weights models (via Ollama or any OpenAI-compatible local server).
-* **No second database:** Your existing tool (Excel/CSV, OpenProject, GitHub, GitLab, Jira, Linear, Plane, Taiga) remains the single source of truth. The agent keeps no permanent task state of its own.
-* **Human-in-the-loop guardrails:** Low-risk summaries run automatically; high-impact changes require explicit approval.
+## What it does for you
 
----
+- **Warns you before a deadline slips.** It follows the dependencies between tasks and tells the right person early: *"#14 Release notes may slip 1 day because #13 Login UI is delayed further up the chain."*
+- **Meets people where they are.** A morning brief by email, or a short brief in Matrix or Signal. People reply in their own language, while tickets stay in the team's language.
+- **Asks one friendly question per missing detail.** "#16 has no due date. When should it be done?" Reply "Friday", confirm with "yes", and the ticket is updated.
+- **Turns "here's how I fixed it" into a how-to** on the ticket, from an email reply or a voice note (transcribed locally).
+- **Notices when the story doesn't add up.** Someone writes "#12 is done" while #12 is still open, so it asks once instead of guessing.
+- **Follows up gently.** Urgent questions come daily, everything else weekly and bundled. If a channel doesn't work, it tries the next one, and it never keeps a score about people.
 
-**Project Status:**  
-✍️ **Phase 2 complete** (write-back, how-to extraction, approvals, daily cadence) — ready for pilot teams and solo users.  
-💬 **Phase 3 in progress** (chat on Matrix & Signal with voice notes and status triangulation).  
-📖 [Getting Started](docs/getting-started.md) · [Spreadsheet Mode](docs/spreadsheets.md) · [Roadmap](docs/roadmap.md)
+A real morning brief (from the built-in demo):
 
----
+```
+Good morning, Alex!
 
-## How it works
+⏰ Overdue
+  • #15 Quarterly roadmap review (1 day overdue)
 
-**An omnichannel, agentic project-management layer that sits on top of the issue trackers you already run.**
+⚠️ At risk because of a blocker
+  • #14 Release notes may slip 1 day because #13 Login UI is delayed further up
+    the chain. Suggested new date: 2026-11-21
 
-agentic-pm doesn't replace your issue tracker. It's an intelligent orchestration layer that:
+🧩 A few details are missing
+  • #16 Docs cleanup has no due date, so I can't tell whether it's at risk.
+    When should it be done?
 
-- **ingests** live state from existing open-source and API-first trackers (OpenProject, Plane, Taiga, GitHub/GitLab Issues, Jira, Linear),
-- **reasons** over dependencies, inconsistencies and tacit knowledge, and
-- **talks to every contributor through their natural medium**: reading (email), writing (chat/WhatsApp), talking (voice calls) or listening (spoken briefings), plus a lightweight web control plane.
+You have 3 open tasks. Just reply to this email if anything looks off. 💬
+```
 
-The underlying tracker stays the single, synchronized source of truth. The agent keeps **no permanent task state** of its own.
+## Who it's for
 
-> Status: ✍️ Phase 2 (write-back, how-tos, approvals, cadence) built, ready for a pilot team. 💬 Phase 3 in progress: [chat on Matrix and Signal](docs/chat.md) with voice notes and triangulation. Start here: [Getting started](docs/getting-started.md) · [Running the agent](docs/running.md). See the [roadmap](docs/roadmap.md).
+| You are… | Start with |
+|----------|------------|
+| A freelancer or small studio planning in Excel or a CSV | [Spreadsheet mode](docs/spreadsheets.md): no accounts, nothing to install on a server |
+| A team on GitHub, OpenProject or Gitea / Forgejo | [Getting started](docs/getting-started.md) |
+| Someone who'd rather not open a tracker at all | Ask your team to add you with email, Matrix or Signal ([chat](docs/chat.md)) |
 
----
+Not technical? Send the [getting-started guide](docs/getting-started.md) to whoever looks after your IT. The setup is one small config file.
 
-## Why
+## Private and careful by design
 
-Classic PM tooling forces every contributor into the same rigid workflow: open the tracker, find the ticket, edit fields, write the docs. Most people don't, so tickets go stale, blockers surface late and knowledge stays in people's heads.
+- **The AI runs locally.** Messages and task text go to a model on your own hardware, never to a cloud AI, and they're never used for training.
+- **No second database.** Tasks, dates and dependencies are read live from your tool. Notes and how-tos are written back there, where everyone can see them.
+- **You stay in control.** The agent only reads until you switch writing on. Comments and labels run automatically. Changing your own task's date or status needs your "yes", and client deadlines or new owners need a lead's signed approval.
+- **No surveillance.** No scores, rankings or response-time tracking about people, and no guessing moods ([ADR-0004](docs/adr/0004-people-data-boundaries.md), [what it does with people's data](docs/people-data.md)).
+- **Secrets stay out of the repo.** Tokens and passwords live in environment variables only, and `agent-pm validate` rejects anything that looks like one.
 
-agentic-pm turns this around. Contributors stay in the channel they already use, and the agent does the ticket work for them.
+## Status
 
-### Also for one-person companies
+| | What | |
+|-|------|-|
+| ✅ | **Read-only insight:** dependency risks, deadline collisions, data-quality questions, morning briefs | Phase 1 |
+| ✅ | **Write-back:** comments, how-tos, signed approvals, email replies, daily and weekly cadence | Phase 2 |
+| ✅ | **Chat on Matrix and Signal:** voice notes, triangulation, adaptive follow-up | Phase 3 |
+| ⏳ | WhatsApp, phone check-ins and spoken briefings | Phase 3 |
+| 🗓️ | Planning and control, Scrum artefacts, portfolio and money | Phases 4–7 |
 
-For a freelancer or a small studio the value shifts from team coordination to taking things off your mind: a hidden chain in your task sheet (Friday's client launch waits on a printer proof in row 63) shows up in your morning email. It works with a plain **`.xlsx` or `.csv`** and a local model, with no accounts at all: [Start with a spreadsheet](docs/spreadsheets.md).
+Everything marked ✅ is built and tested (more than 300 automated tests). No pilot team has run it in production yet. If you'd like to be the first, [open an issue](https://github.com/Wieshof/agentic-pm/issues). Full plan: [roadmap](docs/roadmap.md).
 
-### It shrinks your stack instead of adding to it
+**Trackers:** Excel/CSV, GitHub Issues, OpenProject and Gitea / Forgejo work today. Jira, GitLab, Linear, Plane, Asana, Azure DevOps and 15 more are mapped out and planned ([support matrix](docs/trackers.md)).
 
-1. **Fewer shadow tools and reporting dashboards.** You no longer need separate BI connectors, status-reporting plugins or custom Excel trackers. Readers get tailored email briefs and talkers get spoken briefings, both built from live ticket data.
-2. **Fewer PM seat licenses.** Stakeholders, field staff and executives who only use phone, WhatsApp or email never need a tracker account. The agent acts as their proxy through one service integration.
-3. **No standalone wikis for operational knowledge.** The agent pulls out *how* problems were solved during voice and chat check-ins and writes that onto the ticket itself. Teams stop keeping separate documentation tools that go stale.
+## Try it in two minutes
 
----
+You need Python 3.12+ and [uv](https://docs.astral.sh/uv/).
 
-## Quick start
+```bash
+git clone https://github.com/Wieshof/agentic-pm && cd agentic-pm
+uv sync
+uv run agent-pm brief --demo --person alex       # the brief above, from demo data
+uv run agent-pm run --demo --dry-run --once briefs   # the whole agent, printing instead of sending
+```
 
-**1. Describe your team** in `.agent-pm/team.yaml`. This file is committed to your repository, so it never contains secrets:
+Then describe your own team in `.agent-pm/team.yaml`. This file is committed to your repository, so it never contains secrets:
 
 ```yaml
 project:
-  tracker: github                # or jira, asana, notion, ... see docs/trackers.md
+  tracker: github                # spreadsheet | github | openproject | gitea
   repo: your-org/your-repo
   leads: [alex]
-  ticket_language: en            # the agent writes tickets in English ...
-  agent_accounts: [agent-pm-bot] # ... with this login (its own webhooks are ignored)
+  ticket_language: en            # tickets stay in English ...
 people:
   alex:
     role: team-lead
@@ -90,170 +104,110 @@ people:
     brief: {when: "08:00", format: email}
 ```
 
-**2. Run it:**
-
 ```bash
-uv sync
-uv run agent-pm validate                   # checks team.yaml, also for pasted secrets
-uv run agent-pm brief --person alex        # needs GITHUB_TOKEN; try --demo first
+uv run agent-pm validate                  # checks the file, also for pasted secrets
+uv run agent-pm brief --person alex       # your real brief (needs GITHUB_TOKEN)
 ```
 
-> 🔐 **Secrets only in environment variables.** Tracker tokens, SMTP/WhatsApp keys and SIP credentials never go into `team.yaml`. `agent-pm validate` rejects values that look like credentials. See [Secrets](#secrets).
-
-Full walkthrough: [Getting started](docs/getting-started.md) · complete example: [.agent-pm/team.example.yaml](.agent-pm/team.example.yaml)
+Next steps: [getting started](docs/getting-started.md) · [running the agent](docs/running.md) · [full example config](.agent-pm/team.example.yaml)
 
 ---
 
-## Architecture at a glance
+## How it works
 
 ```
-            ┌──────────────────────────────────────────────────────────┐
-  Email ───►│                                                          │
-  WhatsApp ►│   Omnichannel Interface Layer  (routing gateway,         │
-  Voice ───►│   per-user modality preferences, transport-level tagging)│
-  Web UI ──►│                                                          │
-            └──────────────────────────┬───────────────────────────────┘
-                                       │
-            ┌──────────────────────────▼───────────────────────────────┐
-            │   Agentic Reasoning Engine                               │
-            │   • Dependency Graph Analyzer   • Inconsistency Detector │
-            │   • Knowledge Extractor         • Cadence / Briefing     │
-            │   • Permission & Audit Guard                             │
-            └──────────────────────────┬───────────────────────────────┘
-                                       │
-            ┌──────────────────────────▼───────────────────────────────┐
-            │   Repository Adapter Layer (Open Core)                   │
-            │   REST / GraphQL / MCP connectors                        │
-            └───┬──────────┬──────────┬──────────┬──────────┬──────────┘
-                ▼          ▼          ▼          ▼          ▼
-          OpenProject    Plane      Taiga   GitHub/GitLab  Jira/Linear
+   Email ─┐                                            ┌─ Excel / CSV
+  Matrix ─┤   ┌───────────────┐   ┌────────────────┐   ├─ GitHub Issues
+  Signal ─┼──►│ Channels      │──►│ Reasoning      │──►├─ OpenProject
+     Web ─┤   │ (who, where,  │   │ (dependencies, │   ├─ Gitea / Forgejo
+   (MCP) ─┘   │  which task)  │   │  gaps, guards) │   └─ 21 more planned
+              └───────────────┘   └────────────────┘
+                     ▲                     │
+                     └── local model ──────┘
 ```
 
-Details: [docs/architecture.md](docs/architecture.md)
+| Loop | What it does |
+|------|--------------|
+| **Dependency risks** | When a task slips, it walks the dependency graph, warns the people downstream and suggests new dates before anyone is left waiting. |
+| **Triangulation** | A status claim ("done", "stuck") that contradicts the tracker becomes one question to whoever can settle it. |
+| **How-to docs** | Replies and voice notes about a fix become a structured how-to on the ticket, in the ticket's language. |
+| **Adaptive follow-up** | Counts unanswered nudges per question, never per person. Urgent ones come daily, the rest weekly and bundled, and it tries the next channel when one isn't working. |
+| **Briefs & cadence** | Morning briefs, an end-of-day note for leads, and a weekly digest, each sent at the time the person chose. |
 
-## Core agentic loops
+**No database.** Tasks live in the tracker, and team preferences in `.agent-pm/team.yaml`. Which reply belongs to which task travels with the message itself: an email plus-address (`pm+142@…`) or a short signed tag in chat. Details: [architecture](docs/architecture.md) · [data model](docs/data-model.md) · [workflows](docs/workflows.md) · [how this maps to the full PM role](docs/pm-coverage.md)
 
-| # | Loop | What it does |
-|---|------|--------------|
-| 1 | **Proactive Dependency Resolution** | When an estimate slips, it walks the dependency graph, warns downstream owners on their preferred channel and proposes new schedules before anyone sits idle. |
-| 2 | **Inconsistency Triangulation** | Spots conflicting stories, e.g. "done" in WhatsApp while the PR is still unreviewed. It works out who has the missing context and runs a short micro-interview. |
-| 3 | **Frictionless How-To Docs** | Turns voice notes and calls ("fixed the auth timeout by raising the Redis pool size…") into structured Markdown on the ticket. |
-| 4 | **Adaptive Follow-Up Cadence** | Tracks how quickly each person responds and switches channel when one isn't working. Non-urgent questions are bundled into digests. |
-| 5 | **Status Updates & Scrum Artefacts** | Sends email or spoken status briefings you can ask questions about. Keeps Scrum artefacts (backlog, sprint, burndown, review notes) in sync. |
+---
 
-Details: [docs/workflows.md](docs/workflows.md) · **How this maps to the full PM role** (responsibilities, daily/weekly/monthly cadence, metrics, what stays human): [PM coverage map](docs/pm-coverage.md)
-
-## Stateless by design
-
-| Data | Where it lives |
-|------|----------------|
-| Tasks, deadlines, dependencies | The existing tracker, fetched live on every event |
-| User preferences ("Drucker profiles") | `.agent-pm/team.yaml` in the repo, or SSO directory attributes (Entra ID / Google Workspace) |
-| How-to docs & audit logs | Ticket comments, or Markdown committed to `/docs` |
-| Conversation → ticket routing | Transport-level tags: email plus-addressing / `Message-ID`, a signed tag in chat replies (Matrix, Signal), voice session RAM |
-
-Details: [docs/data-model.md](docs/data-model.md) · example config: [.agent-pm/team.example.yaml](.agent-pm/team.example.yaml)
-
-## Development
-
-Requires Python ≥ 3.12 and [uv](https://docs.astral.sh/uv/). Decisions: [ADR-0001](docs/adr/0001-tech-stack-and-llm.md).
+## For developers
 
 ```bash
 uv sync                                           # install
 uv run pytest                                     # tests
 uv run agent-pm validate .agent-pm/team.yaml      # check a team file
-uv run agent-pm schema > schemas/team.schema.json # export JSON Schema
-uv run agent-pm mcp                               # MCP tracker server (stdio, demo data)
-uv run agent-pm deps  --demo                      # dependency risks & cycles
-uv run agent-pm brief --demo --person alex        # friendly morning brief
-uv run agent-pm eval  --model qwen3.5             # compare local models (--suite knowledge)
+uv run agent-pm deps  --demo                      # dependency risks, gaps and cycles
+uv run agent-pm brief --demo --person alex        # morning brief
 uv run agent-pm run   --demo --dry-run            # the whole agent, printing instead of sending
-uv run agent-pm onboarding --demo --person sam    # friendly intro: what the agent does with data
+uv run agent-pm eval  --model qwen3.5             # compare local models (--suite knowledge)
+uv run agent-pm mcp                               # MCP tracker server (stdio, demo data)
+uv run agent-pm trackers                          # which trackers are built / planned
 ```
 
-**Local LLM (default):** run any OpenAI-compatible server, e.g. [Ollama](https://ollama.com), and set `llm.model` / `llm.base_url` in `team.yaml`. Live test: `AGENT_PM_LIVE_LLM=<model> uv run pytest tests/test_llm.py`.
+**Local model:** run any OpenAI-compatible server, e.g. [Ollama](https://ollama.com), and set `llm.model` / `llm.base_url` in `team.yaml` ([ADR-0001](docs/adr/0001-tech-stack-and-llm.md)). Live test: `AGENT_PM_LIVE_LLM=<model> uv run pytest tests/test_llm.py`.
 
 ### Secrets
 
-`team.yaml` and the `llm:` settings in it are versioned and reviewed like code. Everything secret comes from the environment (or your secret manager, injected as environment variables):
+Everything secret comes from environment variables (or your secret manager), never from `team.yaml`:
 
 | Variable | Used for |
 |----------|----------|
-| `GITHUB_TOKEN` / `AGENT_PM_GITHUB_TOKEN` | GitHub adapter |
-| `OPENPROJECT_API_KEY` | OpenProject adapter |
-| `AGENT_PM_SMTP_HOST`, `_PORT`, `_USER`, `_PASSWORD`, `_FROM` | Sending email briefs |
-| `AGENT_PM_LLM_API_KEY` | Only if your model server requires a key |
-| `AGENT_PM_SIGNING_KEY` | Signing approval links and the audit footer (at least 32 random characters) |
-| `AGENT_PM_GITEA_WEBHOOK_SECRET` | Verifying Gitea / Forgejo webhooks |
-| `AGENT_PM_GITHUB_WEBHOOK_SECRET` | Verifying GitHub webhooks |
+| `GITHUB_TOKEN` / `AGENT_PM_GITHUB_TOKEN` | GitHub |
+| `OPENPROJECT_API_KEY` | OpenProject |
+| `AGENT_PM_GITEA_TOKEN` | Gitea / Forgejo |
+| `AGENT_PM_SIGNING_KEY` | Approval links, chat confirmations and the audit footer (at least 32 random characters) |
+| `AGENT_PM_GITHUB_WEBHOOK_SECRET` · `AGENT_PM_GITEA_WEBHOOK_SECRET` | Verifying webhooks |
+| `AGENT_PM_SMTP_HOST`, `_PORT`, `_USER`, `_PASSWORD`, `_FROM` | Sending email |
 | `AGENT_PM_IMAP_HOST`, `_PORT`, `_USER`, `_PASSWORD`, `_FOLDER` | Reading replies in the agent's mailbox |
-| `AGENT_PM_MATRIX_HOMESERVER`, `_USER`, `_TOKEN` | Chat on Matrix ([chat](docs/chat.md)) |
-| `AGENT_PM_SIGNAL_API_URL`, `_NUMBER` | Chat on Signal via signal-cli-rest-api |
-| `AGENT_PM_WHATSAPP_*`, `AGENT_PM_SIP_*` | WhatsApp and voice calls (Phase 3, planned) |
+| `AGENT_PM_MATRIX_HOMESERVER`, `_USER`, `_TOKEN` | Chat on Matrix |
+| `AGENT_PM_SIGNAL_API_URL`, `_NUMBER` | Chat on Signal (signal-cli-rest-api) |
+| `AGENT_PM_LLM_API_KEY` | Only if your model server needs a key |
 
-### Modules
+### Code map
 
 | Module | Purpose |
 |--------|---------|
-| `agentic_pm.config` | `team.yaml` schema & validation |
-| `agentic_pm.adapters` | `TrackerAdapter` protocol, GitHub & OpenProject (read-only), in-memory tracker |
-| `agentic_pm.engine` | Dependency Graph Analyzer: risks, what-if, cycles |
-| `agentic_pm.briefs` | Morning briefs (EN/DE), guarded LLM summary, SMTP |
-| `agentic_pm.evals` | Eval cases & runner for local models |
-| `agentic_pm.audit` | Permission tiers & audit footer |
-| `agentic_pm.ingress` | Webhook gate: ignores the agent's own changes, de-duplicates deliveries and bursts |
-| `agentic_pm.actions` · `approvals` · `web` | Permission & audit guard, signed approval tokens, control plane |
-| `agentic_pm.email_routing` · `inbox` · `inbound` | Ticket routing for email, IMAP inbox, reply handling, how-to loop |
-| `agentic_pm.knowledge` | Knowledge Extractor: replies → how-tos in the ticket language |
-| `agentic_pm.cadence` · `runtime` | Operating cadence, scheduler, `agent-pm run` |
-| `agentic_pm.engine.capacity` | Deadline collisions (task-centric) |
-| `agentic_pm.engine.completeness` | Data completeness: missing owners, dates, links; readiness ratio |
-| `agentic_pm.engine.followup` | Adaptive follow-up per question: rhythm, next channel, stalled tasks for leads (#14) |
-| `agentic_pm.engine.triangulation` | Status claims that contradict the tracker → one question (#15) |
-| `agentic_pm.chat` | Matrix & Signal transports, reply tags, short-answer parsing, chat router |
-| `agentic_pm.speech` | Local speech-to-text for voice notes (faster-whisper, whisper.cpp) |
-| `agentic_pm.mcp_server` | MCP tools over any adapter, with tier enforcement |
-| `agentic_pm.llm` | Provider-agnostic LLM interface, local OpenAI-compatible provider |
+| `agentic_pm.config` | `team.yaml` schema and validation |
+| `agentic_pm.adapters` | `TrackerAdapter` protocol; spreadsheet, GitHub, OpenProject, Gitea; tracker catalog; contract tests |
+| `agentic_pm.engine` | Dependencies, capacity, completeness, follow-up, triangulation |
+| `agentic_pm.briefs` | Morning brief, end-of-day note, weekly digest, guarded LLM summary |
+| `agentic_pm.actions` · `approvals` · `audit` | Permission tiers, signed approvals, audit footer |
+| `agentic_pm.email_routing` · `inbox` · `inbound` | Email routing, IMAP inbox, reply handling, how-to loop |
+| `agentic_pm.chat` · `speech` | Matrix and Signal, reply tags, local speech-to-text |
+| `agentic_pm.web` · `ingress` | Approval pages, webhooks, de-duplication |
+| `agentic_pm.knowledge` · `llm` · `evals` | How-to extraction, model interface, model evals |
+| `agentic_pm.cadence` · `runtime` · `cli` | Scheduler, `agent-pm run`, command line |
+| `agentic_pm.mcp_server` | MCP tools over any adapter, with the same permission tiers |
 
-## Guardrails & KPIs
-
-- **Tiered write permissions:** low-risk actions run automatically with an audit trail. High-impact changes need a team lead to confirm.
-- **Consent & privacy:** voice calls announce when transcription is on. Logs are scoped to the project workspace and are never used to train external models.
-- **KPIs:** at least 70% less manual ticket editing, under 2 h to surface a dependency blocker, and the cross-modality engagement rate.
-
-Details: [docs/guardrails.md](docs/guardrails.md)
-
-## Repository layout
+### Repository layout
 
 ```
-.agent-pm/            example team / preference config
-docs/
-  architecture.md     three-tier architecture & modality mapping
-  workflows.md        the five autonomous loops
-  data-model.md       stateless data placement & routing
-  guardrails.md       permissions, privacy, KPIs
-  roadmap.md          phased delivery plan
-  getting-started.md  connect a tracker, briefs, local model
-  trackers.md         support matrix for 25 trackers (generated)
-  pm-coverage.md      the full PM role vs. what the agent does
-  running.md          running the agent: writes, approvals, email, cadence
-  people-data.md      what the agent does with data about people
-  spreadsheets.md     start with a spreadsheet (solo & small teams)
-  data-quality.md     data completeness checks: one question per gap
-examples/solo/        a one-person studio planning in a CSV
-  adr/                architecture decision records
-  de/                 German versions of all documents
+.agent-pm/        example team config
+docs/             guides (German versions in docs/de/), website (index.html)
+  adr/            architecture decision records
+examples/solo/    a one-person studio planning in a CSV
+schemas/          JSON Schema for team.yaml
+src/agentic_pm/   the agent
+tests/            automated tests
 ```
+
+---
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Design discussion happens in GitHub Issues. Each roadmap phase has a milestone.
+Ideas, questions and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md). Design discussion happens in [GitHub Issues](https://github.com/Wieshof/agentic-pm/issues), and each roadmap phase has a milestone.
+
+**New tracker adapters** implement the `TrackerAdapter` protocol and pass the shared contract tests (`agentic_pm.testing`). Copying the GitHub adapter and its tests is the easiest start, and its tests use recorded API responses, so you need no account ([adapter epic #18](https://github.com/Wieshof/agentic-pm/issues/18)).
 
 **Found a security problem?** Please report it privately, see [SECURITY.md](SECURITY.md).
-
-**Which trackers?** See the [support matrix](docs/trackers.md) for Jira, Azure DevOps, Asana, monday.com, Smartsheet, Notion, Trello, Planner, Linear, GitLab, Redmine and more, and the [adapter epic #18](https://github.com/Wieshof/agentic-pm/issues/18).
-
-**Reference adapter: GitHub Issues** ([`adapters/github.py`](src/agentic_pm/adapters/github.py)), built in Phase 1 together with OpenProject. New tracker adapters (Plane, Taiga, GitLab, Jira, Linear, see #18) implement the same `TrackerAdapter` protocol and pass the shared contract suite (`agentic_pm.testing`). Copy the GitHub adapter and its tests, which use recorded API responses, so no account is needed.
 
 ## License
 
