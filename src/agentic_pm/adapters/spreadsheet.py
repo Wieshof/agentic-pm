@@ -62,23 +62,14 @@ from agentic_pm.adapters.base import (
 from agentic_pm.adapters.catalog import load_catalog
 from agentic_pm.adapters.coverage import CoverageReport
 
-DEFAULT_STATUS_MAP: dict[TaskStatus, list[str]] = {
-    TaskStatus.OPEN: ["open", "todo", "to do", "new", "planned", "backlog", "offen", "geplant"],
-    TaskStatus.IN_PROGRESS: ["in progress", "doing", "wip", "started", "in arbeit", "läuft"],
-    TaskStatus.IN_REVIEW: ["review", "in review", "qa", "testing", "prüfung"],
-    TaskStatus.BLOCKED: ["blocked", "waiting", "on hold", "stalled", "blockiert", "wartet"],
-    TaskStatus.DONE: [
-        "done",
-        "closed",
-        "complete",
-        "completed",
-        "shipped",
-        "finished",
-        "erledigt",
-        "fertig",
-    ],
-    TaskStatus.CLOSED: ["cancelled", "canceled", "dropped", "won't do", "abgebrochen", "verworfen"],
-}
+
+def default_status_map() -> dict[TaskStatus, list[str]]:
+    """Status words from every language file (lexicon status_*), e.g. 'erledigt' → done."""
+    from agentic_pm import i18n
+
+    return {status: list(i18n.words(f"status_{status.value}")) for status in TaskStatus}
+
+
 _DEP_SPLIT = re.compile(r"[,;\n]+")
 _OWNER_SPLIT = re.compile(r"\s*[,;/&]\s*")
 _QUALIFIED = re.compile(r"^([a-z0-9_-]+):(.+)$")
@@ -137,7 +128,7 @@ class SpreadsheetAdapter:
         self.path = Path(options.path)
         self.capabilities = load_catalog()["spreadsheet"].capabilities(writes=False)
         self._status: dict[str, TaskStatus] = {}
-        for status, words in DEFAULT_STATUS_MAP.items():
+        for status, words in default_status_map().items():
             for w in words:
                 self._status[w.lower()] = status
         for status, words in options.status_map.items():

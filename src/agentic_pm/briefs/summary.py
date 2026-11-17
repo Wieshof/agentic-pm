@@ -12,14 +12,13 @@ import json
 import re
 from typing import Any
 
+from agentic_pm import i18n
 from agentic_pm.briefs.morning import BriefData
 from agentic_pm.llm.base import ChatMessage, LLMError, LLMProvider
 
 MAX_WORDS = 70
 # Task ids: 12 (GitHub), P-7 (spreadsheets), APP-12 (Jira/Linear). Trailing punctuation excluded.
 _TASK_NO = re.compile(r"#([A-Za-z0-9](?:[A-Za-z0-9_-]*[A-Za-z0-9])?)")
-_FORMAL_DE = re.compile(r"\b(Sie|Ihnen|Ihr|Ihre|Ihren|Ihrem|Ihrer)\b")
-_LOWER_DU = re.compile(r"\b(du|dich|dir|dein|deine|deinen|deinem|deiner|deines)\b")
 _STRAY_HASH = re.compile(r"#(?![A-Za-z0-9])\S*")  # e.g. "#{15}", "# " - not an id
 
 SCHEMA: dict[str, Any] = {
@@ -29,22 +28,18 @@ SCHEMA: dict[str, Any] = {
     "additionalProperties": False,
 }
 
-_STYLE = {
-    "en": "Write in English. Warm, calm and encouraging, like a helpful teammate; "
-    "no pressure, no commands.",
-    "de": "Schreibe auf Deutsch. Duze die Person und schreibe die Anrede immer groß: "
-    "Du, Dich, Dir, Dein, Deine. Niemals 'Sie'. Herzlich, ruhig und ermutigend, "
-    "wie ein hilfsbereiter Teamkollege; kein Druck, keine Befehle.",
-}
-
 
 def style_for(language: str) -> str:
+    """Tone instruction for the model, from the language file and the team's formality."""
     code = language.split("-")[0]
-    if code in _STYLE:
-        return _STYLE[code]
+    reg = i18n.register(language)
+    if reg.get("style") and i18n.base_language(language).split("-")[0] == code:
+        return str(reg["style"])
+    name = i18n.language_name(code, "en")
+    address = "informal, friendly" if i18n.formality() == "informal" else "polite, formal"
     return (
-        f"Write in the language with ISO code '{language}'. Use the informal, friendly "
-        "form of address. Warm, calm and encouraging, like a helpful teammate."
+        f"Write in {name} (ISO code '{language}'). Use the {address} form of address. "
+        "Warm, calm and encouraging, like a helpful teammate."
     )
 
 
@@ -78,11 +73,18 @@ def allowed_ids(facts: dict[str, Any]) -> set[str]:
     return set(_TASK_NO.findall(json.dumps(facts)))
 
 
+def _capitalize_rule(language: str) -> re.Pattern[str] | None:
+    words = i18n.register(language).get("capitalize") or []
+    if not words:
+        return None
+    return re.compile(r"\b(" + "|".join(re.escape(str(w)) for w in words) + r")\b")
+
+
 def normalize_summary(summary: str, language: str) -> str:
-    """Deterministic clean-up: German Du-forms are always capitalized (team style)."""
+    """Deterministic clean-up, e.g. German Du-forms are always capitalized (team style)."""
     text = summary.strip()
-    if language.startswith("de"):
-        text = _LOWER_DU.sub(lambda m: m.group(0).capitalize(), text)
+    if rule := _capitalize_rule(language):
+        text = rule.sub(lambda m: m.group(0).capitalize(), text)
     return text
 
 
@@ -98,10 +100,13 @@ def check_summary(summary: str, facts: dict[str, Any], language: str) -> list[st
         problems.append(f"mentions unknown tasks: {sorted('#' + u for u in unknown)}")
     if stray := _STRAY_HASH.findall(text):
         problems.append(f"stray '#' tags: {stray}")
-    if language.startswith("de") and _FORMAL_DE.search(text):
-        problems.append("uses formal 'Sie' instead of 'Du'")
-    if language.startswith("de") and (lower := _LOWER_DU.findall(text)):
-        problems.append(f"Du-forms must be capitalized: {sorted(set(lower))}")
+    reg = i18n.register(language)
+    wrong = "formal" if i18n.formality() == "informal" else "informal"
+    for pattern in reg.get("forbid") or []:
+        if m := re.search(str(pattern), text):
+            problems.append(f"uses the {wrong} form of address: '{m.group(0)}'")
+    if (rule := _capitalize_rule(language)) and (lower := rule.findall(text)):
+        problems.append(f"must be capitalized: {sorted(set(lower))}")
     return problems
 
 

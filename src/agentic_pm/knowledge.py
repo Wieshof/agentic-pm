@@ -15,6 +15,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ValidationError
 
+from agentic_pm import i18n
 from agentic_pm.llm.base import ChatMessage, LLMError, LLMProvider
 from agentic_pm.messages import language_name
 
@@ -22,24 +23,8 @@ Kind = Literal["solution", "status", "question", "scope_change", "other"]
 KINDS: tuple[str, ...] = ("solution", "status", "question", "scope_change", "other")
 MAX_FIELD = 300
 _ID = re.compile(r"#([A-Za-z0-9](?:[A-Za-z0-9_-]*[A-Za-z0-9])?)")  # 12, P-7, APP-12
-_WORD = re.compile(r"[a-zäöüß]+", re.I)
+_WORD = re.compile(r"[^\W\d_]+")  # letters in any script
 
-
-def _words(text: str) -> frozenset[str]:
-    return frozenset(text.split())
-
-
-_STOP = {
-    "de": _words(
-        """der die das und ist nicht mit ich wir es ein eine einen den dem auf für von zu
-        im bei wurde wurden habe hat sind auch noch nach aus dass"""
-    ),
-    # Words that are also German ("in", "an", "die") are left out on purpose.
-    "en": _words(
-        """the and is was were with we it of to for on that this by from has have
-        been be are after"""
-    ),
-}
 
 SCHEMA: dict[str, Any] = {
     "type": "object",
@@ -64,11 +49,12 @@ class Analysis(BaseModel):
 
 
 def detect_language(text: str) -> str | None:
-    """Rough en/de guess from stopwords; None if unclear (short or other language)."""
+    """Rough guess from each language's stopwords; None if unclear (short or unknown)."""
     words = [w.lower() for w in _WORD.findall(text)]
-    if len(words) < 4:
+    stop = i18n.words_by_language("stopwords")
+    if len(words) < 4 or len(stop) < 2:
         return None
-    scores = {lang: sum(w in stop for w in words) for lang, stop in _STOP.items()}
+    scores = {lang: sum(w in s for w in words) for lang, s in stop.items()}
     best = max(scores, key=lambda k: scores[k])
     other = min(scores.values())
     if scores[best] < 2 or scores[best] < other + 2:  # needs a clear margin
@@ -122,7 +108,7 @@ def check_analysis(a: Analysis, message: str, task_title: str, ticket_language: 
         written = " ".join(fields.values())
         detected = detect_language(written)
         target = ticket_language.split("-")[0]
-        if detected and target in _STOP and detected != target:
+        if detected and target in i18n.words_by_language("stopwords") and detected != target:
             problems.append(f"written in {detected}, expected {target}")
     return problems
 
@@ -147,33 +133,12 @@ async def analyze(
     return analysis, check_analysis(analysis, message, task_title, ticket_language)
 
 
-HOWTO = {
-    "en": {
-        "title": "### How it was solved",
-        "problem": "Problem",
-        "root_cause": "Root cause",
-        "fix": "Fix",
-        "verification": "Verified",
-        "source": "_Explained by {author} via {channel}{lang_note}, structured by agent-pm._",
-        "lang_note": " (in {lang})",
-        "note_title": "### Note from {author} via {channel}",
-    },
-    "de": {
-        "title": "### Wie es gelöst wurde",
-        "problem": "Problem",
-        "root_cause": "Ursache",
-        "fix": "Lösung",
-        "verification": "Verifiziert",
-        "source": "_Erklärt von {author} per {channel}{lang_note}, strukturiert von agent-pm._",
-        "lang_note": " (auf {lang})",
-        "note_title": "### Notiz von {author} per {channel}",
-    },
-}
-HOWTO_MARKERS = tuple(v["title"] for v in HOWTO.values())
+# Recognises an existing how-to in any language the agent speaks.
+HOWTO_MARKERS = i18n.every("howto", "title")
 
 
-def _t(lang: str) -> dict[str, str]:
-    return HOWTO.get(lang.split("-")[0], HOWTO["en"])
+def _t(lang: str) -> i18n.Texts:
+    return i18n.texts("howto", lang)
 
 
 def render_howto(

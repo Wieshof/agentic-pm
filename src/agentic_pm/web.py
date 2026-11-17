@@ -21,45 +21,11 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse, Response
 from starlette.routing import Route
 
+from agentic_pm import i18n
 from agentic_pm.actions import Guard
 from agentic_pm.approvals import ExpiredToken, InvalidToken
 from agentic_pm.messages import describe_patch
 
-PAGE = {
-    "en": {
-        "title": "Your OK, please",
-        "intro": "{actor} would like to {change} on {task}.",
-        "why": "Why",
-        "approve": "✅ Approve",
-        "decline": "🙅 Decline",
-        "applied": "Done, thanks {name}! The change is applied. 🎉",
-        "pending": "Thanks! This still needs another OK.",
-        "declined": "Got it, nothing was changed. Thanks for deciding, {name}!",
-        "already_declined": "This was already declined. Nothing else to do. 👍",
-        "stale": "The task changed since this was proposed, or it's already done. "
-        "Nothing was applied; I'll ask again if it's still needed.",
-        "expired": "This link has expired. If the change is still needed, I'll ask again.",
-        "invalid": "This link isn't valid. Please use the link from the latest email.",
-        "error": "Something went wrong while talking to the tracker. Please try again later.",
-    },
-    "de": {
-        "title": "Dein OK, bitte",
-        "intro": "{actor} möchte bei {task} {change}.",
-        "why": "Grund",
-        "approve": "✅ Freigeben",
-        "decline": "🙅 Ablehnen",
-        "applied": "Erledigt, danke {name}! Die Änderung ist übernommen. 🎉",
-        "pending": "Danke! Dafür braucht es noch ein weiteres OK.",
-        "declined": "Alles klar, es wurde nichts geändert. Danke fürs Entscheiden, {name}!",
-        "already_declined": "Das wurde schon abgelehnt. Es gibt nichts weiter zu tun. 👍",
-        "stale": "Die Aufgabe hat sich seit dem Vorschlag geändert oder ist schon erledigt. "
-        "Es wurde nichts übernommen; ich frage neu, falls es noch nötig ist.",
-        "expired": "Dieser Link ist abgelaufen. Falls die Änderung noch nötig ist, frage ich neu.",
-        "invalid": "Dieser Link ist ungültig. Bitte nimm den Link aus der neuesten Mail.",
-        "error": "Beim Gespräch mit dem Tracker ist etwas schiefgelaufen. "
-        "Bitte versuch es später noch einmal.",
-    },
-}
 HEADERS = {
     "Cache-Control": "no-store",
     "Referrer-Policy": "no-referrer",
@@ -68,8 +34,8 @@ HEADERS = {
 }
 
 
-def _t(lang: str) -> dict[str, str]:
-    return PAGE.get(lang.split("-")[0], PAGE["en"])
+def _t(lang: str) -> i18n.Texts:
+    return i18n.texts("web", lang)
 
 
 def _page(title: str, body: str, status: int = 200) -> HTMLResponse:

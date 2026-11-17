@@ -178,7 +178,7 @@ class Runtime:
     async def _switch(self, handle: str, items: list[FollowUp], current: str) -> bool:
         """Ask `items` on the person's next channel; False if there is none."""
         from agentic_pm.briefs.gap_text import gap_text, render_gap
-        from agentic_pm.messages import CHANNEL_LABELS
+        from agentic_pm.messages import channel_label
 
         if not items:
             return True
@@ -186,8 +186,7 @@ class Runtime:
         if nxt is None:
             return False
         lang = self.cfg.language_of(handle)
-        labels = CHANNEL_LABELS.get(lang.split("-")[0], CHANNEL_LABELS["en"])
-        intro = gap_text(lang, "switch_intro", channel=labels.get(current, current))
+        intro = gap_text(lang, "switch_intro", channel=channel_label(current, lang))
         if nxt == "email":
             body = "\n\n".join([intro, *(f"• {render_gap(f.gap, lang)}" for f in items)])
             subject = gap_text(lang, "switch_subject")

@@ -37,13 +37,21 @@ def _validate(path: str) -> int:
         print(f"✗ {path}: {e}", file=sys.stderr)
         return 1
     print(f"✓ {path}: {len(cfg.people)} people, tracker={cfg.project.tracker}")
-    from agentic_pm.briefs.morning import base_language
+    from agentic_pm import i18n
 
-    for handle, person in cfg.people.items():
-        if base_language(person.language) != person.language.split("-")[0]:
+    for lang in sorted({p.language for p in cfg.people.values()} | {cfg.project.ticket_language}):
+        english = i18n.base_language(lang) == "en"  # "you" is the same either way
+        if cfg.project.formality == "formal" and not english and not i18n.has_formal(lang):
             print(
-                f"  note: {handle} speaks '{person.language}'; briefs use English templates "
-                "for now (the optional LLM summary is written in their language)"
+                f"  note: '{lang}' has no formal texts yet; fixed texts stay informal "
+                "(the LLM summary follows `formality`). See docs/languages.md"
+            )
+    for handle, person in cfg.people.items():
+        if i18n.base_language(person.language).split("-")[0] != person.language.split("-")[0]:
+            print(
+                f"  note: {handle} speaks '{person.language}', which has no language file yet; "
+                "fixed texts are in English (the optional LLM summary is written in their "
+                "language). See docs/languages.md to add it"
             )
     if not cfg.project.agent_accounts:
         print(

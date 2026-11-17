@@ -277,6 +277,16 @@
           "minimum": 1,
           "title": "Max Per Brief",
           "type": "integer"
+        },
+        "backlog": {
+          "default": "separate",
+          "description": "'separate': open tasks with no owner, no due date, no progress and no dependencies are backlog, counted on one line instead of asked about. 'check': ask about every open task",
+          "enum": [
+            "separate",
+            "check"
+          ],
+          "title": "Backlog",
+          "type": "string"
         }
       },
       "title": "Completeness",
@@ -508,6 +518,16 @@
           "title": "Ticket Language",
           "type": "string"
         },
+        "formality": {
+          "default": "informal",
+          "description": "How the agent addresses people in every language: 'informal' (German 'Du', French 'tu', \u2026) or 'formal' ('Sie', 'vous', \u2026). Languages without formal texts yet stay informal for fixed texts",
+          "enum": [
+            "informal",
+            "formal"
+          ],
+          "title": "Formality",
+          "type": "string"
+        },
         "allow_writes": {
           "default": false,
           "description": "Opt-in: let the agent write to the tracker (comments, labels, fields), always behind the permission tiers",
@@ -653,7 +673,8 @@
         "require_blocker_reason": true,
         "detect_hints": true,
         "triage": [],
-        "max_per_brief": 5
+        "max_per_brief": 5,
+        "backlog": "separate"
       }
     },
     "speech": {

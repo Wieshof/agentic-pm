@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
+from agentic_pm import i18n
 from agentic_pm.adapters.base import CLOSED_STATUSES, Task, TaskStatus, TrackerAdapter
 from agentic_pm.briefs.gap_text import render_readiness
 from agentic_pm.briefs.morning import plural, texts
@@ -16,54 +17,9 @@ from agentic_pm.engine.capacity import find_collisions
 from agentic_pm.engine.completeness import check_completeness
 from agentic_pm.engine.dependencies import DependencyGraph
 
-T: dict[str, dict[str, str]] = {
-    "en": {
-        "eod_subject": "🌙 End of day: {n} thing(s) worth a look",
-        "eod_hello": "Hi {name}, a short look at today before you log off:",
-        "eod_closed": "✅ Finished today",
-        "eod_unowned": "🙋 Overdue and nobody owns it",
-        "eod_urgent": "⏰ Blocked by something overdue",
-        "eod_collisions": "🧮 Deadlines that collide",
-        "eod_bye": "That's it. Have a good evening! 🌙",
-        "wk_subject": "📊 Weekly digest: {done} done, {risks} at risk",
-        "wk_hello": "Hi {name}, here's the week at a glance:",
-        "wk_closed": "✅ Done this week",
-        "wk_next": "📅 Due next week",
-        "wk_risks": "⚠️ At risk",
-        "wk_collisions": "🧮 Deadlines that collide",
-        "wk_cycles": "🔁 Circular dependencies",
-        "wk_overdue": "⏰ Overdue: {n}",
-        "wk_calm": "A calm week, nothing at risk. 🎉",
-        "wk_bye": "Have a good weekend! Just reply if you'd like more detail on anything. 💬",
-        "late": "{task}: {days} late, waiting for {blocker}",
-        "collision": "{who}: {tasks} due by {by}",
-    },
-    "de": {
-        "eod_subject": "🌙 Tagesabschluss: {n} Punkt(e) zum Anschauen",
-        "eod_hello": "Hallo {name}, ein kurzer Blick auf heute, bevor Du Feierabend machst:",
-        "eod_closed": "✅ Heute erledigt",
-        "eod_unowned": "🙋 Überfällig und niemand ist zuständig",
-        "eod_urgent": "⏰ Blockiert durch etwas Überfälliges",
-        "eod_collisions": "🧮 Termine, die kollidieren",
-        "eod_bye": "Das war's. Schönen Feierabend! 🌙",
-        "wk_subject": "📊 Wochenrückblick: {done} erledigt, {risks} gefährdet",
-        "wk_hello": "Hallo {name}, hier die Woche auf einen Blick:",
-        "wk_closed": "✅ Diese Woche erledigt",
-        "wk_next": "📅 Nächste Woche fällig",
-        "wk_risks": "⚠️ Gefährdet",
-        "wk_collisions": "🧮 Termine, die kollidieren",
-        "wk_cycles": "🔁 Zirkuläre Abhängigkeiten",
-        "wk_overdue": "⏰ Überfällig: {n}",
-        "wk_calm": "Eine ruhige Woche, nichts ist gefährdet. 🎉",
-        "wk_bye": "Schönes Wochenende! Antworte einfach, wenn Du zu etwas mehr wissen willst. 💬",
-        "late": "{task}: {days} zu spät, wartet auf {blocker}",
-        "collision": "{who}: {tasks} fällig bis {by}",
-    },
-}
 
-
-def _t(lang: str) -> dict[str, str]:
-    return T.get(lang.split("-")[0], T["en"])
+def _t(lang: str) -> i18n.Texts:
+    return i18n.texts("digest", lang)
 
 
 def _label(t: Task) -> str:

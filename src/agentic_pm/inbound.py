@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import contextlib
 
+from agentic_pm import i18n
 from agentic_pm.actions import Guard
 from agentic_pm.adapters.base import (
     AuditMeta,
@@ -50,14 +51,10 @@ from agentic_pm.email_routing import InboundMessage
 from agentic_pm.engine.triangulation import conflict, detect_claim
 from agentic_pm.knowledge import HOWTO_MARKERS, analyze, render_howto, render_note
 from agentic_pm.llm.base import LLMProvider
-from agentic_pm.messages import language_name, render, status_name, tracker_name
+from agentic_pm.messages import channel_label, language_name, render, status_name, tracker_name
 from agentic_pm.notify import Notifier
 
 HOWTO_REQUEST = "howto-request"
-CHANNEL_NAMES = {
-    "en": {"email": "email", "matrix": "Matrix", "signal": "Signal"},
-    "de": {"email": "E-Mail", "matrix": "Matrix", "signal": "Signal"},
-}
 CHAT_CHANNELS = (Channel.MATRIX, Channel.SIGNAL)
 
 
@@ -114,10 +111,9 @@ class Router:
 
         ticket_lang = self.cfg.project.ticket_language
         name = self.cfg.display_name(handle)
-        labels = CHANNEL_NAMES.get(ticket_lang.split("-")[0], CHANNEL_NAMES["en"])
-        channel = labels.get(msg.channel.value, msg.channel.value)
+        channel = channel_label(msg.channel.value, ticket_lang)
         if msg.voice:
-            channel += " (Sprachnachricht)" if ticket_lang.startswith("de") else " (voice note)"
+            channel += f" ({i18n.text('channels', ticket_lang, 'voice_note')})"
         analysis, problems = (None, ["no llm"])
         if self.provider is not None:
             analysis, problems = await analyze(

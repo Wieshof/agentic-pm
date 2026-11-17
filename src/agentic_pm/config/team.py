@@ -204,6 +204,12 @@ class Project(_Strict):
         description="Language the agent writes in the tracker (how-to docs, comments), "
         "independent of the language people speak with it",
     )
+    formality: Literal["informal", "formal"] = Field(
+        default="informal",
+        description="How the agent addresses people in every language: 'informal' (German "
+        "'Du', French 'tu', …) or 'formal' ('Sie', 'vous', …). Languages without formal texts "
+        "yet stay informal for fixed texts",
+    )
     allow_writes: bool = Field(
         default=False,
         description="Opt-in: let the agent write to the tracker (comments, labels, fields), "
@@ -408,6 +414,9 @@ class TeamConfig(_Strict):
                 errors.append(f"people.{handle}: check_in requires a phone channel")
         if errors:
             raise ValueError("; ".join(errors))
+        from agentic_pm import i18n
+
+        i18n.configure(self.project.formality)
         return self
 
 

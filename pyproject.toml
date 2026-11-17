@@ -15,6 +15,7 @@ dependencies = [
     "uvicorn>=0.30",
     "tzdata>=2024.1",
     "openpyxl>=3.1",
+    "babel>=2.14",
 ]
 
 [project.optional-dependencies]

@@ -8,6 +8,7 @@ project:
   timezone: Europe/Vienna
   leads: [alex]              # receive high-impact confirmation prompts
   ticket_language: en        # language the agent writes into tickets (how-to docs, comments)
+  formality: informal        # informal (Du, tu) | formal (Sie, vous); see docs/languages.md
   agent_accounts: [agent-pm-bot]  # tracker logins the agent writes with; their webhooks are ignored
   allow_writes: false        # opt-in (Phase 2): comments, how-tos, approved changes
   agent_email: pm@example.com     # replies about a task go to pm+<id>@example.com

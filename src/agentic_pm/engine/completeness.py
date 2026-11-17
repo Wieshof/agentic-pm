@@ -25,14 +25,11 @@ from datetime import date
 
 from pydantic import BaseModel
 
+from agentic_pm import i18n
 from agentic_pm.adapters.base import Task, TaskRef, TaskStatus
 from agentic_pm.config.team import TeamConfig
 from agentic_pm.engine.dependencies import DependencyGraph
 
-_KEYWORDS = (
-    r"blocked by|waiting (?:on|for)|depends on|needs|requires|after|"
-    r"blockiert durch|wartet auf|abhängig von|hängt an|braucht|nach"
-)
 # Only things that look like task ids: #14, #P-7, T-08 / APP-12 (letters-digits),
 # instance:T-08 (spreadsheet) or tracker:owner/repo#42. Dates ("after 2026-11-25")
 # and plain words ("after review") never match.
@@ -42,11 +39,21 @@ _REF = (
     r"|#(?P<hid>[A-Za-z0-9](?:[\w-]*[A-Za-z0-9])?)"
     r"|(?P<key>\b[A-Z][A-Z0-9]*-\d+\b)"
 )
-_HINT = re.compile(rf"(?i:\b(?:{_KEYWORDS}))\s+(?:{_REF})")
-_DUE_HINT = re.compile(
-    r"(?i:\b(?:due|deadline|by|until|target|delivery|bis|fällig|termin|abgabe|spätestens)\b)"
-    r"[\s:]+(?:[^\s\d]+\s+){0,2}?(?P<date>\d{4}-\d{2}-\d{2}|\d{1,2}\.\d{1,2}\.\d{4})"
-)
+
+
+@i18n.cached
+def _hint_patterns() -> tuple[re.Pattern[str], re.Pattern[str]]:
+    """'waiting on #14' / 'wartet auf #14' and 'due 2026-11-25' / 'fällig bis …', any language."""
+    deps = i18n.alternation("dependency_words")
+    hint = re.compile(rf"(?i:\b(?:{deps}))\s+(?:{_REF})")
+    deadline = i18n.alternation("deadline_words")
+    due = re.compile(
+        rf"(?i:\b(?:{deadline})\b)"
+        r"[\s:]+(?:[^\s\d]+\s+){0,2}?(?P<date>\d{4}-\d{2}-\d{2}|\d{1,2}\.\d{1,2}\.\d{4})"
+    )
+    return hint, due
+
+
 EVIDENCE_MAX = 60
 
 
@@ -94,7 +101,7 @@ def _parse_date(text: str) -> date | None:
 
 
 def due_hint(text: str) -> tuple[date, str] | None:
-    m = _DUE_HINT.search(text)
+    m = _hint_patterns()[1].search(text)
     if not m:
         return None
     parsed = _parse_date(m.group("date"))
@@ -104,7 +111,7 @@ def due_hint(text: str) -> tuple[date, str] | None:
 def dependency_hints(task: Task, text: str) -> list[tuple[TaskRef, str]]:
     """Task references named after 'waiting on' & co., resolved relative to `task`."""
     found: dict[str, tuple[TaskRef, str]] = {}
-    for m in _HINT.finditer(text):
+    for m in _hint_patterns()[0].finditer(text):
         here = task.ref
         if m.group("qid"):
             ref = TaskRef(tracker=m.group("tracker"), project=m.group("project"), id=m.group("qid"))

@@ -19,7 +19,7 @@ agentic-pm nimmt Dir diesen Kleinkram ab, und sein Sprachmodell läuft auf Deine
 ## Was er für Dich tut
 
 - **Warnt Dich, bevor ein Termin platzt.** Er folgt den Abhängigkeiten zwischen Aufgaben und sagt der richtigen Person früh Bescheid: *„#14 Release notes könnte sich um 1 Tag verschieben, weil #13 Login UI weiter oben in der Kette hängt.“*
-- **Holt alle dort ab, wo sie sind.** Ein Morgen-Briefing per Mail oder ein kurzes Briefing in Matrix oder Signal. Antworten gehen in der eigenen Sprache, die Tickets bleiben in der Sprache des Teams.
+- **Holt alle dort ab, wo sie sind.** Ein Morgen-Briefing per Mail oder ein kurzes Briefing in Matrix oder Signal. Antworten gehen in der eigenen Sprache, die Tickets bleiben in der Sprache des Teams. Eine weitere Sprache ist eine Datei ([Sprachen](docs/de/languages.md)).
 - **Stellt eine freundliche Frage pro fehlender Angabe.** „#16 hat keinen Termin. Bis wann soll es fertig sein?“ Du antwortest „Freitag“, bestätigst mit „ja“, und das Ticket ist aktualisiert.
 - **Macht aus „so habe ich es gelöst“ ein How-to** im Ticket, aus einer Mail-Antwort oder einer Sprachnachricht (lokal transkribiert).
 - **Merkt, wenn etwas nicht zusammenpasst.** Jemand schreibt „#12 ist erledigt“, aber #12 ist noch offen. Dann fragt er einmal nach, statt zu raten.
@@ -183,6 +183,7 @@ Alles Geheime kommt aus Umgebungsvariablen (oder Deinem Secret-Manager), nie aus
 | `agentic_pm.web` · `ingress` | Freigabeseiten, Webhooks, Entdoppelung |
 | `agentic_pm.knowledge` · `llm` · `evals` | How-to-Extraktion, Modell-Schnittstelle, Modell-Evaluierung |
 | `agentic_pm.cadence` · `runtime` · `cli` | Zeitplan, `agent-pm run`, Kommandozeile |
+| `agentic_pm.i18n` | Sprachen: Texte, Plurale, Datumsformate, Ton und die Wörter, die der Agent versteht ([Sprachen](docs/de/languages.md)) |
 | `agentic_pm.mcp_server` | MCP-Werkzeuge für jeden Adapter, mit denselben Berechtigungsstufen |
 
 ### Aufbau des Repositorys

@@ -1,0 +1,296 @@
+# Deutsch. Fällt Satz für Satz auf Englisch zurück, wenn etwas fehlt.
+# Wie man eine Sprache ergänzt oder verbessert: docs/de/languages.md
+meta:
+  name: Deutsch
+  review: native
+  date: "EEE, dd.MM.y"  # z. B. Fr., 21.11.2026
+
+register:
+  informal:
+    style: "Schreibe auf Deutsch. Duze die Person und schreibe die Anrede immer groß: Du, Dich, Dir, Dein, Deine. Niemals 'Sie'. Herzlich, ruhig und ermutigend, wie ein hilfsbereiter Teamkollege; kein Druck, keine Befehle."
+    forbid: ["\\b(Sie|Ihnen|Ihr|Ihre|Ihren|Ihrem|Ihrer)\\b"]
+    capitalize: ["du", "dich", "dir", "dein", "deine", "deinen", "deinem", "deiner", "deines"]
+  formal:
+    style: "Schreibe auf Deutsch. Sieze die Person (Sie, Ihnen, Ihr). Herzlich, ruhig und höflich, wie eine hilfsbereite Kollegin; kein Druck, keine Befehle."
+    forbid: ["\\b([Dd]u|[Dd]ich|[Dd]ir|[Dd]ein|[Dd]eine|[Dd]einen|[Dd]einem|[Dd]einer|[Dd]eines)\\b"]
+
+lexicon:
+  affirm: ["ja", "jo", "jep", "jup", "passt", "gern", "gerne", "genau", "richtig", "bitte", "klar"]
+  negate: ["nein", "nö", "nee", "ne", "nicht", "falsch", "lieber"]
+  today: ["heute"]
+  tomorrow: ["morgen"]
+  day_after_tomorrow: ["übermorgen"]
+  next: ["nächsten", "nächster", "nächste", "kommenden"]
+  in: ["in"]
+  hour_units: ["std", "stunde", "stunden"]
+  day_units: ["t", "tag", "tage", "tagen"]
+  week_units: ["woche", "wochen"]
+  half_day: ["halben tag", "halber tag", "1/2 tag"]
+  deadline_words: ["bis", "fällig", "termin", "abgabe", "spätestens"]
+  dependency_words: ["blockiert durch", "wartet auf", "abhängig von", "hängt an", "braucht", "nach"]
+  claim_done: ["erledigt", "fertig", "behoben", "abgeschlossen", "ausgeliefert", "gemergt", "gemerged"]
+  claim_blocked: ["blockiert", "hänge fest", "hängt fest", "komme nicht weiter", "warte auf", "wartet auf"]
+  claim_started: ["angefangen", "begonnen", "arbeite dran", "arbeite daran", "bin dran"]
+  hedge: ["nicht", "nie", "kein", "keine", "fast", "bald", "sobald", "wenn", "falls", "ob", "bis"]
+  stopwords: ["der", "die", "das", "und", "ist", "nicht", "mit", "ich", "wir", "es", "ein", "eine", "einen", "den", "dem", "auf", "für", "von", "zu", "im", "bei", "wurde", "wurden", "habe", "hat", "sind", "auch", "noch", "nach", "aus", "dass"]
+  status_open: ["offen", "geplant"]
+  status_in_progress: ["in arbeit", "läuft"]
+  status_in_review: ["prüfung"]
+  status_blocked: ["blockiert", "wartet"]
+  status_done: ["erledigt", "fertig"]
+  status_closed: ["abgebrochen", "verworfen"]
+  extra_months: {"jänner": 1, "jän": 1}   # Austrian
+
+texts:
+  messages:
+    approval_subject: '🙋 Dein OK gebraucht: {change_short} bei #{id} {title}'
+    approval_body: 'Hallo {name},
+
+
+      {actor} möchte bei #{id} {title} {change}.
+
+      Grund: {reason}
+
+
+      Dafür brauche ich Dein OK, weil {why_tier}.
+
+
+      Hier kannst Du es Dir ansehen und entscheiden: {url}
+
+
+      Der Link gilt bis {expires}. Ändert sich die Aufgabe vorher, frage ich einfach neu. Danke! 💬'
+    why_high: es einen Kundentermin betrifft oder wer die Aufgabe verantwortet
+    why_medium: es den Plan für Deine Aufgabe ändert
+    pending_comment: '⏳ Vorschlag: {change}. Wartet auf die Bestätigung von {names}.'
+    approved_comment: ✅ Freigegeben von {name}.
+    declined_comment: '🙅 {name} hat sich dagegen entschieden: {change}. Nichts wurde geändert.'
+    howto_subject: '🎉 #{id} ist erledigt. Wie hast Du es gelöst?'
+    howto_body: 'Hallo {name},
+
+
+      stark, dass #{id} {title} erledigt ist!
+
+
+      Magst Du mit ein, zwei Sätzen antworten, wie Du es gelöst hast? Zum Beispiel: Was war die Ursache, und was hat geholfen?
+
+
+      Ich mache daraus ein kurzes How-to im Ticket (auf {ticket_language}), damit die Nächsten es finden. Formatierung brauchst Du nicht, eine kurze Notiz reicht völlig.
+
+
+      Danke! 🙏'
+    howto_asked_comment: 📝 {names} um ein kurzes How-to gebeten.
+    ack_howto: 'Danke, {name}! Ich habe es als How-to zu #{id} hinzugefügt: {url}'
+    ack_note: 'Danke, {name}! Ich habe Deine Notiz zu #{id} hinzugefügt: {url}'
+    ack_scope: Danke, {name}! Das klingt nach einer neuen Anforderung, deshalb habe ich es an {leads} weitergegeben, damit vor dem Start entschieden wird. Ich melde mich.
+    ack_unknown_task: 'Hallo {name}, danke für Deine Nachricht! Ich konnte nicht erkennen, um welche Aufgabe es geht. Magst Du auf eine meiner Aufgaben-Mails antworten oder die Nummer nennen, z. B. #142?'
+    scope_lead_subject: 💡 Möglicher neuer Umfang von {requester}
+    scope_lead_body: 'Hallo {name},
+
+
+      {requester} hat zu #{id} {title} geschrieben:
+
+
+      > {quote}
+
+
+      Das sieht nach neuem Umfang aus, deshalb habe ich dafür noch keine Arbeit angelegt. Formale Änderungsanträge mit Auswirkungsschätzung kommen bald (#50). Magst Du bis dahin entscheiden, wie es weitergeht?
+
+
+      Danke! 💬'
+    onboarding_subject: 👋 Hallo {name}, ich bin der Projekt-Assistent Deines Teams
+    onboarding_body: "Hallo {name},\n\nich bin agent-pm, der Projekt-Assistent, den Dein Team für {project} eingerichtet hat. Ich helfe beim Kleinkram: Briefings, Erinnerungen, und aus \"so habe ich es gelöst\" ein How-to im Ticket machen.\n\nWas ich über Dich verwende:\n  • Deinen Namen, {channels} und Deine Sprache ({language}) aus der Team-Datei\n  • die Aufgaben, die Dir in {tracker} zugewiesen sind\n  • die Nachrichten, die Du mir schickst, damit ich sie der richtigen Aufgabe zuordnen kann\n\nWas ich nicht tue:\n  • keine Bewertungen, Ranglisten oder Produktivitätszahlen über Dich\n  • keine Historie über Dich; ich schaue nur auf die Aufgaben, wie sie gerade sind\n  • kein Erraten Deiner Stimmung aus Nachrichten\n  • Nachrichten verarbeitet ein Modell auf unseren eigenen Servern ({llm})\n\nDein Briefing: {brief}.\nMöchtest Du etwas ändern oder abschalten? Antworte einfach oder frag {leads}.\nDetails: {doc}\n\nSchön, Dich kennenzulernen! \U0001F64C"
+    onboarding_no_brief: vorerst keins
+    reply_subject: 'Re: #{id} {title}'
+    chat_unknown_task: 'Hallo {name}, danke für Deine Nachricht! Um welche Aufgabe geht es? Antworte auf eine meiner Nachrichten oder nenn die Nummer, z. B. #142.'
+    chat_encrypted: Hallo {name}, verschlüsselte Nachrichten kann ich leider noch nicht lesen. Magst Du mir in einem unverschlüsselten Direktchat schreiben?
+    chat_voice_off: Danke für die Sprachnachricht, {name}! Sprachnachrichten kann ich hier noch nicht anhören. Magst Du es mir kurz schreiben?
+    chat_voice_failed: Sorry {name}, die Sprachnachricht konnte ich nicht verstehen. Versuchst Du es noch einmal, oder schreibst Du es mir?
+    confirm_due: 'Soll ich den Termin von #{id} {title} auf {date} setzen? Antworte einfach mit ja oder nein.'
+    confirm_estimate: 'Soll ich die Schätzung von #{id} {title} auf {hours} setzen? Antworte einfach mit ja oder nein.'
+    confirm_status_self: 'Du hast „{evidence}“ geschrieben, aber #{id} {title} steht in {tracker} noch auf {status}. Soll ich es auf {new} setzen? Antworte einfach mit ja oder nein.'
+    confirm_status_owner: '{who} hat zu #{id} {title} „{evidence}“ geschrieben, aber in {tracker} steht es noch auf {status}. Soll ich es auf {new} setzen? Antworte einfach mit ja oder nein.'
+    status_check_asked: 'Danke! In {tracker} steht #{id} noch auf {status}, deshalb habe ich {names} gebeten zu bestätigen, dass es {new} ist.'
+    confirm_applied: 'Erledigt ✅ Ich habe #{id} aktualisiert: {change}.'
+    confirm_pending: Danke! Dafür braucht es noch das OK von {names}, ich habe gefragt.
+    confirm_declined: 'Alles klar, ich lasse #{id} so, wie es ist. 👍'
+    confirm_stale: '#{id} hat sich inzwischen geändert, deshalb habe ich nichts geändert.'
+    confirm_unverified: 'Hm, ich kann nicht bestätigen, dass die Frage von mir kam, deshalb habe ich #{id} so gelassen.'
+    conflicts_heading: 🔍 Passt nicht ganz zusammen
+    conflict_item: '{who} hat zu #{id} {title} „{evidence}“ geschrieben, aber es steht noch auf {status}. Soll es {new} sein?'
+    someone: Jemand
+    status_due: den Termin von {old} auf {new} verschieben
+    status_due_short: neuer Termin
+    assign: die Aufgabe von {old} an {new} übergeben
+    assign_short: neue Verantwortung
+    status: den Status auf {new} setzen
+    status_short: Statuswechsel
+    estimate: die Schätzung auf {new} ändern
+    estimate_short: neue Schätzung
+    labels: die Labels anpassen
+    nobody: niemand
+  channels:
+    voice_note: Sprachnachricht
+    email: E-Mail
+    phone: Telefonnummer
+    whatsapp: WhatsApp
+    chat: Chat
+    matrix: Matrix
+    signal: Signal
+  status:
+    open: offen
+    in_progress: in Arbeit
+    in_review: in Prüfung
+    blocked: blockiert
+    done: erledigt
+    closed: geschlossen
+  brief:
+    subject_busy: '☀️ Dein Morgen-Briefing: {things} heute'
+    subject_calm: '☀️ Dein Morgen-Briefing: ein ruhiger Tag'
+    hello: Guten Morgen, {name}!
+    quiet: Heute ist nichts dringend. Genieß die Fokuszeit! 🎯
+    overdue: ⏰ Überfällig
+    due_soon: 📅 In den nächsten Tagen fällig
+    blocked: 🚧 Wartet auf etwas
+    my_risks: ⚠️ Gefährdet durch einen Blocker
+    waiting_on_me: 🤝 Andere warten auf Dich
+    team_risks: 🧭 Team-Risiken (Du bist Lead)
+    cycles: 🔁 Zirkuläre Abhängigkeiten zum Entwirren
+    due: fällig {d}
+    no_due: kein Termin
+    days_over: '{days} überfällig'
+    risk: '{task} rutscht evtl. {days}, weil {blocker} {why} ist. Neuer Vorschlag: {d}'
+    why_blocker_overdue: überfällig
+    why_blocker_due_too_late: zu spät fällig
+    why_chain_delay: weiter oben in der Kette verzögert
+    waits: '{who} braucht {blocker}, um mit {task} zu starten'
+    blocked_by: '{task}, blockiert durch {refs}'
+    footer: Du hast {tasks}. Antworte einfach auf diese Mail, wenn etwas nicht stimmt. 💬
+    summary: Kurz gesagt
+    collisions: 🧮 Termine, die kollidieren
+    team_collisions: 🧮 Termine, die im Team kollidieren
+    collision: '{tasks} sind bis {by} fällig und brauchen etwa {need}, es bleiben aber nur {left}.'
+    collision_move: ' Vielleicht {id} verschieben oder übergeben?'
+    collision_all_critical: ' Auf alle davon warten andere, lass uns gemeinsam auf die Prioritäten schauen.'
+    and: und
+    limits: 🔍 Dein Tracker liefert das nicht, deshalb kann ich es nicht prüfen
+    limit_dependencies: Abhängigkeiten (keine Risiko-Warnungen für blockierte Aufgaben)
+    limit_due_dates: Fälligkeiten
+    limit_estimates: Schätzungen (jede Aufgabe zählt als 1 Tag)
+  digest:
+    eod_subject: '🌙 Tagesabschluss: {n} Punkt(e) zum Anschauen'
+    eod_hello: 'Hallo {name}, ein kurzer Blick auf heute, bevor Du Feierabend machst:'
+    eod_closed: ✅ Heute erledigt
+    eod_unowned: 🙋 Überfällig und niemand ist zuständig
+    eod_urgent: ⏰ Blockiert durch etwas Überfälliges
+    eod_collisions: 🧮 Termine, die kollidieren
+    eod_bye: Das war's. Schönen Feierabend! 🌙
+    wk_subject: '📊 Wochenrückblick: {done} erledigt, {risks} gefährdet'
+    wk_hello: 'Hallo {name}, hier die Woche auf einen Blick:'
+    wk_closed: ✅ Diese Woche erledigt
+    wk_next: 📅 Nächste Woche fällig
+    wk_risks: ⚠️ Gefährdet
+    wk_collisions: 🧮 Termine, die kollidieren
+    wk_cycles: 🔁 Zirkuläre Abhängigkeiten
+    wk_overdue: '⏰ Überfällig: {n}'
+    wk_calm: Eine ruhige Woche, nichts ist gefährdet. 🎉
+    wk_bye: Schönes Wochenende! Antworte einfach, wenn Du zu etwas mehr wissen willst. 💬
+    late: '{task}: {days} zu spät, wartet auf {blocker}'
+    collision: '{who}: {tasks} fällig bis {by}'
+  gaps:
+    heading: 🧩 Hier fehlen noch ein paar Angaben
+    more: … und {n} weitere
+    MISSING_OWNER: '{task} hat niemanden, der zuständig ist, und taucht deshalb in keinem Briefing auf. Wer übernimmt?'
+    OWNER_NOT_IN_TEAM: '{task} gehört {owner}, aber diese Person steht nicht in der Team-Datei und bekommt kein Briefing. Eintragen oder übergeben?'
+    MISSING_DUE: '{task} hat keinen Termin, deshalb kann ich nicht sagen, ob es eng wird. Bis wann soll es fertig sein?'
+    IMPLICIT_DUE: '{task} hat keinen Termin, im Text steht aber „{evidence}“. Ist der {date} der Termin? Dann trag ihn gern ein.'
+    BLOCKER_DONE: '{task} ist als blockiert markiert, aber {done} ist schon erledigt. Kann es weitergehen, oder wartet es noch auf etwas anderes?'
+    MISSING_ESTIMATE: '{task} hat keine Schätzung, deshalb rechne ich mit 1 Tag. Wie lange dauert es ungefähr?'
+    BLOCKED_WITHOUT_REASON: '{task} ist als blockiert markiert, aber ich sehe nicht, wodurch. Worauf wartet es?'
+    UNLINKED_DEPENDENCY: '{task} erwähnt {ref} („{evidence}“), ist aber nicht damit verknüpft. Soll es auf {ref} warten? Dann verknüpf die beiden gern.'
+    readiness_heading: 📊 Datenqualität
+    readiness: '{pct} % von {n} offenen Aufgaben haben alles, was die Prüfungen brauchen'
+    readiness_counts: 'es fehlen: {counts}'
+    backlog: '{n} weitere im Backlog, noch nicht eingeplant (ohne Zuständige, Termin oder Fortschritt)'
+    count_MISSING_OWNER: '{n} ohne Zuständige'
+    count_OWNER_NOT_IN_TEAM: '{n} mit Zuständigen außerhalb der Team-Datei'
+    count_MISSING_DUE: '{n} ohne Termin'
+    count_IMPLICIT_DUE: '{n} mit Termin nur im Text'
+    count_MISSING_ESTIMATE: '{n} ohne Schätzung'
+    count_BLOCKED_WITHOUT_REASON: '{n} blockiert ohne Grund'
+    count_BLOCKER_DONE: '{n} blockiert durch bereits Erledigtes'
+    count_UNLINKED_DEPENDENCY: '{n} unverknüpfte Abhängigkeiten'
+    what_MISSING_OWNER: niemand zuständig
+    what_OWNER_NOT_IN_TEAM: Zuständige nicht in der Team-Datei
+    what_MISSING_DUE: kein Termin
+    what_IMPLICIT_DUE: Termin nur im Text
+    what_MISSING_ESTIMATE: keine Schätzung
+    what_BLOCKED_WITHOUT_REASON: blockiert, Grund unbekannt
+    what_BLOCKER_DONE: blockiert, obwohl der Blocker erledigt ist
+    what_UNLINKED_DEPENDENCY: Abhängigkeit nicht verknüpft
+    stalled_heading: ⏰ Wartet noch auf eine Antwort
+    stalled_item: '#{id} {title}: {what}, vor {days} Arbeitstagen nachgefragt'
+    switch_intro: Ich habe auf {channel} schon ein paar Mal gefragt, deshalb versuche ich es hier, falls das einfacher ist.
+    switch_subject: 🧩 Ein paar offene Fragen
+    asked_note: '🙋 {names} nach einer fehlenden Angabe gefragt: {what}.'
+  coverage:
+    heading: '🧾 Nicht alles lesbar: {source}'
+    more: … und {n} weitere (`agent-pm deps` zeigt die ganze Liste)
+    row: Zeile
+    SOURCE_NOT_FOUND: die Datei wurde nicht gefunden ({path}), deshalb konnte ich nichts prüfen
+    UNSUPPORTED_FORMAT: '''{suffix}''-Dateien werden nicht unterstützt; nimm .xlsx oder .csv'
+    SOURCE_READ_ERROR: die Datei konnte nicht gelesen werden ({error})
+    MISSING_COLUMNS: 'Pflichtspalte(n) fehlen: {missing}'
+    SHEET_NOT_FOUND: 'Blatt ''{sheet}'' nicht gefunden (vorhanden: {sheets})'
+    COLUMN_NOT_FOUND: Spalte '{column}' nicht gefunden, deshalb wird {key} ignoriert
+    DUPLICATE_HEADER: Spalte '{column}' kommt doppelt vor; die erste wird verwendet
+    FORMULA_WITHOUT_VALUE: '''{column}'' enthält eine Formel ohne berechneten Wert; öffne und speichere die Datei in Excel'
+    MISSING_TASK_ID: Zeile hat Inhalt, aber keine ID, übersprungen
+    DUPLICATE_TASK_ID: ID '{id}' kommt doppelt vor (zuerst in {first}), Zeile übersprungen
+    MISSING_TITLE: '''{id}'' hat keinen Titel, übersprungen'
+    MISSING_STATUS: '''{id}'' hat keinen Status, übersprungen'
+    UNKNOWN_STATUS: '''{id}'' hat den Status ''{status}'', der nicht zugeordnet ist, übersprungen'
+    INVALID_DUE_DATE: '''{id}'' hat als Fälligkeit ''{value}'', das ist kein Datum; ohne Termin geprüft'
+    INVALID_ESTIMATE: '''{id}'' hat als Schätzung ''{value}'', das ist nicht lesbar'
+    BAD_REFERENCE: '''{id}'' hängt von ''{ref}'' ab, das ist keine bekannte Referenz'
+    DANGLING_DEPENDENCY: '''{id}'' hängt von ''{dep}'' ab, das steht nicht in der Tabelle'
+    EXTERNAL_DEPENDENCY: '''{id}'' hängt von {dep} ab, das kann ich noch nicht prüfen'
+  web:
+    title: Dein OK, bitte
+    intro: '{actor} möchte bei {task} {change}.'
+    why: Grund
+    approve: ✅ Freigeben
+    decline: 🙅 Ablehnen
+    applied: Erledigt, danke {name}! Die Änderung ist übernommen. 🎉
+    pending: Danke! Dafür braucht es noch ein weiteres OK.
+    declined: Alles klar, es wurde nichts geändert. Danke fürs Entscheiden, {name}!
+    already_declined: Das wurde schon abgelehnt. Es gibt nichts weiter zu tun. 👍
+    stale: Die Aufgabe hat sich seit dem Vorschlag geändert oder ist schon erledigt. Es wurde nichts übernommen; ich frage neu, falls es noch nötig ist.
+    expired: Dieser Link ist abgelaufen. Falls die Änderung noch nötig ist, frage ich neu.
+    invalid: Dieser Link ist ungültig. Bitte nimm den Link aus der neuesten Mail.
+    error: Beim Gespräch mit dem Tracker ist etwas schiefgelaufen. Bitte versuch es später noch einmal.
+  howto:
+    title: '### Wie es gelöst wurde'
+    problem: Problem
+    root_cause: Ursache
+    fix: Lösung
+    verification: Verifiziert
+    source: _Erklärt von {author} per {channel}{lang_note}, strukturiert von agent-pm._
+    lang_note: ' (auf {lang})'
+    note_title: '### Notiz von {author} per {channel}'
+plurals:
+  days:
+    zero: 0 Tage
+    one: 1 Tag
+    other: '{n} Tage'
+  workdays:
+    zero: keine Arbeitstage
+    one: 1 Arbeitstag
+    other: '{n} Arbeitstage'
+  things:
+    zero: nichts braucht Dich
+    one: 1 Sache braucht Dich
+    other: '{n} Sachen brauchen Dich'
+  tasks:
+    zero: keine offenen Aufgaben
+    one: 1 offene Aufgabe
+    other: '{n} offene Aufgaben'

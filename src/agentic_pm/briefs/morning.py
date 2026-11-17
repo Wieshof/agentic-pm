@@ -12,6 +12,7 @@ from email.message import EmailMessage
 
 from pydantic import BaseModel
 
+from agentic_pm import i18n
 from agentic_pm.adapters.base import CLOSED_STATUSES, Task, TaskStatus, TrackerAdapter
 from agentic_pm.adapters.coverage import CoverageReport
 from agentic_pm.briefs.coverage_text import render_coverage
@@ -166,109 +167,18 @@ async def collect(
 
 # ------------------------------------------------------------------ texts
 
-T: dict[str, dict[str, str]] = {
-    "en": {
-        "subject_busy": "☀️ Your morning brief: {things} today",
-        "subject_calm": "☀️ Your morning brief: a calm day ahead",
-        "hello": "Good morning, {name}!",
-        "quiet": "Nothing urgent today. Enjoy the focus time! 🎯",
-        "overdue": "⏰ Overdue",
-        "due_soon": "📅 Due in the next days",
-        "blocked": "🚧 Waiting on something",
-        "my_risks": "⚠️ At risk because of a blocker",
-        "waiting_on_me": "🤝 Others are waiting for you",
-        "team_risks": "🧭 Team risks (you're a lead)",
-        "cycles": "🔁 Circular dependencies to untangle",
-        "due": "due {d}",
-        "no_due": "no due date",
-        "days_over": "{days} overdue",
-        "risk": "{task} may slip {days} because {blocker} is {why}. Suggested new date: {d}",
-        "why_blocker_overdue": "overdue",
-        "why_blocker_due_too_late": "due too late",
-        "why_chain_delay": "delayed further up the chain",
-        "waits": "{who} needs {blocker} to start {task}",
-        "blocked_by": "{task}, blocked by {refs}",
-        "footer": "You have {tasks}. Just reply to this email if anything looks off. 💬",
-        "summary": "In short",
-        "collisions": "🧮 Deadlines that collide",
-        "team_collisions": "🧮 Deadlines that collide in the team",
-        "collision": "{tasks} are due by {by} and need about {need}, but only {left} left.",
-        "collision_move": " Maybe move {id} or hand it over?",
-        "collision_all_critical": " Others are waiting on all of them, so let's look at "
-        "priorities together.",
-        "and": "and",
-        "limits": "🔍 Your tracker doesn't provide this, so I can't check it",
-        "limit_dependencies": "dependencies (no risk warnings for blocked tasks)",
-        "limit_due_dates": "due dates",
-        "limit_estimates": "estimates (each task counts as 1 day)",
-    },
-    "de": {
-        "subject_busy": "☀️ Dein Morgen-Briefing: {things} heute",
-        "subject_calm": "☀️ Dein Morgen-Briefing: ein ruhiger Tag",
-        "hello": "Guten Morgen, {name}!",
-        "quiet": "Heute ist nichts dringend. Genieß die Fokuszeit! 🎯",
-        "overdue": "⏰ Überfällig",
-        "due_soon": "📅 In den nächsten Tagen fällig",
-        "blocked": "🚧 Wartet auf etwas",
-        "my_risks": "⚠️ Gefährdet durch einen Blocker",
-        "waiting_on_me": "🤝 Andere warten auf Dich",
-        "team_risks": "🧭 Team-Risiken (Du bist Lead)",
-        "cycles": "🔁 Zirkuläre Abhängigkeiten zum Entwirren",
-        "due": "fällig {d}",
-        "no_due": "kein Termin",
-        "days_over": "{days} überfällig",
-        "risk": "{task} rutscht evtl. {days}, weil {blocker} {why} ist. Neuer Vorschlag: {d}",
-        "why_blocker_overdue": "überfällig",
-        "why_blocker_due_too_late": "zu spät fällig",
-        "why_chain_delay": "weiter oben in der Kette verzögert",
-        "waits": "{who} braucht {blocker}, um mit {task} zu starten",
-        "blocked_by": "{task}, blockiert durch {refs}",
-        "footer": "Du hast {tasks}. Antworte einfach auf diese Mail, wenn etwas nicht stimmt. 💬",
-        "summary": "Kurz gesagt",
-        "collisions": "🧮 Termine, die kollidieren",
-        "team_collisions": "🧮 Termine, die im Team kollidieren",
-        "collision": "{tasks} sind bis {by} fällig und brauchen etwa {need}, es bleiben aber "
-        "nur {left}.",
-        "collision_move": " Vielleicht {id} verschieben oder übergeben?",
-        "collision_all_critical": " Auf alle davon warten andere, lass uns gemeinsam auf die "
-        "Prioritäten schauen.",
-        "and": "und",
-        "limits": "🔍 Dein Tracker liefert das nicht, deshalb kann ich es nicht prüfen",
-        "limit_dependencies": "Abhängigkeiten (keine Risiko-Warnungen für blockierte Aufgaben)",
-        "limit_due_dates": "Fälligkeiten",
-        "limit_estimates": "Schätzungen (jede Aufgabe zählt als 1 Tag)",
-    },
-}
-
-_PLURALS: dict[str, dict[str, tuple[str, str, str]]] = {
-    "en": {
-        "days": ("0 days", "1 day", "{n} days"),
-        "workdays": ("no working days", "1 working day", "{n} working days"),
-        "things": ("nothing needs you", "1 thing needs you", "{n} things need you"),
-        "tasks": ("no open tasks", "1 open task", "{n} open tasks"),
-    },
-    "de": {
-        "days": ("0 Tage", "1 Tag", "{n} Tage"),
-        "workdays": ("keine Arbeitstage", "1 Arbeitstag", "{n} Arbeitstage"),
-        "things": ("nichts braucht Dich", "1 Sache braucht Dich", "{n} Sachen brauchen Dich"),
-        "tasks": ("keine offenen Aufgaben", "1 offene Aufgabe", "{n} offene Aufgaben"),
-    },
-}
-
 
 def base_language(lang: str) -> str:
-    """Brief templates exist for English and German; other languages fall back to English."""
-    code = lang.split("-")[0]
-    return code if code in T else "en"
+    """The language the brief is written in: the person's, or English if it has no texts."""
+    return i18n.base_language(lang)
 
 
-def texts(lang: str) -> dict[str, str]:
-    return T[base_language(lang)]
+def texts(lang: str) -> i18n.Texts:
+    return i18n.texts("brief", lang)
 
 
 def plural(lang: str, word: str, n: int) -> str:
-    zero, one, many = _PLURALS[base_language(lang)][word]
-    return zero if n == 0 else one if n == 1 else many.format(n=n)
+    return i18n.plural(lang, word, n)
 
 
 def _label(t: Task) -> str:

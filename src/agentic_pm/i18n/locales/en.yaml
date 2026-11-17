@@ -1,0 +1,296 @@
+# English: the reference language. Every other language falls back to it,
+# sentence by sentence. See docs/languages.md to add or improve a language.
+meta:
+  name: English
+  review: native        # native | draft (needs a native speaker's review)
+  date: "EEE d MMM y"   # CLDR pattern, e.g. Fri 21 Nov 2026
+
+register:               # tone of the model-written summary, per team formality
+  informal:
+    style: "Write in English. Warm, calm and encouraging, like a helpful teammate; no pressure, no commands."
+  formal:
+    style: "Write in English. Warm, calm and courteous, like a helpful colleague; no pressure, no commands."
+
+# Words the agent understands in replies and ticket text. All languages are
+# combined when reading, so a German reply in an English team still works.
+lexicon:
+  affirm: ["yes", "y", "yep", "yeah", "yup", "ok", "okay", "sure", "correct", "right", "please"]
+  negate: ["no", "n", "nope", "nah", "not", "dont", "don't", "wrong"]
+  today: ["today"]
+  tomorrow: ["tomorrow"]
+  day_after_tomorrow: []
+  next: ["next"]
+  in: ["in"]
+  hour_units: ["h", "hr", "hrs", "hour", "hours"]
+  day_units: ["d", "day", "days"]
+  week_units: ["w", "wk", "wks", "week", "weeks"]
+  half_day: ["half a day"]
+  deadline_words: ["due", "deadline", "by", "until", "target", "delivery"]
+  dependency_words: ["blocked by", "waiting on", "waiting for", "depends on", "needs", "requires", "after"]
+  claim_done: ["done", "finished", "fixed", "completed", "shipped", "merged", "deployed", "resolved"]
+  claim_blocked: ["blocked", "stuck", "waiting on", "waiting for", "can't continue", "cant continue"]
+  claim_started: ["started", "starting", "working on", "in progress", "picked up", "picked it up", "on it"]
+  hedge: ["not", "never", "almost", "nearly", "soon", "once", "when", "until", "if", "whether"]
+  # Words that are also German ("in", "an", "die") are left out on purpose.
+  stopwords: ["the", "and", "is", "was", "were", "with", "we", "it", "of", "to", "for", "on", "that", "this", "by", "from", "has", "have", "been", "be", "are", "after"]
+  status_open: ["open", "todo", "to do", "new", "planned", "backlog"]
+  status_in_progress: ["in progress", "doing", "wip", "started"]
+  status_in_review: ["review", "in review", "qa", "testing"]
+  status_blocked: ["blocked", "waiting", "on hold", "stalled"]
+  status_done: ["done", "closed", "complete", "completed", "shipped", "finished"]
+  status_closed: ["cancelled", "canceled", "dropped", "won't do"]
+  extra_months: {}
+
+texts:
+  messages:
+    approval_subject: '🙋 Your OK needed: {change_short} on #{id} {title}'
+    approval_body: 'Hi {name},
+
+
+      {actor} would like to {change} on #{id} {title}.
+
+      Why: {reason}
+
+
+      This needs your OK because {why_tier}.
+
+
+      Have a look and decide here: {url}
+
+
+      The link works until {expires}. If the task changes before then, I''ll simply ask again. Thanks! 💬'
+    why_high: it affects a client deadline or who owns the task
+    why_medium: it changes the plan for your task
+    pending_comment: '⏳ Proposed: {change}. Waiting for {names} to confirm.'
+    approved_comment: ✅ Approved by {name}.
+    declined_comment: 🙅 {name} decided not to {change}. Nothing was changed.
+    howto_subject: '🎉 #{id} is done. How did you solve it?'
+    howto_body: 'Hi {name},
+
+
+      nice work closing #{id} {title}!
+
+
+      Could you reply with one or two sentences on how you solved it? For example: what was the cause, and what fixed it.
+
+
+      I''ll turn it into a short how-to on the ticket (in {ticket_language}) so the next person finds it. No formatting needed, a quick note is perfect.
+
+
+      Thanks! 🙏'
+    howto_asked_comment: 📝 Asked {names} for a short how-to.
+    ack_howto: 'Thanks, {name}! I''ve added it to #{id} as a how-to: {url}'
+    ack_note: 'Thanks, {name}! I''ve added your note to #{id}: {url}'
+    ack_scope: Thanks, {name}! This sounds like a new request, so I've passed it to {leads} to decide before anyone starts on it. I'll let you know.
+    ack_unknown_task: 'Hi {name}, thanks for your message! I couldn''t tell which task it''s about. Could you reply to one of my task emails, or mention the task number like #142?'
+    scope_lead_subject: 💡 Possible new scope from {requester}
+    scope_lead_body: 'Hi {name},
+
+
+      {requester} wrote about #{id} {title}:
+
+
+      > {quote}
+
+
+      This looks like new scope, so I haven''t created any work for it. Formal change requests with impact estimates are coming soon (#50). Until then, could you decide how to handle it?
+
+
+      Thanks! 💬'
+    onboarding_subject: 👋 Hi {name}, I'm your team's project assistant
+    onboarding_body: "Hi {name},\n\nI'm agent-pm, the project assistant your team set up for {project}. I help with the small stuff: briefs, reminders, and turning \"here's how I fixed it\" into a how-to on the ticket.\n\nWhat I use about you:\n  • your name, {channels} and language ({language}) from the team file\n  • the tasks assigned to you in {tracker}\n  • the messages you send me, so I can add them to the right task\n\nWhat I don't do:\n  • no scores, rankings or productivity numbers about you\n  • no history about you; I look at the tasks as they are right now\n  • no guessing your mood from messages\n  • messages are processed by a model running on our own servers ({llm})\n\nYour brief: {brief}.\nWant something changed or switched off? Just reply, or ask {leads}.\nDetails: {doc}\n\nNice to meet you! \U0001F64C"
+    onboarding_no_brief: none for now
+    reply_subject: 'Re: #{id} {title}'
+    chat_unknown_task: 'Hi {name}, thanks for your message! Which task is it about? Reply to one of my messages, or mention the number like #142.'
+    chat_encrypted: Hi {name}, sorry, I can't read encrypted messages yet. Could you write to me in an unencrypted direct chat?
+    chat_voice_off: Thanks for the voice note, {name}! I can't listen to voice notes here yet. Could you type it for me?
+    chat_voice_failed: Sorry {name}, I couldn't make out that voice note. Could you try again, or type it?
+    confirm_due: 'Should I set the due date of #{id} {title} to {date}? Just reply yes or no.'
+    confirm_estimate: 'Should I set the estimate of #{id} {title} to {hours}? Just reply yes or no.'
+    confirm_status_self: 'You wrote “{evidence}”, but #{id} {title} is still {status} in {tracker}. Should I set it to {new}? Just reply yes or no.'
+    confirm_status_owner: '{who} wrote “{evidence}” on #{id} {title}, but it''s still {status} in {tracker}. Should I set it to {new}? Just reply yes or no.'
+    status_check_asked: 'Thanks! In {tracker}, #{id} is still {status}, so I''ve asked {names} to confirm it''s {new}.'
+    confirm_applied: 'Done ✅ I''ve updated #{id}: {change}.'
+    confirm_pending: Thanks! This one also needs {names}'s OK, so I've asked.
+    confirm_declined: 'Alright, I''ll leave #{id} as it is. 👍'
+    confirm_stale: '#{id} has changed in the meantime, so I''ve left it as it is.'
+    confirm_unverified: 'Hmm, I can''t confirm that question came from me, so I''ve left #{id} as it is.'
+    conflicts_heading: 🔍 Doesn't quite add up
+    conflict_item: '{who} wrote “{evidence}” on #{id} {title}, but it''s still {status}. Should it be {new}?'
+    someone: Someone
+    status_due: move the due date from {old} to {new}
+    status_due_short: new due date
+    assign: hand it over from {old} to {new}
+    assign_short: new owner
+    status: set the status to {new}
+    status_short: status change
+    estimate: change the estimate to {new}
+    estimate_short: new estimate
+    labels: update the labels
+    nobody: nobody
+  channels:
+    voice_note: voice note
+    email: email
+    phone: phone number
+    whatsapp: WhatsApp
+    chat: chat
+    matrix: Matrix
+    signal: Signal
+  status:
+    open: open
+    in_progress: in progress
+    in_review: in review
+    blocked: blocked
+    done: done
+    closed: closed
+  brief:
+    subject_busy: '☀️ Your morning brief: {things} today'
+    subject_calm: '☀️ Your morning brief: a calm day ahead'
+    hello: Good morning, {name}!
+    quiet: Nothing urgent today. Enjoy the focus time! 🎯
+    overdue: ⏰ Overdue
+    due_soon: 📅 Due in the next days
+    blocked: 🚧 Waiting on something
+    my_risks: ⚠️ At risk because of a blocker
+    waiting_on_me: 🤝 Others are waiting for you
+    team_risks: 🧭 Team risks (you're a lead)
+    cycles: 🔁 Circular dependencies to untangle
+    due: due {d}
+    no_due: no due date
+    days_over: '{days} overdue'
+    risk: '{task} may slip {days} because {blocker} is {why}. Suggested new date: {d}'
+    why_blocker_overdue: overdue
+    why_blocker_due_too_late: due too late
+    why_chain_delay: delayed further up the chain
+    waits: '{who} needs {blocker} to start {task}'
+    blocked_by: '{task}, blocked by {refs}'
+    footer: You have {tasks}. Just reply to this email if anything looks off. 💬
+    summary: In short
+    collisions: 🧮 Deadlines that collide
+    team_collisions: 🧮 Deadlines that collide in the team
+    collision: '{tasks} are due by {by} and need about {need}, but only {left} left.'
+    collision_move: ' Maybe move {id} or hand it over?'
+    collision_all_critical: ' Others are waiting on all of them, so let''s look at priorities together.'
+    and: and
+    limits: 🔍 Your tracker doesn't provide this, so I can't check it
+    limit_dependencies: dependencies (no risk warnings for blocked tasks)
+    limit_due_dates: due dates
+    limit_estimates: estimates (each task counts as 1 day)
+  digest:
+    eod_subject: '🌙 End of day: {n} thing(s) worth a look'
+    eod_hello: 'Hi {name}, a short look at today before you log off:'
+    eod_closed: ✅ Finished today
+    eod_unowned: 🙋 Overdue and nobody owns it
+    eod_urgent: ⏰ Blocked by something overdue
+    eod_collisions: 🧮 Deadlines that collide
+    eod_bye: That's it. Have a good evening! 🌙
+    wk_subject: '📊 Weekly digest: {done} done, {risks} at risk'
+    wk_hello: 'Hi {name}, here''s the week at a glance:'
+    wk_closed: ✅ Done this week
+    wk_next: 📅 Due next week
+    wk_risks: ⚠️ At risk
+    wk_collisions: 🧮 Deadlines that collide
+    wk_cycles: 🔁 Circular dependencies
+    wk_overdue: '⏰ Overdue: {n}'
+    wk_calm: A calm week, nothing at risk. 🎉
+    wk_bye: Have a good weekend! Just reply if you'd like more detail on anything. 💬
+    late: '{task}: {days} late, waiting for {blocker}'
+    collision: '{who}: {tasks} due by {by}'
+  gaps:
+    heading: 🧩 A few details are missing
+    more: … and {n} more
+    MISSING_OWNER: '{task} has no owner, so it shows up in nobody''s brief. Who takes it?'
+    OWNER_NOT_IN_TEAM: '{task} belongs to {owner}, who isn''t in the team file and gets no brief. Add them, or hand the task over?'
+    MISSING_DUE: '{task} has no due date, so I can''t tell whether it''s at risk. When should it be done?'
+    IMPLICIT_DUE: '{task} has no due date, but the text says “{evidence}”. Is {date} the due date? Then please add it.'
+    BLOCKER_DONE: '{task} is marked blocked, but {done} is already done. Can it go ahead, or is it waiting for something else?'
+    MISSING_ESTIMATE: '{task} has no estimate, so I count it as 1 day. Roughly how long will it take?'
+    BLOCKED_WITHOUT_REASON: '{task} is marked blocked, but I can''t see by what. What is it waiting for?'
+    UNLINKED_DEPENDENCY: '{task} mentions {ref} (“{evidence}”) but isn''t linked to it. Should it wait for {ref}? Then please link them.'
+    readiness_heading: 📊 Data readiness
+    readiness: '{pct}% of {n} open tasks have everything the checks need'
+    readiness_counts: 'missing: {counts}'
+    backlog: '{n} more in the backlog, not planned yet (no owner, date or progress)'
+    count_MISSING_OWNER: '{n} without owner'
+    count_OWNER_NOT_IN_TEAM: '{n} with an owner outside the team file'
+    count_MISSING_DUE: '{n} without due date'
+    count_IMPLICIT_DUE: '{n} with a date only in the text'
+    count_MISSING_ESTIMATE: '{n} without estimate'
+    count_BLOCKED_WITHOUT_REASON: '{n} blocked without a reason'
+    count_BLOCKER_DONE: '{n} blocked by something already done'
+    count_UNLINKED_DEPENDENCY: '{n} unlinked dependencies'
+    what_MISSING_OWNER: no owner
+    what_OWNER_NOT_IN_TEAM: owner not in the team file
+    what_MISSING_DUE: no due date
+    what_IMPLICIT_DUE: due date only in the text
+    what_MISSING_ESTIMATE: no estimate
+    what_BLOCKED_WITHOUT_REASON: blocked, reason unknown
+    what_BLOCKER_DONE: blocked, but its blocker is done
+    what_UNLINKED_DEPENDENCY: dependency not linked
+    stalled_heading: ⏰ Still waiting for an answer
+    stalled_item: '#{id} {title}: {what}, asked {days} working days ago'
+    switch_intro: I've asked on {channel} a few times, so I'm trying here in case it's easier.
+    switch_subject: 🧩 A few open questions
+    asked_note: '🙋 Asked {names} about a missing detail: {what}.'
+  coverage:
+    heading: '🧾 Coverage incomplete: {source}'
+    more: … and {n} more (run `agent-pm deps` for the full list)
+    row: row
+    SOURCE_NOT_FOUND: the file wasn't found ({path}), so nothing could be checked
+    UNSUPPORTED_FORMAT: '''{suffix}'' files aren''t supported; use .xlsx or .csv'
+    SOURCE_READ_ERROR: the file couldn't be read ({error})
+    MISSING_COLUMNS: 'required column(s) missing: {missing}'
+    SHEET_NOT_FOUND: 'sheet ''{sheet}'' not found (sheets: {sheets})'
+    COLUMN_NOT_FOUND: column '{column}' not found, so {key} is ignored
+    DUPLICATE_HEADER: column '{column}' appears twice; the first one is used
+    FORMULA_WITHOUT_VALUE: '''{column}'' has a formula without a calculated value; open and save the file in Excel'
+    MISSING_TASK_ID: row has content but no ID, skipped
+    DUPLICATE_TASK_ID: ID '{id}' is used twice (first at {first}), row skipped
+    MISSING_TITLE: '''{id}'' has no title, skipped'
+    MISSING_STATUS: '''{id}'' has no status, skipped'
+    UNKNOWN_STATUS: '''{id}'' has status ''{status}'', which isn''t mapped, skipped'
+    INVALID_DUE_DATE: '''{id}'' has due date ''{value}'', which isn''t a date; checked without a deadline'
+    INVALID_ESTIMATE: '''{id}'' has estimate ''{value}'', which isn''t readable'
+    BAD_REFERENCE: '''{id}'' depends on ''{ref}'', which isn''t a known reference'
+    DANGLING_DEPENDENCY: '''{id}'' depends on ''{dep}'', which isn''t in the sheet'
+    EXTERNAL_DEPENDENCY: '''{id}'' depends on {dep}, which can''t be checked yet'
+  web:
+    title: Your OK, please
+    intro: '{actor} would like to {change} on {task}.'
+    why: Why
+    approve: ✅ Approve
+    decline: 🙅 Decline
+    applied: Done, thanks {name}! The change is applied. 🎉
+    pending: Thanks! This still needs another OK.
+    declined: Got it, nothing was changed. Thanks for deciding, {name}!
+    already_declined: This was already declined. Nothing else to do. 👍
+    stale: The task changed since this was proposed, or it's already done. Nothing was applied; I'll ask again if it's still needed.
+    expired: This link has expired. If the change is still needed, I'll ask again.
+    invalid: This link isn't valid. Please use the link from the latest email.
+    error: Something went wrong while talking to the tracker. Please try again later.
+  howto:
+    title: '### How it was solved'
+    problem: Problem
+    root_cause: Root cause
+    fix: Fix
+    verification: Verified
+    source: _Explained by {author} via {channel}{lang_note}, structured by agent-pm._
+    lang_note: ' (in {lang})'
+    note_title: '### Note from {author} via {channel}'
+plurals:
+  days:
+    zero: 0 days
+    one: 1 day
+    other: '{n} days'
+  workdays:
+    zero: no working days
+    one: 1 working day
+    other: '{n} working days'
+  things:
+    zero: nothing needs you
+    one: 1 thing needs you
+    other: '{n} things need you'
+  tasks:
+    zero: no open tasks
+    one: 1 open task
+    other: '{n} open tasks'

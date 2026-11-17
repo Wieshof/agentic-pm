@@ -19,35 +19,26 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from agentic_pm import i18n
 from agentic_pm.adapters.base import CLOSED_STATUSES, Task, TaskStatus
 from agentic_pm.audit import AUDIT_MARKER
 
 ClaimKind = Literal["done", "blocked", "started"]
 EVIDENCE_MAX = 80
 
-_PATTERNS: dict[ClaimKind, re.Pattern[str]] = {
-    "done": re.compile(
-        r"\b(done|finished|fixed|completed|shipped|merged|deployed|resolved|"
-        r"erledigt|fertig|behoben|abgeschlossen|ausgeliefert|gemergt|gemerged)\b",
-        re.I,
-    ),
-    "blocked": re.compile(
-        r"\b(blocked|stuck|waiting (?:on|for)|can'?t continue|"
-        r"blockiert|hänge fest|hängt fest|komme nicht weiter|warte auf|wartet auf)\b",
-        re.I,
-    ),
-    "started": re.compile(
-        r"\b(started|starting|working on|in progress|picked (?:it )?up|on it|"
-        r"angefangen|begonnen|arbeite (?:dran|daran)|bin dran)\b",
-        re.I,
-    ),
-}
-# Within a few words before the claim word, these make it "not a claim".
-_HEDGE = re.compile(
-    r"\b(not|n't|never|almost|nearly|soon|once|when|until|if|whether|"
-    r"nicht|nie|kein|keine|fast|bald|sobald|wenn|falls|ob|bis)\b|n't\b",
-    re.I,
-)
+
+@i18n.cached
+def _patterns() -> tuple[dict[ClaimKind, re.Pattern[str]], re.Pattern[str]]:
+    """Claim words and hedges from every language file (lexicon claim_* / hedge)."""
+    claims: dict[ClaimKind, re.Pattern[str]] = {
+        kind: re.compile(rf"\b({i18n.alternation('claim_' + kind)})\b", re.I)
+        for kind in ("done", "blocked", "started")
+    }
+    # Within a few words before the claim word, these make it "not a claim".
+    hedge = re.compile(rf"\b({i18n.alternation('hedge')})\b|n't\b", re.I)
+    return claims, hedge
+
+
 _SENTENCE = re.compile(r"[^.!?\n]+[.!?]?")
 
 
@@ -70,17 +61,18 @@ def _evidence(text: str) -> str:
 
 def detect_claim(text: str) -> Claim | None:
     """The one clear status claim in `text`, or None (none, hedged, or contradictory)."""
+    patterns, hedge = _patterns()
     found: dict[ClaimKind, str] = {}
     for sentence in _SENTENCE.findall(text):
         s = sentence.strip()
         if not s or s.endswith("?"):
             continue
-        for kind, pattern in _PATTERNS.items():
+        for kind, pattern in patterns.items():
             m = pattern.search(s)
             if not m:
                 continue
             before = " ".join(s[: m.start()].split()[-3:])
-            if _HEDGE.search(before) or _HEDGE.search(m.group(0)):
+            if hedge.search(before) or hedge.search(m.group(0)):
                 continue
             found.setdefault(kind, s)
     if "done" in found and "blocked" not in found:

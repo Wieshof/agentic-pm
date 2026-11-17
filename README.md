@@ -19,7 +19,7 @@ agentic-pm takes on that busywork, and its language model runs on your machine (
 ## What it does for you
 
 - **Warns you before a deadline slips.** It follows the dependencies between tasks and tells the right person early: *"#14 Release notes may slip 1 day because #13 Login UI is delayed further up the chain."*
-- **Meets people where they are.** A morning brief by email, or a short brief in Matrix or Signal. People reply in their own language, while tickets stay in the team's language.
+- **Meets people where they are.** A morning brief by email, or a short brief in Matrix or Signal. People reply in their own language, while tickets stay in the team's language. Adding a language is one file ([languages](docs/languages.md)).
 - **Asks one friendly question per missing detail.** "#16 has no due date. When should it be done?" Reply "Friday", confirm with "yes", and the ticket is updated.
 - **Turns "here's how I fixed it" into a how-to** on the ticket, from an email reply or a voice note (transcribed locally).
 - **Notices when the story doesn't add up.** Someone writes "#12 is done" while #12 is still open, so it asks once instead of guessing.
@@ -185,6 +185,7 @@ Everything secret comes from environment variables (or your secret manager), nev
 | `agentic_pm.web` · `ingress` | Approval pages, webhooks, de-duplication |
 | `agentic_pm.knowledge` · `llm` · `evals` | How-to extraction, model interface, model evals |
 | `agentic_pm.cadence` · `runtime` · `cli` | Scheduler, `agent-pm run`, command line |
+| `agentic_pm.i18n` | Languages: texts, plurals, dates, tone, and the words the agent understands ([languages](docs/languages.md)) |
 | `agentic_pm.mcp_server` | MCP tools over any adapter, with the same permission tiers |
 
 ### Repository layout
