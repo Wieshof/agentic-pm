@@ -5,6 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>agentic-pm - Local-First Project Assistant</title>
   <meta name="description" content="A quiet project buddy that keeps your work on track without sending your data to the cloud. 100% local AI, zero subscriptions." />
+
+  <!-- Open Graph / Social Sharing -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://wieshof.github.io/agentic-pm/" />
+  <meta property="og:title" content="agentic-pm - Local-First Project Assistant" />
+  <meta property="og:description" content="A quiet project buddy that reads your task lists, emails, and voice notes locally on your computer. Zero cloud accounts, zero subscriptions." />
+
+  <!-- Inline SVG Favicon (Zero external files) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231b6b4a'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23ffffff'/%3E%3C/svg%3E" />
+
   <style>
     :root {
       --bg: #fafaf8;
@@ -121,6 +131,12 @@
       color: var(--text);
     }
 
+    @media (max-width: 600px) {
+      .nav-hide-mobile {
+        display: none;
+      }
+    }
+
     .lang-toggle {
       display: inline-flex;
       background: var(--surface-subtle);
@@ -149,7 +165,7 @@
 
     /* Hero */
     .hero {
-      padding: 4.5rem 0 3.5rem;
+      padding: 4.25rem 0 3.5rem;
     }
 
     .pill {
@@ -222,8 +238,8 @@
       background: var(--surface-subtle);
     }
 
-    /* Briefing Preview Card */
-    .preview-card {
+    /* Interactive Demo Card */
+    .demo-wrapper {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
@@ -231,15 +247,45 @@
       overflow: hidden;
     }
 
-    .preview-bar {
+    .demo-top {
       background: var(--surface-subtle);
       padding: 0.65rem 1.1rem;
       border-bottom: 1px solid var(--border);
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
-      font-size: 0.8rem;
+      gap: 0.75rem;
+    }
+
+    .demo-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .demo-tab {
+      border: 1px solid transparent;
+      background: transparent;
       color: var(--text-muted);
+      font-size: 0.83rem;
+      font-weight: 600;
+      padding: 0.35rem 0.75rem;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .demo-tab:hover {
+      color: var(--text);
+      background: rgba(128, 128, 128, 0.08);
+    }
+
+    .demo-tab.active {
+      background: var(--surface);
+      color: var(--text);
+      border-color: var(--border);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
     }
 
     .preview-status {
@@ -247,31 +293,84 @@
       align-items: center;
       gap: 0.4rem;
       color: var(--badge-text);
+      font-size: 0.8rem;
       font-weight: 600;
     }
 
-    .preview-body {
+    .demo-body {
       padding: 1.5rem;
+    }
+
+    .demo-panel {
+      display: none;
+    }
+
+    .demo-panel.active {
+      display: block;
     }
 
     .preview-meta {
       font-size: 0.85rem;
       color: var(--text-muted);
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.4rem;
     }
 
     .preview-subject {
       font-weight: 700;
-      font-size: 1.05rem;
-      margin-bottom: 0.75rem;
+      font-size: 1.08rem;
+      margin-bottom: 0.85rem;
     }
 
     .preview-quote {
       background: var(--accent-soft);
       border-left: 3px solid var(--accent);
-      padding: 0.9rem 1.1rem;
+      padding: 0.95rem 1.15rem;
       border-radius: 0 8px 8px 0;
       font-size: 0.95rem;
+    }
+
+    .preview-list {
+      list-style: none;
+      display: grid;
+      gap: 0.55rem;
+      font-size: 0.94rem;
+    }
+
+    .preview-list li {
+      padding-left: 1.25rem;
+      position: relative;
+    }
+
+    .preview-list li::before {
+      content: "\2022";
+      color: var(--accent);
+      font-weight: 700;
+      position: absolute;
+      left: 0;
+    }
+
+    .voice-split {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+    }
+
+    .voice-box {
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.95rem 1.1rem;
+      font-size: 0.92rem;
+    }
+
+    .voice-label {
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+      display: block;
     }
 
     /* Sections */
@@ -395,6 +494,30 @@
       color: var(--text-muted);
     }
 
+    /* FAQ */
+    .faq-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.15rem;
+    }
+
+    .faq-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+    }
+
+    .faq-item h3 {
+      font-size: 1.02rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .faq-item p {
+      font-size: 0.93rem;
+      color: var(--text-muted);
+    }
+
     /* IT Handoff Box */
     .handoff-box {
       background: var(--surface);
@@ -469,9 +592,10 @@
         <span>agentic-pm</span>
       </a>
       <div class="nav-actions">
-        <a href="#privacy" class="nav-link" data-i18n="nav_privacy">Privacy</a>
+        <a href="#privacy" class="nav-link nav-hide-mobile" data-i18n="nav_privacy">Privacy</a>
+        <a href="#faq" class="nav-link nav-hide-mobile" data-i18n="nav_faq">FAQ</a>
         <a href="#it-handoff" class="nav-link" data-i18n="nav_setup">Setup</a>
-        <a href="#" class="nav-link js-repo-link" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/wieshof/agentic-pm" class="nav-link js-repo-link" target="_blank" rel="noopener">GitHub</a>
         <div class="lang-toggle" role="group" aria-label="Language switcher">
           <button type="button" class="lang-btn active" data-lang-btn="en">EN</button>
           <button type="button" class="lang-btn" data-lang-btn="de">DE</button>
@@ -492,7 +616,7 @@
         agentic-pm reads your existing task lists, emails, and voice notes, spots hidden bottlenecks before they become emergencies, and sends you a calm morning briefing. Runs 100% locally on your own computer. No subscriptions. No accounts in the US or China.
       </p>
       <div class="cta-group">
-        <a href="#" class="btn btn-primary js-spreadsheet-link" target="_blank" rel="noopener" data-i18n="cta_primary">
+        <a href="https://github.com/wieshof/agentic-pm/blob/main/docs/spreadsheets.md" class="btn btn-primary js-spreadsheet-link" target="_blank" rel="noopener" data-i18n="cta_primary">
           Try it with a simple Excel sheet
         </a>
         <a href="#it-handoff" class="btn btn-secondary" data-i18n="cta_secondary">
@@ -500,17 +624,60 @@
         </a>
       </div>
 
-      <!-- Visual Briefing Preview -->
-      <div class="preview-card" aria-label="Example morning briefing">
-        <div class="preview-bar">
-          <span>08:00 &middot; agentic-pm</span>
+      <!-- Interactive 3-Tab Demo -->
+      <div class="demo-wrapper" aria-label="Interactive examples">
+        <div class="demo-top">
+          <div class="demo-tabs" role="tablist">
+            <button type="button" class="demo-tab active" role="tab" aria-selected="true" data-tab-btn="briefing" data-i18n="tab_briefing">
+              1. Morning Briefing
+            </button>
+            <button type="button" class="demo-tab" role="tab" aria-selected="false" data-tab-btn="bottleneck" data-i18n="tab_bottleneck">
+              2. Hidden Bottleneck
+            </button>
+            <button type="button" class="demo-tab" role="tab" aria-selected="false" data-tab-btn="voice" data-i18n="tab_voice">
+              3. Voice Note to Task
+            </button>
+          </div>
           <span class="preview-status" data-i18n="preview_badge">&#10003; Offline &middot; Local LLM (Ollama)</span>
         </div>
-        <div class="preview-body">
-          <div class="preview-meta" data-i18n="preview_meta">Morning Briefing &middot; 1 dependency warning</div>
-          <div class="preview-subject" data-i18n="preview_subject">Heads up before your Friday launch</div>
-          <div class="preview-quote" data-i18n="preview_quote">
-            "Friday's client launch depends on the printer proof in row 63, which hasn't been confirmed yet. Reply to this email if you want me to follow up."
+
+        <div class="demo-body">
+          <!-- Tab 1: Morning Briefing -->
+          <div class="demo-panel active" data-tab-panel="briefing">
+            <div class="preview-meta" data-i18n="d1_meta">08:00 Email &middot; Generated from tasks.xlsx (64 rows)</div>
+            <div class="preview-subject" data-i18n="d1_subject">Your Tuesday focus: 2 priorities, 1 waiting item</div>
+            <div class="preview-quote">
+              <ul class="preview-list">
+                <li data-i18n="d1_li1"><strong>Today:</strong> Finalize Q4 client proposal (due tomorrow at 14:00).</li>
+                <li data-i18n="d1_li2"><strong>Needs follow-up:</strong> Supplier quote for packaging samples has been open for 4 days.</li>
+                <li data-i18n="d1_li3"><strong>No action needed:</strong> 11 other tasks are on schedule for next week.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Tab 2: Hidden Bottleneck -->
+          <div class="demo-panel" data-tab-panel="bottleneck">
+            <div class="preview-meta" data-i18n="d2_meta">Dependency Alert &middot; Chain reaction detected</div>
+            <div class="preview-subject" data-i18n="d2_subject">Heads up before your Friday launch</div>
+            <div class="preview-quote" data-i18n="d2_quote">
+              "Friday's client launch depends on the printer proof in row 63, which hasn't been confirmed yet. Reply to this email if you want me to send a quick check-in."
+            </div>
+          </div>
+
+          <!-- Tab 3: Voice Note to Task -->
+          <div class="demo-panel" data-tab-panel="voice">
+            <div class="preview-meta" data-i18n="d3_meta">Local Speech-to-Text &middot; Written back to your tracker</div>
+            <div class="preview-subject" data-i18n="d3_subject">From casual voice memo to clean task documentation</div>
+            <div class="voice-split">
+              <div class="voice-box">
+                <span class="voice-label" data-i18n="d3_in_label">Your 8-second voice note</span>
+                <p data-i18n="d3_in_text">"Hey, just fixed that checkout timeout on the shop. Raised the Redis connection pool size and tested it on staging."</p>
+              </div>
+              <div class="voice-box" style="background: var(--accent-soft); border-color: var(--accent);">
+                <span class="voice-label" data-i18n="d3_out_label">Saved onto Task #42</span>
+                <p data-i18n="d3_out_text"><strong>Resolution:</strong> Increased Redis connection pool size to resolve checkout timeouts. Verified on staging.</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -612,6 +779,31 @@
       </div>
     </section>
 
+    <!-- Short FAQ -->
+    <section id="faq">
+      <div class="container">
+        <h2 data-i18n="faq_title">What do I actually need?</h2>
+        <p class="section-intro" data-i18n="faq_intro">
+          No server farm or enterprise IT department required.
+        </p>
+
+        <div class="faq-grid">
+          <div class="faq-item">
+            <h3 data-i18n="f1_q">Does my computer support this?</h3>
+            <p data-i18n="f1_a">Any modern Mac (M1, M2, M3, or M4) or standard Windows/Linux laptop with 16 GB of memory runs local models smoothly.</p>
+          </div>
+          <div class="faq-item">
+            <h3 data-i18n="f2_q">How does the local AI work?</h3>
+            <p data-i18n="f2_a">It uses Ollama (a free, one-click app for Mac, Windows, and Linux) to run open-weights language models privately on your own hardware.</p>
+          </div>
+          <div class="faq-item">
+            <h3 data-i18n="f3_q">What does it cost?</h3>
+            <p data-i18n="f3_a">Nothing. agentic-pm is free and open source under the Apache 2.0 license, with zero subscriptions, API fees, or per-user charges.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Forward to Tech Friend -->
     <section id="it-handoff">
       <div class="container">
@@ -622,12 +814,12 @@
           </p>
 
           <div class="handoff-note" id="handoff-text" data-i18n="handoff_note">
-            "Hey, could you help me set up agentic-pm on my machine? It's an open-source, local-first project assistant that connects to a local LLM (Ollama) and reads my Excel/CSV or issue tracker to send daily briefings. Here is the repository: https://github.com/your-org/agentic-pm"
+            "Hey, could you help me set up agentic-pm on my machine? It's an open-source, local-first project assistant that connects to a local LLM (Ollama) and reads my Excel/CSV or issue tracker to send daily briefings. Here is the repository: https://github.com/wieshof/agentic-pm"
           </div>
 
           <div>
             <button type="button" class="btn btn-primary" id="copy-btn" data-i18n="copy_btn">Copy message</button>
-            <a href="#" class="btn btn-secondary js-repo-link" target="_blank" rel="noopener" data-i18n="github_btn">View on GitHub</a>
+            <a href="https://github.com/wieshof/agentic-pm" class="btn btn-secondary js-repo-link" target="_blank" rel="noopener" data-i18n="github_btn">View on GitHub</a>
             <span class="copy-feedback" id="copy-feedback" data-i18n="copied_msg">Copied to clipboard!</span>
           </div>
         </div>
@@ -639,31 +831,45 @@
     <div class="container footer-inner">
       <div>agentic-pm &middot; Apache License 2.0</div>
       <div class="footer-links">
-        <a href="#" class="js-repo-link" target="_blank" rel="noopener">GitHub</a>
-        <a href="#" class="js-spreadsheet-link" target="_blank" rel="noopener" data-i18n="footer_sheets">Spreadsheet Guide</a>
-        <a href="#" class="js-getting-started-link" target="_blank" rel="noopener" data-i18n="footer_start">Getting Started</a>
+        <a href="https://github.com/wieshof/agentic-pm" class="js-repo-link" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/wieshof/agentic-pm/blob/main/docs/spreadsheets.md" class="js-spreadsheet-link" target="_blank" rel="noopener" data-i18n="footer_sheets">Spreadsheet Guide</a>
+        <a href="https://github.com/wieshof/agentic-pm/blob/main/docs/getting-started.md" class="js-getting-started-link" target="_blank" rel="noopener" data-i18n="footer_start">Getting Started</a>
       </div>
     </div>
   </footer>
 
   <script>
-    // Update this single URL to point to your GitHub repository
-    const REPO_URL = "https://github.com/your-org/agentic-pm";
+    const REPO_URL = "https://github.com/wieshof/agentic-pm";
 
     const translations = {
       en: {
         page_title: "agentic-pm - Local-First Project Assistant",
         nav_privacy: "Privacy",
+        nav_faq: "FAQ",
         nav_setup: "Setup",
         hero_badge: "100% Local AI \u00b7 Zero Cloud Accounts",
         hero_title: "A quiet project buddy that keeps your work on track: without sending your data to the cloud.",
         hero_sub: "agentic-pm reads your existing task lists, emails, and voice notes, spots hidden bottlenecks before they become emergencies, and sends you a calm morning briefing. Runs 100% locally on your own computer. No subscriptions. No accounts in the US or China.",
         cta_primary: "Try it with a simple Excel sheet",
         cta_secondary: "Send setup guide to your IT person",
+        tab_briefing: "1. Morning Briefing",
+        tab_bottleneck: "2. Hidden Bottleneck",
+        tab_voice: "3. Voice Note to Task",
         preview_badge: "\u2713 Offline \u00b7 Local LLM (Ollama)",
-        preview_meta: "Morning Briefing \u00b7 1 dependency warning",
-        preview_subject: "Heads up before your Friday launch",
-        preview_quote: "\"Friday's client launch depends on the printer proof in row 63, which hasn't been confirmed yet. Reply to this email if you want me to follow up.\"",
+        d1_meta: "08:00 Email \u00b7 Generated from tasks.xlsx (64 rows)",
+        d1_subject: "Your Tuesday focus: 2 priorities, 1 waiting item",
+        d1_li1: "<strong>Today:</strong> Finalize Q4 client proposal (due tomorrow at 14:00).",
+        d1_li2: "<strong>Needs follow-up:</strong> Supplier quote for packaging samples has been open for 4 days.",
+        d1_li3: "<strong>No action needed:</strong> 11 other tasks are on schedule for next week.",
+        d2_meta: "Dependency Alert \u00b7 Chain reaction detected",
+        d2_subject: "Heads up before your Friday launch",
+        d2_quote: "\"Friday's client launch depends on the printer proof in row 63, which hasn't been confirmed yet. Reply to this email if you want me to send a quick check-in.\"",
+        d3_meta: "Local Speech-to-Text \u00b7 Written back to your tracker",
+        d3_subject: "From casual voice memo to clean task documentation",
+        d3_in_label: "Your 8-second voice note",
+        d3_in_text: "\"Hey, just fixed that checkout timeout on the shop. Raised the Redis connection pool size and tested it on staging.\"",
+        d3_out_label: "Saved onto Task #42",
+        d3_out_text: "<strong>Resolution:</strong> Increased Redis connection pool size to resolve checkout timeouts. Verified on staging.",
         problem_title: "You don't need another productivity app.",
         problem_p1: "When you have too much on your plate, project tools usually create more work: logging into dashboards, updating statuses, copying notes from emails, and remembering which task blocks which.",
         problem_p2: "Meanwhile, using mainstream AI assistants means uploading your client lists, internal emails, and business plans to external servers (and hoping they stay private).",
@@ -691,6 +897,14 @@
         p3_body: "It never hoards your tasks in a proprietary format. Your Excel file, GitHub, Jira, or OpenProject stays your single source of truth.",
         p4_title: "Open Source (Apache 2.0)",
         p4_body: "Transparent, auditable code with no hidden tracking or telemetry.",
+        faq_title: "What do I actually need?",
+        faq_intro: "No server farm or enterprise IT department required.",
+        f1_q: "Does my computer support this?",
+        f1_a: "Any modern Mac (M1, M2, M3, or M4) or standard Windows/Linux laptop with 16 GB of memory runs local models smoothly.",
+        f2_q: "How does the local AI work?",
+        f2_a: "It uses Ollama (a free, one-click app for Mac, Windows, and Linux) to run open-weights language models privately on your own hardware.",
+        f3_q: "What does it cost?",
+        f3_a: "Nothing. agentic-pm is free and open source under the Apache 2.0 license, with zero subscriptions, API fees, or per-user charges.",
         handoff_title: "Not a programmer? No problem.",
         handoff_sub: "Copy this short note and send it to your IT support or a tech-savvy friend to set it up for you:",
         handoff_note: `"Hey, could you help me set up agentic-pm on my machine? It's an open-source, local-first project assistant that connects to a local LLM (Ollama) and reads my Excel/CSV or issue tracker to send daily briefings. Here is the repository: ${REPO_URL}"`,
@@ -705,16 +919,31 @@
       de: {
         page_title: "agentic-pm - Lokaler Projekt-Assistent",
         nav_privacy: "Datenschutz",
+        nav_faq: "FAQ",
         nav_setup: "Einrichtung",
         hero_badge: "100 % lokale KI \u00b7 Ohne Cloud-Konten",
         hero_title: "Ein ruhiger Projekt-Buddy, der Dir den R\u00fccken freih\u00e4lt: ganz ohne Cloud-Zwang.",
         hero_sub: "agentic-pm liest Deine bestehenden Aufgabenlisten, E-Mails und Sprachnachrichten, erkennt versteckte Engp\u00e4sse, bevor sie zum Problem werden, und schickt Dir morgens eine kompakte \u00dcbersicht. L\u00e4uft zu 100 % lokal auf Deinem eigenen Rechner. Keine Abos. Keine Daten\u00fcbertragung in die USA oder nach China.",
         cta_primary: "Mit einer einfachen Excel-Tabelle starten",
         cta_secondary: "Anleitung an Deine IT weiterleiten",
+        tab_briefing: "1. Morgen-Briefing",
+        tab_bottleneck: "2. Versteckter Engpass",
+        tab_voice: "3. Sprachnotiz zu Aufgabe",
         preview_badge: "\u2713 Offline \u00b7 Lokales Sprachmodell (Ollama)",
-        preview_meta: "Morgen-Briefing \u00b7 1 Hinweis zu Abh\u00e4ngigkeiten",
-        preview_subject: "Kurzer Hinweis vor Deinem Launch am Freitag",
-        preview_quote: "\"Der Kunden-Launch am Freitag h\u00e4ngt an der Druckfreigabe in Zeile 63, die noch nicht best\u00e4tigt wurde. Antworte einfach auf diese E-Mail, wenn ich nachfassen soll.\"",
+        d1_meta: "08:00 Uhr E-Mail \u00b7 Erstellt aus aufgaben.xlsx (64 Zeilen)",
+        d1_subject: "Dein Fokus am Dienstag: 2 Priorit\u00e4ten, 1 offene R\u00fcckmeldung",
+        d1_li1: "<strong>Heute:</strong> Q4-Kundenangebot finalisieren (f\u00e4llig morgen um 14:00 Uhr).",
+        d1_li2: "<strong>Nachfassen sinnvoll:</strong> Lieferanten-Angebot f\u00fcr Verpackungsmuster ist seit 4 Tagen offen.",
+        d1_li3: "<strong>Kein Handlungsbedarf:</strong> 11 weitere Aufgaben liegen f\u00fcr n\u00e4chste Woche voll im Plan.",
+        d2_meta: "Abh\u00e4ngigkeits-Warnung \u00b7 Kettenreaktion erkannt",
+        d2_subject: "Kurzer Hinweis vor Deinem Launch am Freitag",
+        d2_quote: "\"Der Kunden-Launch am Freitag h\u00e4ngt an der Druckfreigabe in Zeile 63, die noch nicht best\u00e4tigt wurde. Antworte einfach auf diese E-Mail, wenn ich kurz nachfassen soll.\"",
+        d3_meta: "Lokale Spracherkennung \u00b7 Direkt in Deinen Tracker geschrieben",
+        d3_subject: "Von der kurzen Sprachnotiz zur sauberen Aufgaben-Doku",
+        d3_in_label: "Deine 8-Sekunden-Sprachnotiz",
+        d3_in_text: "\"Hey, ich habe gerade das Checkout-Timeout im Shop behoben. Habe den Redis-Connection-Pool erh\u00f6ht und auf Staging getestet.\"",
+        d3_out_label: "Gespeichert bei Aufgabe #42",
+        d3_out_text: "<strong>L\u00f6sung:</strong> Redis-Connection-Pool vergr\u00f6\u00dfert, um Checkout-Timeouts zu beheben. Auf Staging verifiziert.",
         problem_title: "Du brauchst nicht noch eine Produktivit\u00e4ts-App.",
         problem_p1: "Wenn der Schreibtisch ohnehin voll ist, machen klassische Projekt-Tools oft noch mehr Arbeit: sich in Dashboards einloggen, Statusfelder pflegen, Infos aus E-Mails abtippen und im Kopf behalten, welche Aufgabe gerade eine andere blockiert.",
         problem_p2: "Gleichzeitig bedeutet der Einsatz g\u00e4ngiger KI-Assistenten, dass Kundenlisten, interne E-Mails und Gesch\u00e4ftspl\u00e4ne auf fremde Server hochgeladen werden (und man nur hoffen kann, dass sie dort sicher bleiben).",
@@ -742,6 +971,14 @@
         p3_body: "Deine Aufgaben werden nicht in ein geschlossenes System kopiert. Deine Excel-Datei, GitHub, Jira oder OpenProject bleibt die alleinige Datenquelle.",
         p4_title: "Open Source (Apache 2.0)",
         p4_body: "Transparenter, \u00fcberpr\u00fcfbarer Quellcode ohne verstecktes Tracking oder Telemetrie.",
+        faq_title: "Was brauche ich konkret daf\u00fcr?",
+        faq_intro: "Weder ein Rechenzentrum noch eine eigene IT-Abteilung.",
+        f1_q: "Schafft mein Rechner das?",
+        f1_a: "Jeder aktuelle Mac (M1, M2, M3 oder M4) oder ein normaler Windows-/Linux-Laptop mit 16 GB Arbeitsspeicher f\u00fchrt lokale Modelle fl\u00fcssig aus.",
+        f2_q: "Wie funktioniert die lokale KI?",
+        f2_a: "Der Assistent nutzt Ollama (eine kostenlose Ein-Klick-App f\u00fcr Mac, Windows und Linux), um offene Sprachmodelle privat auf Deiner eigenen Hardware auszuf\u00fchren.",
+        f3_q: "Was kostet das?",
+        f3_a: "Nichts. agentic-pm ist unter der Apache-2.0-Lizenz frei und Open Source: ohne Abos, API-Geb\u00fchren oder Lizenzkosten pro Nutzer.",
         handoff_title: "Kein Programmierer? Kein Problem.",
         handoff_sub: "Kopiere diese kurze Nachricht und schick sie an Deinen IT-Support oder einen technikaffinen Kollegen:",
         handoff_note: `"Hallo, k\u00f6nntest Du mir helfen, agentic-pm auf meinem Rechner einzurichten? Das ist ein lokaler Open-Source-Projektassistent, der mit einem lokalen Sprachmodell (Ollama) l\u00e4uft und meine Excel-/CSV-Listen oder unseren Tracker auswertet, um mir t\u00e4gliche Briefings zu schicken. Hier ist das Repository: ${REPO_URL}"`,
@@ -755,9 +992,10 @@
       }
     };
 
-    function setLanguage(lang) {
-      const dict = translations[lang] || translations.en;
-      document.documentElement.lang = lang;
+    function setLanguage(lang, updateUrl = false) {
+      const normalized = lang === "de" ? "de" : "en";
+      const dict = translations[normalized];
+      document.documentElement.lang = normalized;
       document.title = dict.page_title;
 
       document.querySelectorAll("[data-i18n]").forEach((el) => {
@@ -778,16 +1016,41 @@
       });
 
       document.querySelectorAll("[data-lang-btn]").forEach((btn) => {
-        btn.classList.toggle("active", btn.getAttribute("data-lang-btn") === lang);
+        btn.classList.toggle("active", btn.getAttribute("data-lang-btn") === normalized);
       });
+
+      if (updateUrl && window.history && window.history.replaceState) {
+        const url = new URL(window.location.href);
+        url.searchParams.set("lang", normalized);
+        window.history.replaceState(null, "", url.toString());
+      }
     }
 
+    // Language switcher events
     document.querySelectorAll("[data-lang-btn]").forEach((btn) => {
       btn.addEventListener("click", () => {
-        setLanguage(btn.getAttribute("data-lang-btn"));
+        setLanguage(btn.getAttribute("data-lang-btn"), true);
       });
     });
 
+    // Interactive demo tabs
+    document.querySelectorAll("[data-tab-btn]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = btn.getAttribute("data-tab-btn");
+
+        document.querySelectorAll("[data-tab-btn]").forEach((tab) => {
+          const isMatch = tab.getAttribute("data-tab-btn") === target;
+          tab.classList.toggle("active", isMatch);
+          tab.setAttribute("aria-selected", isMatch ? "true" : "false");
+        });
+
+        document.querySelectorAll("[data-tab-panel]").forEach((panel) => {
+          panel.classList.toggle("active", panel.getAttribute("data-tab-panel") === target);
+        });
+      });
+    });
+
+    // Copy IT handoff message
     document.getElementById("copy-btn").addEventListener("click", async () => {
       const text = document.getElementById("handoff-text").textContent.trim();
       const feedback = document.getElementById("copy-feedback");
@@ -804,8 +1067,15 @@
       }
     });
 
-    const initialLang = navigator.language && navigator.language.toLowerCase().startsWith("de") ? "de" : "en";
-    setLanguage(initialLang);
+    // Resolve initial language from ?lang= query parameter, then browser locale
+    const urlLang = new URLSearchParams(window.location.search).get("lang");
+    let initialLang = "en";
+    if (urlLang && (urlLang.toLowerCase() === "de" || urlLang.toLowerCase() === "en")) {
+      initialLang = urlLang.toLowerCase();
+    } else if (navigator.language && navigator.language.toLowerCase().startsWith("de")) {
+      initialLang = "de";
+    }
+    setLanguage(initialLang, false);
   </script>
 </body>
 </html>
