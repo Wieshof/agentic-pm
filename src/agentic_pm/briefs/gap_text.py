@@ -15,8 +15,15 @@ def _t(lang: str) -> i18n.Texts:
 
 
 def render_gap(gap: Gap, lang: str) -> str:
+    """One question; says *why* it matters when other work waits or a label is urgent."""
     task = f"#{gap.task.ref.id} {gap.task.title}"
-    return _t(lang)[gap.code].format(task=task, **gap.params)
+    t = _t(lang)
+    key = gap.code
+    if "waiting" in gap.params:
+        key = f"{gap.code}_waiting"
+    elif "label" in gap.params:
+        key = f"{gap.code}_urgent"
+    return t[key if key in t else gap.code].format(task=task, **gap.params)
 
 
 def render_gaps(gaps: list[Gap], lang: str, limit: int) -> tuple[str, list[str]]:

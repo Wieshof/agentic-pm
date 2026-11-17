@@ -39,6 +39,7 @@ lexicon:
   status_blocked: ["blocked", "waiting", "on hold", "stalled"]
   status_done: ["done", "closed", "complete", "completed", "shipped", "finished"]
   status_closed: ["cancelled", "canceled", "dropped", "won't do"]
+  urgent_labels: ["blocker", "blocking", "critical", "urgent", "showstopper", "p0", "p1", "priority:high", "priority:critical", "prio:high", "sev1", "sev-1", "severity:critical", "hotfix", "security", "incident"]
   extra_months: {}
 
 texts:
@@ -199,6 +200,8 @@ texts:
   gaps:
     heading: 🧩 A few details are missing
     more: … and {n} more
+    MISSING_OWNER_waiting: '{task} has no owner, but other work is waiting for it: {waiting}. Who takes it?'
+    MISSING_OWNER_urgent: '{task} is marked "{label}" but has no owner. Who takes it?'
     MISSING_OWNER: '{task} has no owner, so it shows up in nobody''s brief. Who takes it?'
     OWNER_NOT_IN_TEAM: '{task} belongs to {owner}, who isn''t in the team file and gets no brief. Add them, or hand the task over?'
     MISSING_DUE: '{task} has no due date, so I can''t tell whether it''s at risk. When should it be done?'

@@ -39,6 +39,7 @@ lexicon:
   status_blocked: ["blockiert", "wartet"]
   status_done: ["erledigt", "fertig"]
   status_closed: ["abgebrochen", "verworfen"]
+  urgent_labels: ["blockierend", "blocker", "kritisch", "dringend", "eilt", "priorität:hoch", "prio:hoch", "sicherheit", "störung"]
   extra_months: {"jänner": 1, "jän": 1}   # Austrian
 
 texts:
@@ -199,6 +200,8 @@ texts:
   gaps:
     heading: 🧩 Hier fehlen noch ein paar Angaben
     more: … und {n} weitere
+    MISSING_OWNER_waiting: '{task} hat niemanden, der zuständig ist, aber andere Arbeit wartet darauf: {waiting}. Wer übernimmt?'
+    MISSING_OWNER_urgent: '{task} ist als „{label}“ markiert, hat aber niemanden, der zuständig ist. Wer übernimmt?'
     MISSING_OWNER: '{task} hat niemanden, der zuständig ist, und taucht deshalb in keinem Briefing auf. Wer übernimmt?'
     OWNER_NOT_IN_TEAM: '{task} gehört {owner}, aber diese Person steht nicht in der Team-Datei und bekommt kein Briefing. Eintragen oder übergeben?'
     MISSING_DUE: '{task} hat keinen Termin, deshalb kann ich nicht sagen, ob es eng wird. Bis wann soll es fertig sein?'

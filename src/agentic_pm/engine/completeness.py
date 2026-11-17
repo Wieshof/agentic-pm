@@ -55,6 +55,7 @@ def _hint_patterns() -> tuple[re.Pattern[str], re.Pattern[str]]:
 
 
 EVIDENCE_MAX = 60
+OWNER_CODES = frozenset({"MISSING_OWNER", "OWNER_NOT_IN_TEAM"})
 
 
 class Gap(BaseModel):
@@ -62,6 +63,19 @@ class Gap(BaseModel):
     task: Task
     recipients: list[str]  # team.yaml handles
     params: dict[str, str] = {}
+    waiting: int = 0  # open tasks that wait on this task (linked or named in their text)
+    urgent_label: str | None = None  # e.g. "blocker", "p0"
+
+    @property
+    def priority(self) -> tuple[int, int, int, date, str]:
+        """'Who takes it?' first, then blockers, urgent labels and the nearest due date."""
+        return (
+            0 if self.code in OWNER_CODES else 1,
+            -self.waiting,
+            0 if self.urgent_label else 1,
+            self.task.due or date.max,
+            str(self.task.ref),
+        )
 
 
 class CompletenessReport(BaseModel):
@@ -128,20 +142,64 @@ def dependency_hints(task: Task, text: str) -> list[tuple[TaskRef, str]]:
     return list(found.values())
 
 
-def is_backlog(task: Task, graph: DependencyGraph) -> bool:
-    """Not planned yet: nobody owns it, no date, not started, nothing links it.
+def _norm_label(label: str) -> str:
+    """'Priority: High', 'priority/high', 'must-have', 'Must Have' all compare equal."""
+    return re.sub(r"[\s_-]+", "", label.lower()).replace("/", ":").replace("=", ":")
+
+
+def urgent_label(task: Task, extra: list[str] | tuple[str, ...] = ()) -> str | None:
+    """The first label that marks the task as urgent ('blocker', 'P0', 'priority: high' …)."""
+    wanted = {_norm_label(w) for w in (*i18n.words("urgent_labels"), *extra)}
+    return next((label for label in task.labels if _norm_label(label) in wanted), None)
+
+
+def waiting_on(graph: DependencyGraph) -> dict[str, list[Task]]:
+    """For every task: the open tasks waiting on it, linked or named in their text.
+
+    "Waiting on #204" in another ticket makes #204 a blocker even before anyone
+    links the two, so it must never disappear into the backlog.
+    """
+    out: dict[str, dict[str, Task]] = {}
+    for task in graph.tasks.values():
+        if task.status in (TaskStatus.DONE, TaskStatus.CLOSED):
+            continue
+        for down in graph.downstream(task.ref):
+            if down.status not in (TaskStatus.DONE, TaskStatus.CLOSED):
+                out.setdefault(str(task.ref), {})[str(down.ref)] = down
+        for ref, _ in dependency_hints(task, f"{task.title}\n{task.description or ''}"):
+            if str(ref) in graph.tasks:
+                out.setdefault(str(ref), {})[str(task.ref)] = task
+    return {k: sorted(v.values(), key=lambda t: str(t.ref)) for k, v in out.items()}
+
+
+def is_backlog(
+    task: Task,
+    graph: DependencyGraph,
+    *,
+    waiting: list[Task] | None = None,
+    urgent: str | None = None,
+) -> bool:
+    """Not planned yet: nobody owns it, no date, not started, nothing depends on it.
 
     Every real tracker has many of these (ideas, roadmap items). Asking "who
-    takes it?" about each of them every morning is noise, not help.
+    takes it?" about each of them every morning is noise, not help. But a task
+    that something waits on, or that carries an urgent label, is never backlog.
     """
     return (
         not task.assignees
         and task.due is None
         and task.status is TaskStatus.OPEN
+        and not waiting
+        and urgent is None
         and not graph.blockers(task.ref)
         and not graph.done_blockers(task.ref)
         and not graph.downstream(task.ref)
     )
+
+
+def _names(tasks: list[Task], limit: int = 2) -> str:
+    shown = ", ".join(f"#{t.ref.id} {t.title}" for t in tasks[:limit])
+    return shown + (f" (+{len(tasks) - limit})" if len(tasks) > limit else "")
 
 
 def check_completeness(cfg: TeamConfig, graph: DependencyGraph) -> CompletenessReport:
@@ -154,10 +212,13 @@ def check_completeness(cfg: TeamConfig, graph: DependencyGraph) -> CompletenessR
 
     gaps: list[Gap] = []
     active = ready = backlog = 0
+    waits = waiting_on(graph)
     for task in sorted(graph.tasks.values(), key=lambda t: str(t.ref)):
         if task.status in (TaskStatus.DONE, TaskStatus.CLOSED):
             continue
-        if policy.backlog == "separate" and is_backlog(task, graph):
+        waiting = waits.get(str(task.ref), [])
+        urgent = urgent_label(task, policy.urgent_labels)
+        if policy.backlog == "separate" and is_backlog(task, graph, waiting=waiting, urgent=urgent):
             backlog += 1
             continue
         active += 1
@@ -168,7 +229,8 @@ def check_completeness(cfg: TeamConfig, graph: DependencyGraph) -> CompletenessR
         text = task.description or ""
 
         if policy.require_owner and not task.assignees:
-            mine.append(Gap(code="MISSING_OWNER", task=task, recipients=triage))
+            why = {"waiting": _names(waiting)} if waiting else {"label": urgent} if urgent else {}
+            mine.append(Gap(code="MISSING_OWNER", task=task, recipients=triage, params=why))
         if strangers:
             mine.append(
                 Gap(
@@ -232,7 +294,10 @@ def check_completeness(cfg: TeamConfig, graph: DependencyGraph) -> CompletenessR
                     )
                 )
         if mine:
-            gaps.extend(mine)
+            gaps.extend(
+                g.model_copy(update={"waiting": len(waiting), "urgent_label": urgent}) for g in mine
+            )
         else:
             ready += 1
+    gaps.sort(key=lambda g: g.priority)  # what blocks the most comes first
     return CompletenessReport(active=active, ready=ready, gaps=gaps, backlog=backlog)

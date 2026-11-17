@@ -278,6 +278,14 @@
           "title": "Max Per Brief",
           "type": "integer"
         },
+        "urgent_labels": {
+          "description": "Extra labels that mark a task as urgent, on top of the built-in ones (blocker, critical, urgent, p0, p1, sev1, security, hotfix, \u2026 in every language). Urgent tasks are never backlog and come first",
+          "items": {
+            "type": "string"
+          },
+          "title": "Urgent Labels",
+          "type": "array"
+        },
         "backlog": {
           "default": "separate",
           "description": "'separate': open tasks with no owner, no due date, no progress and no dependencies are backlog, counted on one line instead of asked about. 'check': ask about every open task",
@@ -674,6 +682,7 @@
         "detect_hints": true,
         "triage": [],
         "max_per_brief": 5,
+        "urgent_labels": [],
         "backlog": "separate"
       }
     },

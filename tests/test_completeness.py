@@ -41,7 +41,7 @@ def ref(i: str) -> TaskRef:
 def task(i: str, *, owner: str | None = None, due: int | None = 5, **kw: Any) -> Task:
     return Task(
         ref=ref(i),
-        title=f"Task {i}",
+        title=kw.pop("title", f"Task {i}"),
         status=kw.pop("status", TaskStatus.OPEN),
         assignees=[owner] if owner else [],
         due=TODAY + timedelta(days=due) if due is not None else None,
@@ -242,3 +242,50 @@ async def test_unplanned_backlog_is_one_line_not_many_questions() -> None:
     assert lines[-1].startswith("46 more in the backlog")
     _, lines_de = render_readiness(r, "de")
     assert lines_de[-1].startswith("46 weitere im Backlog")
+
+
+async def test_blockers_and_urgent_labels_never_get_lost_in_the_backlog() -> None:
+    from agentic_pm.engine.followup import plan
+
+    tasks = [task(str(i), due=None) for i in range(1, 92)]  # 91 ideas
+    tasks += [
+        task("200", due=None, title="Payment API contract"),  # linked: #201 waits on it
+        task("201", owner="sam", status=TaskStatus.IN_PROGRESS),
+        task("202", due=None, labels=["Priority: High"]),  # an urgent label, nothing else
+        task("203", owner="sam", description="Waiting on #204 before we can ship"),
+        task("204", due=None),  # only named in another ticket's text
+        task("205", due=None, labels=["dringend"]),  # German label
+        task("206", due=None, labels=["must-have"]),  # team's own label
+    ]
+    c = cfg(urgent_labels=["Must Have"])
+    g = await DependencyGraph.build(
+        InMemoryTracker(tasks, [Edge(source=ref("200"), target=ref("201"))]), P
+    )
+    r = check_completeness(c, g)
+    assert r.backlog == 91
+    owners = [x.task.ref.id for x in r.gaps if x.code == "MISSING_OWNER"]
+    assert owners[:2] == ["200", "204"]  # what others wait on comes first
+    assert set(owners) == {"200", "202", "204", "205", "206"}
+    first = r.gaps[0]
+    assert first.params["waiting"] == "#201 Task 201" and first.waiting == 1
+    by_id = {x.task.ref.id: x for x in r.gaps if x.code == "MISSING_OWNER"}
+    assert by_id["202"].params["label"] == "Priority: High"
+    assert by_id["205"].urgent_label == "dringend" and by_id["206"].urgent_label == "must-have"
+    # and they're asked about every day, not weekly like ordinary gaps
+    fus = {f.key: f for f in plan(c, r, g, TODAY, writes=True)}
+    assert all(f.urgent for k, f in fus.items() if "MISSING_OWNER" in k)
+
+    from agentic_pm.briefs.gap_text import render_gap
+
+    assert "other work is waiting for it: #201" in render_gap(first, "en")
+    assert "„Priority: High“ markiert" in render_gap(by_id["202"], "de")
+
+
+async def test_lead_brief_puts_blockers_first() -> None:
+    tasks = [task(str(i), due=None) for i in range(1, 92)]
+    tasks += [task("300", due=None, labels=["blocker"]), task("301", owner="sam", due=None)]
+    text = render_text(await collect(cfg(), "markus", InMemoryTracker(tasks), TODAY))
+    gaps = text.split("🧩", 1)[1]
+    assert "#300" in gaps and "#301" not in gaps  # #301's question goes to Sam, its owner
+    assert 'marked "blocker" but has no owner' in text
+    assert "91 more in the backlog" in text

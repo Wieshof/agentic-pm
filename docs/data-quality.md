@@ -38,6 +38,24 @@ Leads also see a **readiness ratio** for the team, and the weekly digest shows i
   • missing: 1 blocked by something already done, 1 without due date
 ```
 
+## Backlog, and what never disappears into it
+
+Every real tracker has open items nobody has planned yet: ideas, roadmap items, someday maybes. Asking "who takes it?" about each of them every morning would be noise. So an open item with **no owner, no due date, no progress and nothing depending on it** counts as backlog. It isn't asked about, just counted once: "46 more in the backlog, not planned yet". That line appears in the lead's readiness section and in the weekly digest.
+
+An item is **never** backlog when something says it matters:
+
+| Signal | Example | What leads see |
+|--------|---------|----------------|
+| Other work is linked as waiting on it | #201 depends on #200 | "#200 Payment API contract has no owner, but other work is waiting for it: #201 Checkout page. Who takes it?" |
+| Another ticket's text names it | #203 says "waiting on #204" | the same, naming #203 |
+| An urgent label | `blocker`, `critical`, `urgent`, `P0`, `P1`, `sev1`, `security`, `hotfix`, `priority: high`, `dringend`, `kritisch` … | "#202 Prod login broken is marked "blocker" but has no owner. Who takes it?" |
+
+- **These come first.** "Who takes it?" questions lead the list, ordered by how much waits on them, then urgent labels, then the nearest due date. A blocker never ends up behind "… and 41 more".
+- **They're asked every day** instead of weekly ([follow-up](chat.md#follow-up-gentle-per-question)).
+- **Labels are compared loosely:** `Priority: High`, `priority/high` and `priority-high` are the same label. A plain `bug` doesn't count as urgent on its own.
+- **More labels:** add your team's own with `completeness.urgent_labels`. Each language file brings its own list too ([languages](languages.md)).
+- **No backlog at all:** `completeness.backlog: check` asks about every open item again.
+
 ## Careful with free text
 
 - **Ticket text is untrusted.** Phrases like "waiting on #14" or "deadline 2026-11-25" only ever become a **question** to the owner. Nothing is linked or changed automatically. Only the short matched phrase is quoted, never the rest of the text.
@@ -60,6 +78,8 @@ completeness:
   detect_hints: true            # suggest links for "waiting on #14" & co.
   triage: [alex]                # who gets unowned tasks (default: the leads)
   max_per_brief: 5              # at most this many questions per person and day
+  urgent_labels: [must-have]    # your own urgent labels, on top of blocker, P0, critical, …
+  backlog: separate             # or: check (ask about every open item)
 ```
 
 Checks a tracker can't support are skipped. A tracker without due dates is never asked for them.

@@ -38,6 +38,24 @@ Teamleitungen sehen zusätzlich eine **Datenqualität** für das Team, und der W
   • es fehlen: 1 blockiert durch bereits Erledigtes, 1 ohne Termin
 ```
 
+## Backlog, und was nie darin verschwindet
+
+Jeder echte Tracker hat offene Einträge, die noch niemand eingeplant hat: Ideen, Roadmap-Punkte, „irgendwann mal“. Jeden Morgen zu jedem „Wer übernimmt?“ zu fragen, wäre Rauschen. Deshalb zählt ein offener Eintrag **ohne Zuständige, ohne Termin, ohne Fortschritt und ohne etwas, das davon abhängt** als Backlog. Dazu wird nicht gefragt, er wird nur einmal mitgezählt: „46 weitere im Backlog, noch nicht eingeplant“. Diese Zeile steht im Datenqualitäts-Abschnitt der Teamleitung und im Wochenrückblick.
+
+Ein Eintrag ist **nie** Backlog, wenn etwas zeigt, dass er wichtig ist:
+
+| Hinweis | Beispiel | Was die Teamleitung sieht |
+|---------|----------|---------------------------|
+| Andere Arbeit ist als wartend darauf verknüpft | #201 hängt an #200 | „#200 Payment API contract hat niemanden, der zuständig ist, aber andere Arbeit wartet darauf: #201 Checkout page. Wer übernimmt?“ |
+| Ein anderes Ticket nennt ihn im Text | #203 sagt „wartet auf #204“ | dasselbe, mit #203 |
+| Ein dringendes Label | `blocker`, `critical`, `urgent`, `P0`, `P1`, `sev1`, `security`, `hotfix`, `priority: high`, `dringend`, `kritisch` … | „#202 Prod login broken ist als „blocker“ markiert, hat aber niemanden, der zuständig ist. Wer übernimmt?“ |
+
+- **Diese kommen zuerst.** „Wer übernimmt?“-Fragen stehen vorn, sortiert danach, wie viel daran hängt, dann nach dringenden Labels, dann nach dem nächsten Termin. Ein Blocker landet nie hinter „… und 41 weitere“.
+- **Gefragt wird jeden Tag** statt wöchentlich ([Nachfassen](chat.md#nachfassen-sanft-und-pro-frage)).
+- **Labels werden großzügig verglichen:** `Priority: High`, `priority/high` und `priority-high` sind dasselbe Label. Ein einfaches `bug` zählt allein nicht als dringend.
+- **Weitere Labels:** Eigene ergänzt Ihr mit `completeness.urgent_labels`. Jede Sprachdatei bringt außerdem ihre eigene Liste mit ([Sprachen](languages.md)).
+- **Gar kein Backlog:** `completeness.backlog: check` fragt wieder zu jedem offenen Eintrag.
+
 ## Vorsicht bei Freitext
 
 - **Tickettext ist nicht vertrauenswürdig.** Formulierungen wie „wartet auf #14“ oder „Deadline 2026-11-25“ werden immer nur zu einer **Frage** an die zuständige Person. Nichts wird automatisch verknüpft oder geändert. Zitiert wird nur die kurze gefundene Formulierung, nie der restliche Text.
@@ -60,6 +78,8 @@ completeness:
   detect_hints: true            # Verknüpfungen für „wartet auf #14“ & Co. vorschlagen
   triage: [alex]                # wer Aufgaben ohne Zuständige bekommt (Standard: die Teamleitungen)
   max_per_brief: 5              # höchstens so viele Fragen pro Person und Tag
+  urgent_labels: [must-have]    # eigene dringende Labels, zusätzlich zu blocker, P0, critical, …
+  backlog: separate             # oder: check (zu jedem offenen Eintrag fragen)
 ```
 
 Prüfungen, die ein Tracker nicht unterstützt, werden übersprungen. Bei einem Tracker ohne Termine wird nie nach Terminen gefragt.

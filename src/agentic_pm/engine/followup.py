@@ -97,6 +97,8 @@ def plan(
         task = gap.task
         urgent = (
             gap.code in URGENT_CODES
+            or gap.waiting > 0
+            or gap.urgent_label is not None
             or bool(graph.downstream(task.ref))
             or (task.due is not None and task.due <= horizon)
         )

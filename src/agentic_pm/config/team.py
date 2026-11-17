@@ -252,6 +252,12 @@ class Completeness(_Strict):
         default_factory=list, description="Who gets unowned tasks (default: project.leads)"
     )
     max_per_brief: int = Field(default=5, ge=1, le=20)
+    urgent_labels: list[str] = Field(
+        default_factory=list,
+        description="Extra labels that mark a task as urgent, on top of the built-in ones "
+        "(blocker, critical, urgent, p0, p1, sev1, security, hotfix, … in every language). "
+        "Urgent tasks are never backlog and come first",
+    )
     backlog: Literal["separate", "check"] = Field(
         default="separate",
         description="'separate': open tasks with no owner, no due date, no progress and no "
