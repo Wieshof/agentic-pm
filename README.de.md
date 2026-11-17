@@ -1,5 +1,43 @@
 # agentic-pm
 
+🇬🇧 English · 🇩🇪 Deutsch
+
+**Ein ruhiger, lokaler Projekt-Assistent, der auf Deinen bestehenden Tools aufsetzt: ganz ohne externe KI-Clouds.**
+
+Die meisten scheitern im Projektalltag nicht daran, dass ihnen Werkzeuge fehlen. Sie scheitern daran, dass das Pflegen von Tickets, das Nachfassen per E-Mail und das Erkennen versteckter Abhängigkeiten zu viel Zeit fressen. Gleichzeitig kommt es für datenschutzbewusste Teams und Selbstständige nicht infrage, interne Geschäftsdaten an US-amerikanische oder chinesische KI-Clouds zu schicken.
+
+`agentic-pm` löst beide Probleme: Der Assistent arbeitet als proaktiver Buddy **zu 100 % lokal auf Deiner eigenen Hardware**, liest Deine bestehenden Aufgabenlisten oder Tracker aus und kommuniziert mit Dir über E-Mail, Chat oder Sprache.
+
+> **Kein Entwickler?** Du musst weder Code anfassen noch komplizierte Setups einrichten, um davon zu profitieren.  
+> 👉 **[Mit einer einfachen Excel-/CSV-Tabelle starten (ohne Konten)](docs/de/spreadsheets.md)**  
+> 👉 **[Diese Übersicht an Deine IT oder einen technikaffinen Bekannten senden](docs/de/getting-started.md)**
+
+---
+
+### Was der Assistent konkret für Dich übernimmt
+
+* **Erkennt versteckte Engpässe frühzeitig:** Wenn sich eine Aufgabe verzögert, prüft der Assistent alle abhängigen Schritte und warnt Dich rechtzeitig (*„Der Kunden-Launch am Freitag hängt an der Druckfreigabe in Zeile 63“*).
+* **Holt alle in ihrem gewohnten Kanal ab:** Leser erhalten ein ruhiges Morgen-Briefing per E-Mail, Sprecher bekommen gesprochene Zusammenfassungen, und Teammitglieder antworten per E-Mail, Signal, Matrix oder Sprachnotiz in ihrer eigenen Sprache (z. B. Chat auf Deutsch, während die Tickets auf Englisch bleiben).
+* **Macht aus kurzen Updates saubere Dokumentation:** Erwähne in einer Sprachnotiz oder E-Mail-Antwort kurz, wie ein Problem gelöst wurde: Der Assistent schreibt daraus eine strukturierte Anleitung direkt ins passende Ticket.
+* **Verkleinert Deinen Software-Stack:** Keine neuen Dashboards, keine zusätzlichen Tracker-Lizenzen für Stakeholder und keine separaten Wikis, die nach zwei Wochen veraltet sind.
+
+### Datenschutz & Architektur nach dem Prinzip „Local-First & Stateless“
+
+* **Keine Daten verlassen Deinen Rechner:** Läuft nativ mit lokalen Open-Weights-Modellen (über Ollama oder jeden OpenAI-kompatiblen lokalen Server).
+* **Keine zweite Datenbank:** Dein bestehendes Tool (Excel/CSV, OpenProject, GitHub, GitLab, Jira, Linear, Plane, Taiga) bleibt die alleinige Datenquelle. Der Assistent speichert keinen eigenen permanenten Aufgabenstatus.
+* **Klare Leitplanken (Human-in-the-Loop):** Risikoarme Zusammenfassungen laufen automatisch; weitreichende Änderungen erfordern eine explizite Freigabe.
+
+---
+
+**Projektstatus:**  
+✍️ **Phase 2 abgeschlossen** (Write-back, How-to-Extraktion, Freigaben, täglicher Rhythmus) - bereit für Pilot-Teams und Einzelanwender.  
+💬 **Phase 3 in Arbeit** (Chat über Matrix & Signal mit Sprachnotizen und Status-Abgleich).  
+📖 [Erste Schritte](docs/de/getting-started.md) · [Start mit Tabellen](docs/de/spreadsheets.md) · [Roadmap](docs/de/roadmap.md)
+
+---
+
+# agentic-pm
+
 🇬🇧 [English](README.md) · 🇩🇪 Deutsch
 
 **Eine omnichannel-fähige, agentische Projektmanagement-Schicht, die auf den Issue-Trackern aufsetzt, die Du bereits nutzt.**
