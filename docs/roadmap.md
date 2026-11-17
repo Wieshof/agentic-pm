@@ -39,7 +39,7 @@ See [Running the agent](running.md).
 - **Exit:** blocker surfacing < 2 h; at least one non-tracker user active per pilot team
 
 ## Phase 4 — Plan & Control 📋 planned in detail
-Records live in the tracker or the repo, never in an agent database ([ADR-0003](adr/0003-pm-records-without-a-database.md)). **Order and decisions: [Phase 4 plan](plan-phase-4.md)**: 4.0 foundation (creating records) → WBS generator → RAID → change control → baselines → health check → decisions → closure. Calendar deferred.
+Records live in the tracker or the repo, never in an agent database ([ADR-0003](adr/0003-pm-records-without-a-database.md)). **Order and decisions: [Phase 4 plan](plan-phase-4.md)**: 4.0a several trackers, sources and seams ([ADR-0006](adr/0006-multiple-trackers-sources-and-seams.md)) → 4.0 foundation (creating records) → WBS generator → RAID → change control → baselines → health check → decisions → closure. Calendar deferred.
 - **Initiation / WBS generator:** a sponsor describes a goal by voice, email or chat; the agent drafts milestones, work items, acceptance criteria and first dependencies in the tracker, **as a draft for approval**
 - **RAID register:** risks, assumptions, issues and dependencies as tracker items (`type:risk` …) with probability × impact, owner and mitigation
 - **Change control:** new scope arriving in any channel ("could you also add …") is flagged with its timeline impact and routed to the lead for approval **before** work items are created
@@ -66,7 +66,7 @@ Adapter work can run in parallel to other phases.
 ## Phase 7 — Money & Portfolio (new)
 - Time-tracking and finance sources (e.g. Tempo, Harvest, Clockify, spreadsheets)
 - Budget vs. actuals, burn rate, variance explanations and forecasts
-- Portfolio view: cross-project dependencies, capacity and prioritisation
+- Portfolio view for leadership: prioritisation across projects (cross-tracker dependencies and capacity move to 4.0a, [ADR-0006](adr/0006-multiple-trackers-sources-and-seams.md))
 - Methodology profiles: Scrum, Kanban, PRINCE2 stage gates, hybrid
 - Stakeholder map and one-question pulse surveys through each person's channel
 

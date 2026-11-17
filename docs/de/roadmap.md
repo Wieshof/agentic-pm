@@ -39,7 +39,7 @@ Siehe [Den Agenten betreiben](running.md).
 - **Abschluss:** Blocker werden in < 2 h sichtbar; mindestens eine Person ohne Tracker-Konto ist pro Pilotteam aktiv
 
 ## Phase 4 — Planung & Steuerung 📋 im Detail geplant
-Die Einträge liegen im Tracker oder im Repository, nie in einer Datenbank des Agenten ([ADR-0003](../adr/0003-pm-records-without-a-database.de.md)). **Reihenfolge und Entscheidungen: [Plan für Phase 4](plan-phase-4.md)**: 4.0 Grundlage (Einträge anlegen) → PSP-Generator → RAID → Änderungssteuerung → Basispläne → Gesundheitscheck → Entscheidungen → Abschluss. Kalender zurückgestellt.
+Die Einträge liegen im Tracker oder im Repository, nie in einer Datenbank des Agenten ([ADR-0003](../adr/0003-pm-records-without-a-database.de.md)). **Reihenfolge und Entscheidungen: [Plan für Phase 4](plan-phase-4.md)**: 4.0a mehrere Tracker, Quellen und Nahtstellen ([ADR-0006](../adr/0006-multiple-trackers-sources-and-seams.de.md)) → 4.0 Grundlage (Einträge anlegen) → PSP-Generator → RAID → Änderungssteuerung → Basispläne → Gesundheitscheck → Entscheidungen → Abschluss. Kalender zurückgestellt.
 - **Projektstart / PSP-Generator:** Ein Sponsor beschreibt ein Ziel per Sprache, E-Mail oder Chat; der Agent entwirft Meilensteine, Arbeitspakete, Abnahmekriterien und erste Abhängigkeiten im Tracker, **als Entwurf zur Freigabe**
 - **RAID-Register:** Risiken, Annahmen, Probleme und Abhängigkeiten als Tracker-Einträge (`type:risk` …) mit Wahrscheinlichkeit × Auswirkung, Verantwortlichen und Gegenmaßnahme
 - **Änderungssteuerung:** Neuer Umfang, der über irgendeinen Kanal kommt („könntet ihr noch … einbauen“), wird mit seiner Auswirkung auf den Zeitplan markiert und **vor** dem Anlegen von Arbeitspaketen der Teamleitung zur Freigabe vorgelegt
@@ -66,7 +66,7 @@ Adapter-Arbeit kann parallel zu anderen Phasen laufen.
 ## Phase 7 — Geld & Portfolio (neu)
 - Zeiterfassung und Finanzdaten als Quellen (z. B. Tempo, Harvest, Clockify, Tabellen)
 - Budget vs. Ist, Burn Rate, Abweichungserklärungen und Prognosen
-- Portfolio-Sicht: projektübergreifende Abhängigkeiten, Kapazität und Priorisierung
+- Portfolio-Sicht für die Leitung: Priorisierung über Projekte hinweg (trackerübergreifende Abhängigkeiten und Kapazität wandern nach 4.0a, [ADR-0006](../adr/0006-multiple-trackers-sources-and-seams.de.md))
 - Methodik-Profile: Scrum, Kanban, PRINCE2-Phasenfreigaben, hybrid
 - Stakeholder-Landkarte und Ein-Fragen-Umfragen über den Kanal jeder Person
 

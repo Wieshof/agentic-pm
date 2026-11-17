@@ -25,7 +25,7 @@ How agentic-pm maps to the full project-manager role: responsibilities, daily/we
 | Responsibility | | Where |
 |---|:-:|---|
 | Monitor progress, follow up, remove blockers | ✅ | briefs, dependency analyzer; [#14](https://github.com/Wieshof/agentic-pm/issues/14), [#15](https://github.com/Wieshof/agentic-pm/issues/15) |
-| Coordinate dependencies across workstreams | ✅ | one project; across projects [#59](https://github.com/Wieshof/agentic-pm/issues/59) |
+| Coordinate dependencies across workstreams | ✅ | one project; across trackers and departments: step 4.0a ([ADR-0006](adr/0006-multiple-trackers-sources-and-seams.md)) |
 | Assign tasks, set expectations | 🗓️ | suggestions only, lead approves [#11](https://github.com/Wieshof/agentic-pm/issues/11) |
 | Workload & capacity conflicts | 🗓️ | [#46](https://github.com/Wieshof/agentic-pm/issues/46) (task-centric) |
 | Coaching, feedback, performance management | 🤝 | neutral 1:1 material at most, see ADR-0004 |

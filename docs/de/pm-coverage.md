@@ -25,7 +25,7 @@ Wie agentic-pm die komplette Rolle einer Projektleitung abdeckt: Aufgaben, tägl
 | Aufgabe | | Wo |
 |---|:-:|---|
 | Fortschritt verfolgen, nachfassen, Blocker lösen | ✅ | Briefings, Abhängigkeitsanalyse; [#14](https://github.com/Wieshof/agentic-pm/issues/14), [#15](https://github.com/Wieshof/agentic-pm/issues/15) |
-| Abhängigkeiten über Arbeitsstränge koordinieren | ✅ | ein Projekt; projektübergreifend [#59](https://github.com/Wieshof/agentic-pm/issues/59) |
+| Abhängigkeiten über Arbeitsstränge koordinieren | ✅ | ein Projekt; über Tracker und Abteilungen hinweg: Schritt 4.0a ([ADR-0006](../adr/0006-multiple-trackers-sources-and-seams.de.md)) |
 | Aufgaben zuweisen, Erwartungen klären | 🗓️ | nur Vorschläge, Teamleitung gibt frei [#11](https://github.com/Wieshof/agentic-pm/issues/11) |
 | Auslastung & Kapazitätskonflikte | 🗓️ | [#46](https://github.com/Wieshof/agentic-pm/issues/46) (aufgabenbezogen) |
 | Coaching, Feedback, Leistungsbeurteilung | 🤝 | höchstens neutrales 1:1-Material, siehe ADR-0004 |

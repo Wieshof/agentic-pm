@@ -4,7 +4,7 @@
 
 - **Status:** agreed, not started
 - **Date:** 2026-11-17
-- **Issues:** #48 #49 #50 #51 #52 #54 #55 (#53 deferred)
+- **Issues:** #48 #49 #50 #51 #52 #54 #55, the cross-tracker part of #59 (#53 deferred)
 
 Phases 1–3 let the agent read, warn, ask and update. Phase 4 lets it **keep the project's records**: a plan drafted from a goal, risks, change requests, decisions, baselines and a monthly health check. All of these are records the team can see and edit without the agent ([ADR-0003](adr/0003-pm-records-without-a-database.md)).
 
@@ -17,9 +17,25 @@ Phases 1–3 let the agent read, warn, ask and update. Phase 4 lets it **keep th
 | Files in the repo (baselines, decisions, meeting notes)? | **Pull request**, so a person reviews and merges. |
 | First feature after the foundation? | **WBS generator (#48)**: a goal becomes a draft plan for approval. |
 | Calendar (#53)? | **Deferred.** It may come at the end of Phase 4 or in Phase 6. |
+| Several trackers (clients, departments)? | **Sources and seams** ([ADR-0006](adr/0006-multiple-trackers-sources-and-seams.md)), built first as step 4.0a. Records can then sit at the seam between departments. |
 | Asana? | A good fit (native milestones, approval tasks and custom fields; #30). The foundation is designed so Asana can be the next writing tracker. |
 
 ## Steps
+
+### 4.0a Several trackers: sources and seams ([ADR-0006](adr/0006-multiple-trackers-sources-and-seams.md))
+
+The agent works across several trackers without mirroring tickets. It's a translator and dependency bridge at the seam between departments, or between clients.
+
+- **`sources:`** in `team.yaml`: one entry per tracker, with its own credentials, webhook path, ticket language, write permission and leads. `project:` keeps working as the one-source shorthand. One person can have a login per source (`logins:`).
+- **One picture across sources:** dependency graph, briefs, capacity collisions and completeness work on all sources together, read-only.
+- **Seams:** the waiting side declares `waits_for: eng:milestone/v2.0` (or one item, or a label) in its own tracker or spreadsheet cell.
+  - The agent rolls up the other side deterministically: done versus total, at risk, forecast, buffer.
+  - Each side hears about it once, in its own words. Operations sees "engineering forecast 28 Nov, 3 days buffer"; Engineering hears only when a business date is at risk, and which issues decide it.
+- **Isolation:** `strict` (the default for clients) means nothing about another source is ever written into it. `open` (departments) allows short seam status lines as audited comments. There are tests that try to leak data.
+- **Suggestions:** ticket text that mentions the other side becomes a seam suggestion that a person confirms.
+- **Done when:**
+  - A freelancer with a GitHub client and a spreadsheet client gets one brief with a collision across both, and neither tracker receives anything about the other.
+  - An OpenProject milestone waiting on a GitHub milestone shows a forecast and buffer on both sides.
 
 ### 4.0 Foundation: creating records
 

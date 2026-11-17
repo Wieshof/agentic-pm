@@ -61,7 +61,7 @@ Tabellen sind lockerer als Issue-Tracker. Deshalb wird jede Zeile, die der Agent
 | Unbekannter Status (z. B. „vielleicht später“) | Übersprungen und gemeldet. Falsches Raten könnte ein Risiko verstecken oder erfinden; trag das Wort in `status_map` ein. |
 | Fälligkeit oder Schätzung nicht lesbar („TBD“) | Aufgabe bleibt, Wert wird gemeldet |
 | `Abhängig von` nennt eine fehlende ID | Gemeldet (die Kette ist dort unterbrochen) |
-| `Abhängig von` nennt einen anderen Tracker (`github:acme/api#42`) | Als „noch nicht prüfbar“ gemeldet, bis es Abhängigkeiten über Tracker hinweg gibt (#59) |
+| `Abhängig von` nennt einen anderen Tracker (`github:acme/api#42`) | Als „noch nicht prüfbar“ gemeldet, bis es Nahtstellen über Tracker hinweg gibt (Schritt 4.0a, [ADR-0006](../adr/0006-multiple-trackers-sources-and-seams.de.md)) |
 | Formel ohne berechneten Wert (von einem Skript gespeichert) | Gemeldet; öffne und speichere die Datei in Excel oder LibreOffice |
 | Eine eingestellte optionale Spalte fehlt in der Tabelle | Einmal gemeldet; setze sie auf `null`, wenn Du sie nicht führst |
 | Leere Zeilen am Ende (auch formatierte) | Werden still ignoriert |
@@ -76,4 +76,4 @@ Technische Details:
 
 - **Nur lesend.** Der Agent schreibt nie in Deine Datei. Das Aktualisieren per Sprache oder WhatsApp gehört zu Phase 3.
 - **Keine Änderungsereignisse.** Die Tabelle wird bei jedem Briefing, Wochenrückblick oder `deps`-Lauf gelesen.
-- **Eine Tabelle pro Projekt.** Abhängigkeiten zu GitHub- oder OpenProject-Einträgen werden gemeldet, aber noch nicht geprüft (#59).
+- **Eine Tabelle pro Projekt.** Abhängigkeiten zu GitHub- oder OpenProject-Einträgen werden gemeldet, aber noch nicht geprüft; das kommt mit den Nahtstellen (Schritt 4.0a, [ADR-0006](../adr/0006-multiple-trackers-sources-and-seams.de.md)).

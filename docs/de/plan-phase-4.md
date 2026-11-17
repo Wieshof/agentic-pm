@@ -4,7 +4,7 @@
 
 - **Status:** abgestimmt, noch nicht begonnen
 - **Datum:** 17.11.2026
-- **Issues:** #48 #49 #50 #51 #52 #54 #55 (#53 zurückgestellt)
+- **Issues:** #48 #49 #50 #51 #52 #54 #55, der trackerübergreifende Teil von #59 (#53 zurückgestellt)
 
 Mit den Phasen 1–3 kann der Agent lesen, warnen, nachfragen und aktualisieren. In Phase 4 **führt er die Unterlagen des Projekts**: einen aus einem Ziel entworfenen Plan, Risiken, Änderungsanträge, Entscheidungen, Basispläne und einen monatlichen Gesundheitscheck. Das alles sind Einträge, die das Team auch ohne den Agenten sehen und bearbeiten kann ([ADR-0003](../adr/0003-pm-records-without-a-database.de.md)).
 
@@ -17,9 +17,25 @@ Mit den Phasen 1–3 kann der Agent lesen, warnen, nachfragen und aktualisieren.
 | Dateien im Repository (Basispläne, Entscheidungen, Besprechungsnotizen)? | **Pull Request**, damit ein Mensch prüft und zusammenführt. |
 | Erstes Feature nach der Grundlage? | **PSP-Generator (#48)**: Aus einem Ziel wird ein Planentwurf zur Freigabe. |
 | Kalender (#53)? | **Zurückgestellt.** Kommt eventuell am Ende von Phase 4 oder in Phase 6. |
+| Mehrere Tracker (Kunden, Abteilungen)? | **Quellen und Nahtstellen** ([ADR-0006](../adr/0006-multiple-trackers-sources-and-seams.de.md)), zuerst gebaut als Schritt 4.0a. Einträge können dann an der Nahtstelle zwischen Abteilungen sitzen. |
 | Asana? | Passt gut (eigene Meilensteine, Freigabe-Aufgaben und benutzerdefinierte Felder; #30). Die Grundlage ist so entworfen, dass Asana der nächste Tracker mit Schreibzugriff sein kann. |
 
 ## Schritte
+
+### 4.0a Mehrere Tracker: Quellen und Nahtstellen ([ADR-0006](../adr/0006-multiple-trackers-sources-and-seams.de.md))
+
+Der Agent arbeitet über mehrere Tracker hinweg, ohne Tickets zu spiegeln. Er ist Übersetzer und Abhängigkeitsbrücke an der Nahtstelle zwischen Abteilungen oder zwischen Kunden.
+
+- **`sources:`** in `team.yaml`: ein Eintrag pro Tracker, mit eigenen Zugangsdaten, eigenem Webhook-Pfad, eigener Ticket-Sprache, eigenem Schreibrecht und eigenen Teamleitungen. `project:` funktioniert weiter als Kurzform für eine Quelle. Eine Person kann pro Quelle einen eigenen Login haben (`logins:`).
+- **Ein Bild über alle Quellen:** Abhängigkeitsgraph, Briefings, Kapazitätskollisionen und Vollständigkeit arbeiten über alle Quellen zusammen, nur lesend.
+- **Nahtstellen:** Die wartende Seite trägt `waits_for: eng:milestone/v2.0` (oder einen einzelnen Eintrag oder ein Label) im eigenen Tracker oder in der Tabellenzelle ein.
+  - Der Agent fasst die andere Seite fest berechnet zusammen: erledigt gegenüber gesamt, gefährdet, Prognose, Puffer.
+  - Jede Seite erfährt es einmal, in ihren eigenen Worten. Der Betrieb sieht „Entwicklung voraussichtlich am 28.11. fertig, 3 Tage Puffer“; die Entwicklung hört nur davon, wenn ein Geschäftstermin gefährdet ist, und welche Issues es entscheiden.
+- **Abschottung:** `strict` (Standard für Kunden) heißt, in diese Quelle wird nie etwas über eine andere Quelle geschrieben. `open` (Abteilungen) erlaubt kurze Statuszeilen an der Nahtstelle als auditierte Kommentare. Es gibt Tests, die versuchen, Daten durchsickern zu lassen.
+- **Vorschläge:** Erwähnt ein Tickettext die andere Seite, wird daraus ein Vorschlag für eine Nahtstelle, den ein Mensch bestätigt.
+- **Fertig, wenn:**
+  - Eine Selbstständige mit einem GitHub-Kunden und einem Tabellen-Kunden ein Briefing mit einer Kollision über beide bekommt, und keiner der beiden Tracker etwas über den anderen erhält.
+  - Ein OpenProject-Meilenstein, der auf einen GitHub-Meilenstein wartet, auf beiden Seiten Prognose und Puffer zeigt.
 
 ### 4.0 Grundlage: Einträge anlegen
 

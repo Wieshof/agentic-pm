@@ -61,7 +61,7 @@ Spreadsheets are looser than issue trackers, so every row the agent can't use is
 | Unknown status (e.g. "maybe later") | Skipped and reported. A wrong guess could hide or invent a risk; add the word to `status_map`. |
 | Due date or estimate not readable ("TBD") | Task kept, value reported |
 | `Depends On` names a missing ID | Reported (the chain is broken there) |
-| `Depends On` names another tracker (`github:acme/api#42`) | Reported as "can't be checked yet" until cross-tracker dependencies arrive (#59) |
+| `Depends On` names another tracker (`github:acme/api#42`) | Reported as "can't be checked yet" until cross-tracker seams arrive (step 4.0a, [ADR-0006](adr/0006-multiple-trackers-sources-and-seams.md)) |
 | Formula without a calculated value (file saved by a script) | Reported; open and save the file in Excel or LibreOffice |
 | A configured optional column isn't in the sheet | Reported once; set it to `null` if you don't track it |
 | Empty rows at the bottom (even formatted ones) | Ignored quietly |
@@ -76,4 +76,4 @@ Technical details:
 
 - **Read-only.** The agent never writes to your file. Updating it by voice or WhatsApp is part of Phase 3.
 - **No change events.** The sheet is read at each brief, digest or `deps` run.
-- **One sheet per project.** Dependencies on GitHub or OpenProject items are reported but not yet checked (#59).
+- **One sheet per project.** Dependencies on GitHub or OpenProject items are reported but not yet checked; that comes with seams (step 4.0a, [ADR-0006](adr/0006-multiple-trackers-sources-and-seams.md)).
