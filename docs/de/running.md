@@ -37,9 +37,11 @@ cadence:
 | `"Fri 15:00"` | wöchentlich |
 | `"last_friday 16:00"`, `"first_monday"` | monatlich (Standardzeit 09:00) |
 
-**Geheimnisse** (nur als Umgebungsvariablen): `GITHUB_TOKEN`, `AGENT_PM_SIGNING_KEY` (eine beliebige lange Zufallszeichenkette, für Freigabe-Links), `AGENT_PM_GITHUB_WEBHOOK_SECRET`, `AGENT_PM_SMTP_*` (Versand), `AGENT_PM_IMAP_*` (Empfang: `HOST`, `PORT`, `USER`, `PASSWORD`, `FOLDER`) und für Chat `AGENT_PM_MATRIX_*` (`HOMESERVER`, `USER`, `TOKEN`) oder `AGENT_PM_SIGNAL_*` (`API_URL`, `NUMBER`) ([Chat einrichten](chat.md)).
+**Geheimnisse** (nur als Umgebungsvariablen): `GITHUB_TOKEN`, `AGENT_PM_SIGNING_KEY` (mindestens 32 zufällige Zeichen, z. B. `python -c 'import secrets; print(secrets.token_hex(32))'`, für Freigabe-Links), `AGENT_PM_GITHUB_WEBHOOK_SECRET`, `AGENT_PM_SMTP_*` (Versand), `AGENT_PM_IMAP_*` (Empfang: `HOST`, `PORT`, `USER`, `PASSWORD`, `FOLDER`) und für Chat `AGENT_PM_MATRIX_*` (`HOMESERVER`, `USER`, `TOKEN`) oder `AGENT_PM_SIGNAL_*` (`API_URL`, `NUMBER`) ([Chat einrichten](chat.md)).
 
-**GitHub-Webhook:** Richte in den Repository-Einstellungen einen Webhook auf `https://pm.deine-org.de/webhooks/github` ein, Content-Type JSON, mit demselben Secret. Abonniere *Issues* und *Issue comments*.
+**GitHub-Webhook:** Richte in den Repository-Einstellungen einen Webhook auf `https://pm.deine-org.de/webhooks/github` ein, Content-Type JSON, mit demselben Secret. Abonniere *Issues* und *Issue comments*. Für **Gitea / Forgejo** nimm `/webhooks/gitea` und `AGENT_PM_GITEA_WEBHOOK_SECRET`.
+
+**Wo er lauscht:** `agent-pm run` nimmt nur Verbindungen von diesem Rechner an (`127.0.0.1:8787`). Setz einen Reverse-Proxy mit HTTPS davor. Nutz `--host 0.0.0.0` nur in einem Container oder wenn ein Proxy oder eine Firewall regelt, wer ihn erreichen kann.
 
 ## 2. Was passiert
 
@@ -87,7 +89,9 @@ Das Öffnen des Links *zeigt* die Änderung nur an, Mail-Scanner können also ni
 
 - **Schreiben ist Opt-in** (`allow_writes`) und läuft immer über die Berechtigungsstufen. Jeder Schreibvorgang trägt die Audit-Fußzeile.
 - **Freigabe-Links** sind signiert, laufen nach 72 h ab, gelten für genau eine Person und prüfen die Aufgabe live nach. Wer den Link hat, kann entscheiden, also behandle Freigabe-Mails wie andere vertrauliche Mails.
-- **E-Mails lassen sich fälschen.** Deshalb führt eine E-Mail immer nur zu Schreibvorgängen mit geringem Risiko (Kommentaren). Sie gibt nie etwas frei, weist nie neu zu und verschiebt nie Termine.
+- **E-Mails lassen sich fälschen.** Deshalb führt eine E-Mail immer nur zu Schreibvorgängen mit geringem Risiko (Kommentaren). Sie gibt nie etwas frei, weist nie neu zu und verschiebt nie Termine. Damit gefälschte Mails auch keine Notizen in fremdem Namen anlegen, setz `project.email_trusted_authserv_id` auf den Namen, den Dein Mailserver in `Authentication-Results` schreibt (z. B. `mx.deine-org.de`). Dann reagiert der Agent nur auf Mails, die Dein Server geprüft hat (DMARC, oder DKIM/SPF passend zur Absender-Domain).
+- **Ein „Nein“ gilt.** Sobald jemand eine Anfrage ablehnt, können die Links der anderen sie nicht mehr umsetzen.
+- **Fremder Text bleibt harmlos.** Notizen zitieren, was jemand geschrieben hat, aber Bilder (Tracking-Pixel) und HTML darin werden als Text gezeigt, nie geladen oder ausgeführt. Die Freigabeseite verlinkt nur auf `http(s)`-Adressen.
 - **Webhooks** brauchen eine gültige Signatur und laufen durch den [Webhook-Filter](data-model.md#webhook-eingang-keine-schleifen-keine-stürme), damit der Agent nie auf seine eigenen Änderungen reagiert.
 - **Die Audit-Fußzeile ist signiert** mit `AGENT_PM_SIGNING_KEY`. Nur eine signierte Fußzeile gilt als „das hat der Agent geschrieben“. So kann niemand den Agenten stummschalten oder „schon nachgefragt“ bzw. „schon abgelehnt“ vortäuschen, indem er eine Fußzeile in einen Kommentar kopiert.
 - **Setz den Signierschlüssel und `agent_accounts`.** Ohne Schlüssel erkennt der Agent seine eigenen Kommentare nur am Login in `project.agent_accounts`. Schreibt er mit Deinem persönlichen Token, könnte er sonst auf sich selbst antworten.

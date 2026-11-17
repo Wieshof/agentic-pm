@@ -44,3 +44,9 @@ The security model is described in [Running the agent](docs/running.md#3-securit
 - Running with writes enabled but without `AGENT_PM_SIGNING_KEY`, which the docs advise against
 
 Not sure whether something counts? Report it anyway. We'd rather hear about it. 🙂
+
+## Past reviews
+
+| Date | Review | Result |
+|------|--------|--------|
+| 2026-11-13 | Full code audit (10 findings) | 9 fixed by 2026-11-17 and 1 accepted, with regression tests in `tests/test_security.py`. SEC-01 and SEC-02 (self-approval through MCP, silencing via the audit marker) were fixed on 2026-11-16. SEC-03 to SEC-08 and SEC-10 were fixed on 2026-11-17: safe links on the approval page, email sender verification (opt-in), "one no is final", localhost by default, line breaks in mail headers, a 32-byte minimum key, and inert notes. SEC-09 (spreadsheet path) is accepted: `team.yaml` is trusted, reviewed config, and only `.csv`/`.xlsx` files are read. |

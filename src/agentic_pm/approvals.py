@@ -74,11 +74,19 @@ def _unb64(text: str) -> bytes:
     return base64.urlsafe_b64decode(text + "=" * (-len(text) % 4))
 
 
+MIN_KEY_BYTES = 32  # 256 bits: an observed token must not allow guessing the key offline
+
+
 class Signer:
     def __init__(self, key: str | bytes, clock: Any = time.time) -> None:
         if not key:
             raise ValueError("AGENT_PM_SIGNING_KEY is not set; approvals need it")
         self._key = key.encode() if isinstance(key, str) else key
+        if len(self._key) < MIN_KEY_BYTES:
+            raise ValueError(
+                f"AGENT_PM_SIGNING_KEY is too short ({len(self._key)} bytes); use at least "
+                f"{MIN_KEY_BYTES}, e.g. `python -c 'import secrets; print(secrets.token_hex(32))'`"
+            )
         self._clock = clock
 
     @classmethod

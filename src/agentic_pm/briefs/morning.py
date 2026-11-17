@@ -422,7 +422,7 @@ def render_html(d: BriefData, summary: str | None = None) -> str:
 
 def build_email(d: BriefData, to: str, sender: str, summary: str | None = None) -> EmailMessage:
     msg = EmailMessage()
-    msg["Subject"] = subject(d)
+    msg["Subject"] = " ".join(subject(d).split())  # titles may contain line breaks
     msg["From"] = sender
     msg["To"] = to
     msg.set_content(render_text(d, summary))

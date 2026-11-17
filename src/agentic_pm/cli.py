@@ -227,7 +227,7 @@ async def _run(args: argparse.Namespace) -> int:
     print(f"agent-pm running: {len(jobs)} scheduled job(s), web on :{args.port}")
     for j in jobs:
         print(f"  • {j.name} ({j.spec}, {cfg.project.timezone})")
-    await rt.serve(port=args.port)
+    await rt.serve(host=args.host, port=args.port)
     return 0
 
 
@@ -296,6 +296,12 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--dry-run", action="store_true", help="print messages instead of sending")
     r.add_argument("--no-llm", action="store_true", help="skip the local model")
     r.add_argument("--port", type=int, default=8787)
+    r.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="interface to listen on (default: this machine only; use 0.0.0.0 behind a "
+        "reverse proxy or in a container)",
+    )
     o = sub.add_parser("onboarding", help="friendly intro message: what the agent does with data")
     common(o)
     ow = o.add_mutually_exclusive_group(required=True)

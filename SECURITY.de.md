@@ -44,3 +44,9 @@ Das Sicherheitsmodell steht unter [Den Agenten betreiben](docs/de/running.md#3-s
 - Betrieb mit eingeschaltetem Schreiben, aber ohne `AGENT_PM_SIGNING_KEY`, wovon die Doku abrät
 
 Nicht sicher, ob etwas zählt? Melde es trotzdem. Wir hören lieber einmal zu viel davon. 🙂
+
+## Bisherige Prüfungen
+
+| Datum | Prüfung | Ergebnis |
+|-------|---------|----------|
+| 13.11.2026 | Vollständiger Code-Audit (10 Befunde) | 9 bis 17.11.2026 behoben und 1 akzeptiert, mit Regressionstests in `tests/test_security.py`. SEC-01 und SEC-02 (Selbstfreigabe über MCP, Stummschalten über die Audit-Markierung) wurden am 16.11. behoben. SEC-03 bis SEC-08 und SEC-10 wurden am 17.11. behoben: sichere Links auf der Freigabeseite, Prüfung des Mail-Absenders (optional), „ein Nein gilt“, standardmäßig nur localhost, Zeilenumbrüche in Mail-Kopfzeilen, ein Schlüssel von mindestens 32 Byte und harmlose Notizen. SEC-09 (Tabellenpfad) ist akzeptiert: `team.yaml` ist vertrauenswürdige, geprüfte Konfiguration, und es werden nur `.csv`/`.xlsx`-Dateien gelesen. |

@@ -318,7 +318,7 @@ class Runtime:
                 jobs.append(Job(name, spec, run_job))
         return jobs
 
-    async def serve(self, host: str = "0.0.0.0", port: int = 8787) -> None:
+    async def serve(self, host: str = "127.0.0.1", port: int = 8787) -> None:
         import uvicorn
 
         from agentic_pm.web import create_app
@@ -327,10 +327,13 @@ class Runtime:
         if hasattr(self.adapter, "handle_webhook"):
             handler = self.adapter.handle_webhook
             self.adapter.subscribe(self.howto.on_event)
+        gitea = self.adapter.name == "gitea"
         app = create_app(
             self.guard,
             webhook_secret=self.env.get("AGENT_PM_GITHUB_WEBHOOK_SECRET"),
-            on_github_webhook=handler,
+            on_github_webhook=None if gitea else handler,
+            gitea_webhook_secret=self.env.get("AGENT_PM_GITEA_WEBHOOK_SECRET"),
+            on_gitea_webhook=handler if gitea else None,
         )
         tasks: list[Awaitable[Any]] = [
             uvicorn.Server(uvicorn.Config(app, host=host, port=port, log_level="info")).serve(),

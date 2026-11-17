@@ -182,7 +182,7 @@ def render_howto(
     t = _t(ticket_language)
     lines = [t["title"]]
     for key in ("problem", "root_cause", "fix", "verification"):
-        value = getattr(a, key).strip()
+        value = inert(getattr(a, key).strip())  # model output derived from untrusted text
         if value:
             lines.append(f"- **{t[key]}:** {value}")
     lang_note = ""
@@ -192,6 +192,15 @@ def render_howto(
     return "\n".join(lines)
 
 
+_IMAGE = re.compile(r"!\[")
+
+
+def inert(text: str) -> str:
+    """Untrusted text, safe to quote on a ticket: images become plain links (no
+    tracking pixels load) and HTML tags are shown as text, never rendered."""
+    return _IMAGE.sub("[", text).replace("<", "&lt;").replace(">", "&gt;")
+
+
 def render_note(text: str, *, ticket_language: str, author: str, channel: str) -> str:
-    quoted = "\n".join(f"> {line}" if line else ">" for line in text.strip().splitlines())
+    quoted = "\n".join(f"> {line}" if line else ">" for line in inert(text).strip().splitlines())
     return f"{_t(ticket_language)['note_title'].format(author=author, channel=channel)}\n\n{quoted}"

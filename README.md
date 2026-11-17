@@ -147,7 +147,8 @@ uv run agent-pm onboarding --demo --person sam    # friendly intro: what the age
 | `OPENPROJECT_API_KEY` | OpenProject adapter |
 | `AGENT_PM_SMTP_HOST`, `_PORT`, `_USER`, `_PASSWORD`, `_FROM` | Sending email briefs |
 | `AGENT_PM_LLM_API_KEY` | Only if your model server requires a key |
-| `AGENT_PM_SIGNING_KEY` | Signing approval links |
+| `AGENT_PM_SIGNING_KEY` | Signing approval links and the audit footer (at least 32 random characters) |
+| `AGENT_PM_GITEA_WEBHOOK_SECRET` | Verifying Gitea / Forgejo webhooks |
 | `AGENT_PM_GITHUB_WEBHOOK_SECRET` | Verifying GitHub webhooks |
 | `AGENT_PM_IMAP_HOST`, `_PORT`, `_USER`, `_PASSWORD`, `_FOLDER` | Reading replies in the agent's mailbox |
 | `AGENT_PM_MATRIX_HOMESERVER`, `_USER`, `_TOKEN` | Chat on Matrix ([chat](docs/chat.md)) |

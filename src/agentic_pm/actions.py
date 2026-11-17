@@ -170,13 +170,15 @@ class Guard:
             approved_by=req.approver if approve else None,
             request_id=req.request_id,
         )
+        # One "no" ends the request for everyone: another approver's link must not
+        # bring it back. The decline is read from the ticket (verified footer).
+        if any(
+            (m := audit_meta_in(c.body)) is not None and m.request_id == req.request_id
+            for c in task.comments
+            if "🙅" in c.body
+        ):
+            return Outcome(applied=False, tier=tier, status="already_declined", task=task)
         if not approve:
-            if any(
-                (m := audit_meta_in(c.body)) is not None and m.request_id == req.request_id
-                for c in task.comments
-                if "🙅" in c.body
-            ):
-                return Outcome(applied=False, tier=tier, status="already_declined", task=task)
             change, _ = describe_patch(task, req.patch, lang)
             if self.adapter.capabilities.writes:
                 await self.adapter.add_comment(

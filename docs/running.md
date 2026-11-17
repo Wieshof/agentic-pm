@@ -37,9 +37,11 @@ cadence:
 | `"Fri 15:00"` | weekly |
 | `"last_friday 16:00"`, `"first_monday"` | monthly (default time 09:00) |
 
-**Secrets** (environment only): `GITHUB_TOKEN`, `AGENT_PM_SIGNING_KEY` (any long random string, for approval links), `AGENT_PM_GITHUB_WEBHOOK_SECRET`, `AGENT_PM_SMTP_*` (sending), `AGENT_PM_IMAP_*` (receiving: `HOST`, `PORT`, `USER`, `PASSWORD`, `FOLDER`), and for chat `AGENT_PM_MATRIX_*` (`HOMESERVER`, `USER`, `TOKEN`) or `AGENT_PM_SIGNAL_*` (`API_URL`, `NUMBER`) ([chat setup](chat.md)).
+**Secrets** (environment only): `GITHUB_TOKEN`, `AGENT_PM_SIGNING_KEY` (at least 32 random characters, e.g. `python -c 'import secrets; print(secrets.token_hex(32))'`, for approval links), `AGENT_PM_GITHUB_WEBHOOK_SECRET`, `AGENT_PM_SMTP_*` (sending), `AGENT_PM_IMAP_*` (receiving: `HOST`, `PORT`, `USER`, `PASSWORD`, `FOLDER`), and for chat `AGENT_PM_MATRIX_*` (`HOMESERVER`, `USER`, `TOKEN`) or `AGENT_PM_SIGNAL_*` (`API_URL`, `NUMBER`) ([chat setup](chat.md)).
 
-**GitHub webhook:** in your repository settings, point a webhook to `https://pm.your-org.com/webhooks/github`, content type JSON, with the same secret. Subscribe to *Issues* and *Issue comments*.
+**GitHub webhook:** in your repository settings, point a webhook to `https://pm.your-org.com/webhooks/github`, content type JSON, with the same secret. Subscribe to *Issues* and *Issue comments*. For **Gitea / Forgejo**, use `/webhooks/gitea` and `AGENT_PM_GITEA_WEBHOOK_SECRET`.
+
+**Where it listens:** `agent-pm run` only accepts connections from this machine (`127.0.0.1:8787`). Put a reverse proxy with HTTPS in front of it. Use `--host 0.0.0.0` only inside a container, or when a proxy or firewall controls who can reach it.
 
 ## 2. What happens
 
@@ -87,7 +89,9 @@ Opening the link only *shows* the change, so mail scanners can't approve anythin
 
 - **Writes are opt-in** (`allow_writes`) and always go through the permission tiers. Every write carries the audit footer.
 - **Approval links** are signed, expire after 72 h, are bound to one approver and re-check the live task. Anyone who has the link can decide, so treat approval emails like any other sensitive email.
-- **Email can be forged.** That's why email only ever leads to low-risk writes (comments). It never approves, reassigns or moves dates.
+- **Email can be forged.** That's why email only ever leads to low-risk writes (comments). It never approves, reassigns or moves dates. To stop forged mail from posting notes in someone's name, set `project.email_trusted_authserv_id` to the name your mail server writes into `Authentication-Results` (e.g. `mx.your-org.com`). The agent then only acts on email that your server verified (DMARC, or DKIM/SPF matching the sender's domain).
+- **One "no" is final.** Once any approver declines a request, the other approvers' links can't apply it anymore.
+- **Untrusted text stays inert.** Notes quote what people wrote, but images (tracking pixels) and HTML in it are shown as text, never loaded or rendered. The approval page only links to `http(s)` addresses.
 - **Webhooks** must carry a valid signature and pass the [webhook gate](data-model.md#webhook-ingress-no-loops-no-storms), so the agent never reacts to its own changes.
 - **The audit footer is signed** with `AGENT_PM_SIGNING_KEY`. Only a signed footer counts as "the agent wrote this", so nobody can silence the agent, or fake "already asked" or "already declined", by pasting a footer into a comment.
 - **Set the signing key and `agent_accounts`.** Without a key, the agent recognises its own comments only by the login in `project.agent_accounts`. If it writes with your personal token, it could otherwise answer itself.

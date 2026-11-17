@@ -14,6 +14,7 @@ import html
 import json
 from collections.abc import Awaitable, Callable
 from typing import Any
+from urllib.parse import urlparse
 
 from starlette.applications import Starlette
 from starlette.requests import Request
@@ -88,11 +89,22 @@ def _page(title: str, body: str, status: int = 200) -> HTMLResponse:
 WebhookHandler = Callable[[str, dict[str, Any], str | None], Awaitable[Any]]
 
 
+def safe_url(url: str | None) -> bool:
+    """Only plain http(s) links are rendered: a tracker URL is untrusted data
+    (e.g. a spreadsheet cell), and `javascript:` would run on the approval page."""
+    if not url:
+        return False
+    parsed = urlparse(url)
+    return parsed.scheme in ("http", "https") and bool(parsed.netloc)
+
+
 def create_app(
     guard: Guard,
     *,
     webhook_secret: str | None = None,
     on_github_webhook: WebhookHandler | None = None,
+    gitea_webhook_secret: str | None = None,
+    on_gitea_webhook: WebhookHandler | None = None,
 ) -> Starlette:
     cfg = guard.cfg
 
@@ -117,8 +129,8 @@ def create_app(
             return _page(t["title"], f"<p>{t['error']}</p>", 502)
         change, _ = describe_patch(task, req.patch, lang)
         label = f"#{task.ref.id} {task.title}"
-        if task.url:
-            label = f"<a href='{html.escape(task.url)}'>{html.escape(label)}</a>"
+        if safe_url(task.url):
+            label = f"<a href='{html.escape(str(task.url))}'>{html.escape(label)}</a>"
         else:
             label = html.escape(label)
         actor = cfg.display_name(req.actor) if req.actor in cfg.people else req.actor
@@ -168,11 +180,34 @@ def create_app(
         result = await on_github_webhook(event, payload, request.headers.get("x-github-delivery"))
         return JSONResponse({"accepted": result is not None}, status_code=202)
 
+    async def gitea_webhook(request: Request) -> Response:
+        from agentic_pm.adapters.gitea import verify_signature as verify_gitea
+
+        if not gitea_webhook_secret or on_gitea_webhook is None:
+            return JSONResponse({"error": "webhooks not configured"}, status_code=503)
+        body = await request.body()
+        signature = request.headers.get("x-gitea-signature") or request.headers.get(
+            "x-forgejo-signature"
+        )
+        if not verify_gitea(gitea_webhook_secret, body, signature):
+            return JSONResponse({"error": "bad signature"}, status_code=401)
+        try:
+            payload = json.loads(body)
+        except ValueError:
+            return JSONResponse({"error": "invalid json"}, status_code=400)
+        event = request.headers.get("x-gitea-event") or request.headers.get("x-forgejo-event", "")
+        delivery = request.headers.get("x-gitea-delivery") or request.headers.get(
+            "x-forgejo-delivery"
+        )
+        result = await on_gitea_webhook(event, payload, delivery)
+        return JSONResponse({"accepted": result is not None}, status_code=202)
+
     return Starlette(
         routes=[
             Route("/healthz", healthz),
             Route("/approve", show, methods=["GET"]),
             Route("/approve", decide, methods=["POST"]),
             Route("/webhooks/github", github_webhook, methods=["POST"]),
+            Route("/webhooks/gitea", gitea_webhook, methods=["POST"]),
         ]
     )

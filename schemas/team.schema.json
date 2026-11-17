@@ -527,6 +527,19 @@
           "description": "The agent's mailbox, e.g. pm@acme.com. Replies about a task go to plus-addresses like pm+142@acme.com",
           "title": "Agent Email"
         },
+        "email_trusted_authserv_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Host name your incoming mail server writes into Authentication-Results (e.g. mx.acme.com). When set, only email it verified (DMARC, or DKIM/SPF aligned with the sender's domain) is acted on; everything else is ignored as possibly forged",
+          "title": "Email Trusted Authserv Id"
+        },
         "control_plane_url": {
           "anyOf": [
             {

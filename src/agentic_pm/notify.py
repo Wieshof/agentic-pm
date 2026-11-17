@@ -63,6 +63,11 @@ class RecordingNotifier:
         return True
 
 
+def header_safe(value: str) -> str:
+    """One line: a task title with a line break must not break (or inject) mail headers."""
+    return " ".join(value.split())
+
+
 class EmailNotifier:
     def __init__(
         self,
@@ -89,7 +94,7 @@ class EmailNotifier:
         if not to:
             return None
         msg = EmailMessage()
-        msg["Subject"] = subject
+        msg["Subject"] = header_safe(subject)
         msg["From"] = self.sender
         msg["To"] = to
         agent = self.cfg.project.agent_email

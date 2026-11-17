@@ -97,6 +97,8 @@ class Router:
             return "ignored_self"
         if msg.handle is None:
             return "ignored_unknown_sender"
+        if not msg.verified:
+            return "ignored_unverified_sender"  # don't post in someone's name on a forged mail
         handle = msg.handle
         unknown = "ack_unknown_task" if msg.channel is Channel.EMAIL else "chat_unknown_task"
         if msg.ref is None:

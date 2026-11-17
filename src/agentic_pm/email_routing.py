@@ -102,6 +102,42 @@ def body_text(msg: EmailMessage) -> str:
     return str(content)
 
 
+_AUTH_RESULT = re.compile(r"\b(dmarc|dkim|spf)=(\w+)([^;]*)", re.I)
+_AUTH_PROP = re.compile(r"\b(header\.from|header\.d|header\.i|smtp\.mailfrom)=([^\s;]+)", re.I)
+
+
+def _aligned(domain: str, from_domain: str) -> bool:
+    d, f = domain.lower().lstrip("@").rsplit("@", 1)[-1], from_domain.lower()
+    return d == f or f.endswith("." + d) or d.endswith("." + f)
+
+
+def sender_verified(msg: EmailMessage, sender: str, authserv_id: str) -> bool:
+    """Did *our* mail server verify the From address? (RFC 8601 Authentication-Results)
+
+    Only the header written by `authserv_id` counts: a sender can add their own
+    Authentication-Results, but not one with our server's name above it (the MTA
+    adds its header on top, and well-configured servers strip forged ones).
+    """
+    if "@" not in sender:
+        return False
+    from_domain = sender.rsplit("@", 1)[1]
+    for header in msg.get_all("Authentication-Results", []):
+        value = " ".join(str(header).split())
+        authserv = value.split(";", 1)[0].strip().split()[0].lower() if value else ""
+        if authserv != authserv_id.lower():
+            continue
+        for method, result, props in _AUTH_RESULT.findall(value):
+            if result.lower() != "pass":
+                continue
+            if method.lower() == "dmarc":
+                return True
+            for _, dom in _AUTH_PROP.findall(props):
+                if _aligned(dom, from_domain):
+                    return True
+        return False  # our server's verdict was found and it didn't pass
+    return False
+
+
 class InboundMessage(BaseModel):
     sender: str
     handle: str | None
@@ -111,6 +147,7 @@ class InboundMessage(BaseModel):
     message_id: str | None
     channel: Channel = Channel.EMAIL
     voice: bool = False  # transcribed from a voice note
+    verified: bool = True  # False: email.from could be forged (see sender_verified)
 
 
 def parse_inbound(raw: bytes, cfg: TeamConfig) -> InboundMessage:
@@ -127,8 +164,10 @@ def parse_inbound(raw: bytes, cfg: TeamConfig) -> InboundMessage:
         m = re.search(r"#([A-Za-z0-9_-]+)", str(msg.get("Subject", "")))
         if m:
             ref = TaskRef(tracker=cfg.project.tracker, project=cfg.project.repo, id=m.group(1))
+    authserv = cfg.project.email_trusted_authserv_id
     return InboundMessage(
         sender=sender,
+        verified=sender_verified(msg, sender, authserv) if authserv else True,
         handle=cfg.handle_for_email(sender),
         ref=ref,
         subject=str(msg.get("Subject", "")),

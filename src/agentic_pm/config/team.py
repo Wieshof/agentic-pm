@@ -214,6 +214,12 @@ class Project(_Strict):
         description="The agent's mailbox, e.g. pm@acme.com. Replies about a task go to "
         "plus-addresses like pm+142@acme.com",
     )
+    email_trusted_authserv_id: str | None = Field(
+        default=None,
+        description="Host name your incoming mail server writes into Authentication-Results "
+        "(e.g. mx.acme.com). When set, only email it verified (DMARC, or DKIM/SPF aligned "
+        "with the sender's domain) is acted on; everything else is ignored as possibly forged",
+    )
     control_plane_url: str | None = Field(
         default=None,
         description="Public URL of `agent-pm run` (approval links, webhooks), "

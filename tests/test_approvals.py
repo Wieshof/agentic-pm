@@ -145,7 +145,7 @@ async def test_tokens_expire_and_cannot_be_forged(env: Any) -> None:
     with pytest.raises(InvalidToken):
         guard.signer.verify(body + "." + sig[::-1])
     with pytest.raises(InvalidToken):
-        Signer("other-key").verify(token)
+        Signer("o" * 32).verify(token)
     clock.t += 73 * 3600
     with pytest.raises(ExpiredToken):
         guard.signer.verify(token)
