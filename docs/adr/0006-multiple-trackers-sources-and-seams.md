@@ -96,6 +96,26 @@ Every source has an `isolation` setting:
 - ⚠️ Groups as seam targets (milestone, label, epic) need each adapter to list a group's items. Adapters that can't do this support single-item seams only.
 - ⚠️ `team.yaml` gets a new shape. `project:` keeps working, and `agent-pm validate` explains how to move to `sources:`.
 
+## Implementation rules
+
+Binding for step 4.0a. They make the decision above safe to build.
+
+1. **Two languages, no translation by a model.**
+   - Seam roll-ups are counts and dates (done/total, forecast, buffer), so no ticket title ever needs translating.
+   - Lines in a **person's brief** use that person's `language` from `team.yaml`: "engineering forecast 28 Nov, 3 days buffer" / "Engineering-Prognose 28. Nov., 3 Tage Puffer". There's deliberately no second `brief_language` field that could contradict it.
+   - Status lines **written into a ticket** use the target source's `ticket_language`. An OpenProject board with `ticket_language: de` gets German lines even when it waits on an English GitHub repo.
+2. **`strict` is the default, and it's enforced twice.**
+   - `isolation` defaults to `strict` in the source config, so forgetting the setting can't leak anything.
+   - **Read side:** resolving a `waits_for` seam that touches a `strict` source (on either end) stops with the coverage warning `ISOLATION_BOUNDARY_BLOCKED`, shown to leads like any other coverage warning. Cross-source *collisions* stay visible, but only in the private brief of a person who belongs to both sources.
+   - **Write side:** every write carries the source it acts for (`AuditMeta.source`), and every task reference carries its source (`TaskRef.source`, because two clients can both be on GitHub). The guard refuses a write whose target source differs from the action's source. It also refuses one whose text contains a reference to, or a task title from, a different `strict` source.
+3. **`open` status lines are numbers and dates only.** For example `eng:milestone/v2.0 · 14/18 done · forecast 2026-11-28 · 3 days buffer`, plus the signed audit footer.
+   - No upstream issue titles and no assignee names: implementation chatter stays on its side.
+   - The footer lets the webhook gate ignore the agent's own edits.
+   - The line is updated in place in the ADR-0003 block, not added as a new comment each time.
+4. **Collisions name tasks and dates, never utilisation.** Example: "Client A #14 and Client B T-04 are both due Thu 19 Nov 2026."
+   - Estimates are often missing or rough, while two deliverables on the same day is an objective fact someone can act on.
+   - This also keeps to [ADR-0004](0004-people-data-boundaries.md).
+
 ## Implementation
 
 Step **4.0a** of the [Phase 4 plan](../plan-phase-4.md), before the 4.0 foundation:

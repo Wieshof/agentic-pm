@@ -96,6 +96,26 @@ Jede Quelle hat eine Einstellung `isolation`:
 - ⚠️ Gruppen als Ziel einer Nahtstelle (Meilenstein, Label, Epic) setzen voraus, dass ein Adapter die Einträge einer Gruppe auflisten kann. Wo das nicht geht, gibt es nur Nahtstellen zu einzelnen Einträgen.
 - ⚠️ `team.yaml` bekommt eine neue Form. `project:` funktioniert weiter, und `agent-pm validate` erklärt, wie man auf `sources:` umstellt.
 
+## Umsetzungsregeln
+
+Verbindlich für Schritt 4.0a. Sie machen die Entscheidung oben sicher umsetzbar.
+
+1. **Zwei Sprachen, keine Übersetzung durch ein Modell.**
+   - Zusammenfassungen an der Nahtstelle sind Zahlen und Termine (erledigt/gesamt, Prognose, Puffer), es muss also nie ein Tickettitel übersetzt werden.
+   - Zeilen im **Briefing einer Person** stehen in ihrer `language` aus `team.yaml`: „Engineering-Prognose 28. Nov., 3 Tage Puffer“ / „engineering forecast 28 Nov, 3 days buffer“. Ein zweites Feld `brief_language`, das dem widersprechen könnte, gibt es bewusst nicht.
+   - Statuszeilen, die **in ein Ticket geschrieben** werden, stehen in der `ticket_language` der Zielquelle. Ein OpenProject-Board mit `ticket_language: de` bekommt deutsche Zeilen, auch wenn es auf ein englisches GitHub-Repo wartet.
+2. **`strict` ist der Standard und wird doppelt durchgesetzt.**
+   - `isolation` steht in der Quellen-Konfiguration standardmäßig auf `strict`, eine vergessene Einstellung kann also nichts durchsickern lassen.
+   - **Lesen:** Eine `waits_for`-Nahtstelle, die eine `strict`-Quelle berührt (an einem der beiden Enden), wird nicht aufgelöst, sondern endet mit dem Hinweis `ISOLATION_BOUNDARY_BLOCKED`, den Teamleitungen wie jeden anderen Lesbarkeits-Hinweis sehen. *Kollisionen* über Quellen hinweg bleiben sichtbar, aber nur im privaten Briefing einer Person, die zu beiden Quellen gehört.
+   - **Schreiben:** Jeder Schreibvorgang trägt die Quelle, für die er handelt (`AuditMeta.source`), und jeder Aufgabenverweis seine Quelle (`TaskRef.source`, weil zwei Kunden beide auf GitHub sein können). Die Prüfung weist einen Schreibvorgang zurück, dessen Zielquelle nicht die Quelle der Aktion ist. Sie weist auch einen zurück, dessen Text auf eine andere `strict`-Quelle verweist oder einen Aufgabentitel daraus enthält.
+3. **Statuszeilen bei `open` enthalten nur Zahlen und Termine.** Zum Beispiel `eng:milestone/v2.0 · 14/18 erledigt · Prognose 2026-11-28 · 3 Tage Puffer`, dazu die signierte Audit-Fußzeile.
+   - Keine Issue-Titel der anderen Seite und keine Namen von Zuständigen: Technische Details bleiben auf ihrer Seite.
+   - Über die Fußzeile ignoriert der Webhook-Filter die eigenen Änderungen des Agenten.
+   - Die Zeile wird im ADR-0003-Block an Ort und Stelle aktualisiert, nicht jedes Mal als neuer Kommentar angehängt.
+4. **Kollisionen nennen Aufgaben und Termine, nie eine Auslastung.** Zum Beispiel: „Kunde A #14 und Kunde B T-04 sind beide am Do., 19.11.2026 fällig.“
+   - Schätzungen fehlen oft oder sind grob, während zwei Liefergegenstände am selben Tag eine objektive Tatsache sind, mit der man sofort etwas anfangen kann.
+   - So bleibt es auch bei [ADR-0004](0004-people-data-boundaries.de.md).
+
 ## Umsetzung
 
 Schritt **4.0a** im [Plan für Phase 4](../de/plan-phase-4.md), vor der Grundlage 4.0:
