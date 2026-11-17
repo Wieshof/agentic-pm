@@ -1,6 +1,6 @@
 # agentic-pm
 
-🇬🇧 English · 🇩🇪 Deutsch
+🇬🇧 [English](README.md) · 🇩🇪 Deutsch
 
 **Ein ruhiger, lokaler Projekt-Assistent, der auf Deinen bestehenden Tools aufsetzt: ganz ohne externe KI-Clouds.**
 
@@ -36,9 +36,7 @@ Die meisten scheitern im Projektalltag nicht daran, dass ihnen Werkzeuge fehlen.
 
 ---
 
-# agentic-pm
-
-🇬🇧 [English](README.md) · 🇩🇪 Deutsch
+## So funktioniert es
 
 **Eine omnichannel-fähige, agentische Projektmanagement-Schicht, die auf den Issue-Trackern aufsetzt, die Du bereits nutzt.**
 

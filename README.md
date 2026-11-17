@@ -1,6 +1,6 @@
 # agentic-pm
 
-🇬🇧 English · 🇩🇪 Deutsch
+🇬🇧 English · 🇩🇪 [Deutsch](README.de.md)
 
 **A quiet, local-first project assistant that sits on top of the tools you already use—without sending your data to external AI clouds.**
 
@@ -36,9 +36,7 @@ Most people don't fail at project management because they lack tools. They fail 
 
 ---
 
-# agentic-pm
-
-🇬🇧 English · 🇩🇪 [Deutsch](README.de.md)
+## How it works
 
 **An omnichannel, agentic project-management layer that sits on top of the issue trackers you already run.**
 
