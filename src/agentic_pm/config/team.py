@@ -146,9 +146,15 @@ class CheckIn(_Strict):
 
 
 class Person(_Strict):
-    role: str
-    archetype: Archetype
-    channels: Channels
+    role: str | None = Field(
+        default=None, description="What this person does, e.g. backend-engineer"
+    )
+    archetype: Archetype | None = Field(
+        default=None,
+        description="How this person likes to get information (reader | writer | talker | "
+        "listener). Leave it out to start: briefs then go to the console only",
+    )
+    channels: Channels = Field(default_factory=lambda: Channels())
     brief: Brief | None = None
     check_in: CheckIn | None = None
     interruptions: Interruptions = Interruptions.ANY
@@ -270,7 +276,7 @@ class LLMSettings(_Strict):
     """Model access; local-first per ADR-0001."""
 
     provider: str = "openai-compatible"
-    model: str = "llama3.1:8b"
+    model: str = "gemma4"
     base_url: str = "http://localhost:11434/v1"
     reasoning_effort: Literal["none", "low", "medium", "high"] | None = None
 
@@ -357,7 +363,7 @@ class TeamConfig(_Strict):
         p = self.people[handle]
         default = (
             ["email", "matrix", "signal"]
-            if p.archetype is Archetype.READER
+            if p.archetype in (None, Archetype.READER)
             else ["signal", "matrix", "email"]
         )
         order = list(p.prefer) or default
@@ -402,8 +408,8 @@ class TeamConfig(_Strict):
             if lead not in self.people:
                 errors.append(f"project.leads: '{lead}' is not defined under people")
         for handle, p in self.people.items():
-            need = _ARCHETYPE_NEEDS[p.archetype]
-            if not any(p.channels.has(c) for c in need):
+            need = _ARCHETYPE_NEEDS[p.archetype] if p.archetype else ()
+            if need and not any(p.channels.has(c) for c in need):
                 errors.append(
                     f"people.{handle}: archetype '{p.archetype}' needs one of channels {need}"
                 )

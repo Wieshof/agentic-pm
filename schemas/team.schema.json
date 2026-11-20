@@ -319,7 +319,7 @@
           "type": "string"
         },
         "model": {
-          "default": "llama3.1:8b",
+          "default": "gemma4",
           "title": "Model",
           "type": "string"
         },
@@ -354,11 +354,29 @@
       "additionalProperties": false,
       "properties": {
         "role": {
-          "title": "Role",
-          "type": "string"
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "What this person does, e.g. backend-engineer",
+          "title": "Role"
         },
         "archetype": {
-          "$ref": "#/$defs/Archetype"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Archetype"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How this person likes to get information (reader | writer | talker | listener). Leave it out to start: briefs then go to the console only"
         },
         "channels": {
           "$ref": "#/$defs/Channels"
@@ -457,11 +475,6 @@
           "title": "Tracker Login"
         }
       },
-      "required": [
-        "role",
-        "archetype",
-        "channels"
-      ],
       "title": "Person",
       "type": "object"
     },
@@ -656,7 +669,7 @@
       "$ref": "#/$defs/LLMSettings",
       "default": {
         "provider": "openai-compatible",
-        "model": "llama3.1:8b",
+        "model": "gemma4",
         "base_url": "http://localhost:11434/v1",
         "reasoning_effort": null
       }

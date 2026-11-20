@@ -165,7 +165,7 @@ texts:
     why_chain_delay: weiter oben in der Kette verzögert
     waits: '{who} braucht {blocker}, um mit {task} zu starten'
     blocked_by: '{task}, blockiert durch {refs}'
-    footer: Du hast {tasks}. Antworte einfach auf diese Mail, wenn etwas nicht stimmt. 💬
+    footer: 'Dir zugewiesen: {tasks}. Antworte einfach auf diese Mail, wenn etwas nicht stimmt. 💬'
     summary: Kurz gesagt
     collisions: 🧮 Termine, die kollidieren
     team_collisions: 🧮 Termine, die im Team kollidieren

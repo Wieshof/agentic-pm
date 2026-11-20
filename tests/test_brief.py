@@ -49,7 +49,7 @@ async def test_sam_german_brief_uses_du(cfg: Any) -> None:
     text = render_text(d)
     assert text.startswith("Guten Morgen, Sam!")
     assert "Kim braucht #12" in text
-    assert "Du hast 3 offene Aufgaben" in text
+    assert "Dir zugewiesen: 3 offene Aufgaben" in text
     assert " Sie " not in text
     assert not d.team_risks  # not a lead
 

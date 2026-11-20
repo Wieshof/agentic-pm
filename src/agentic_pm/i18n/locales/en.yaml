@@ -165,7 +165,7 @@ texts:
     why_chain_delay: delayed further up the chain
     waits: '{who} needs {blocker} to start {task}'
     blocked_by: '{task}, blocked by {refs}'
-    footer: You have {tasks}. Just reply to this email if anything looks off. 💬
+    footer: 'Assigned to you: {tasks}. Just reply to this email if anything looks off. 💬'
     summary: In short
     collisions: 🧮 Deadlines that collide
     team_collisions: 🧮 Deadlines that collide in the team

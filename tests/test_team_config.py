@@ -80,6 +80,31 @@ def test_cli_validate(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> Non
     assert main(["validate", str(tmp_path / "missing.yaml")]) == 2
 
 
+def test_minimal_person_needs_only_a_handle() -> None:
+    cfg = TeamConfig.model_validate(
+        {"project": {"tracker": "github", "repo": "o/r", "leads": ["me"]}, "people": {"me": {}}}
+    )
+    assert cfg.people["me"].archetype is None and cfg.reach_order("me") == []
+    assert cfg.llm.model == "gemma4"  # a model the eval covers
+
+
+def test_every_command_reports_config_problems_kindly(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    bad = tmp_path / "team.yaml"
+    bad.write_text("project: {tracker: github, repo: o/r, leads: [ghost]}\npeople: {me: {}}\n")
+    for cmd in (["deps"], ["brief", "--person", "me"]):
+        with pytest.raises(SystemExit) as e:
+            main([*cmd, "--config", str(bad)])
+        assert e.value.code == 1
+        err = capsys.readouterr().err
+        assert "ghost" in err and "Traceback" not in err
+    bad.write_text("project: [unclosed\n")
+    with pytest.raises(SystemExit) as e:
+        main(["deps", "--config", str(bad)])
+    assert e.value.code == 1 and "not valid YAML" in capsys.readouterr().err
+
+
 @pytest.mark.parametrize(
     ("where", "value"),
     [

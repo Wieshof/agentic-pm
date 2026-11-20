@@ -9,6 +9,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
+import yaml
 from pydantic import ValidationError
 
 from agentic_pm.adapters.base import TrackerAdapter
@@ -18,12 +19,21 @@ from agentic_pm.config.team import BriefFormat, TeamConfig
 EXAMPLE_CONFIG = ".agent-pm/team.example.yaml"
 
 
-def _validate(path: str) -> int:
+def _config_or_report(path: str) -> TeamConfig | int:
+    """Load a team file, or print what's wrong with it and return the exit code."""
     try:
-        cfg = load_team_config(path)
+        return load_team_config(path)
     except FileNotFoundError:
         print(f"✗ {path}: file not found", file=sys.stderr)
+        if path == ".agent-pm/team.yaml":
+            print(
+                "  Copy .agent-pm/team.example.yaml to get started, pass --config, or try --demo",
+                file=sys.stderr,
+            )
         return 2
+    except yaml.YAMLError as e:
+        print(f"✗ {path}: not valid YAML: {e}", file=sys.stderr)
+        return 1
     except ValidationError as e:
         print(f"✗ {path}: {e.error_count()} problem(s)", file=sys.stderr)
         for err in e.errors():
@@ -36,6 +46,12 @@ def _validate(path: str) -> int:
     except ValueError as e:
         print(f"✗ {path}: {e}", file=sys.stderr)
         return 1
+
+
+def _validate(path: str) -> int:
+    cfg = _config_or_report(path)
+    if isinstance(cfg, int):
+        return cfg
     print(f"✓ {path}: {len(cfg.people)} people, tracker={cfg.project.tracker}")
     from agentic_pm import i18n
 
@@ -63,7 +79,10 @@ def _validate(path: str) -> int:
 def _load(args: argparse.Namespace) -> tuple[TeamConfig, date]:
     path = args.config or (EXAMPLE_CONFIG if args.demo else ".agent-pm/team.yaml")
     today = date.fromisoformat(args.date) if args.date else date.today()
-    return load_team_config(path), today
+    cfg = _config_or_report(path)
+    if isinstance(cfg, int):
+        raise SystemExit(cfg)
+    return cfg, today
 
 
 def _adapter(cfg: TeamConfig, args: argparse.Namespace, today: date) -> TrackerAdapter:

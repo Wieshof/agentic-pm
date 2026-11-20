@@ -39,7 +39,7 @@ Guten Morgen, Sam!
 📅 In den nächsten Tagen fällig
   • #12 Fix auth timeout (fällig 2026-11-18)
 
-Du hast 3 offene Aufgaben. Antworte einfach auf diese Mail, wenn etwas nicht stimmt. 💬
+Dir zugewiesen: 3 offene Aufgaben. Antworte einfach auf diese Mail, wenn etwas nicht stimmt. 💬
 ```
 
 ## Für wen
@@ -101,6 +101,8 @@ people:
     channels: {email: alex@example.com}
     brief: {when: "08:00", format: email}
 ```
+
+Zum Ausprobieren reicht für eine Person schon `alex: {}`. `agent-pm brief --person alex` zeigt ihr Briefing an, und der geplante Agent lässt sie aus, bis Du einen Kanal ergänzt.
 
 ```bash
 uv run agent-pm validate                  # prüft die Datei, auch auf versehentlich eingefügte Geheimnisse

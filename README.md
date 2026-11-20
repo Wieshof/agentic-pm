@@ -41,7 +41,7 @@ Good morning, Alex!
   • #16 Docs cleanup has no due date, so I can't tell whether it's at risk.
     When should it be done?
 
-You have 3 open tasks. Just reply to this email if anything looks off. 💬
+Assigned to you: 3 open tasks. Just reply to this email if anything looks off. 💬
 ```
 
 ## Who it's for
@@ -103,6 +103,8 @@ people:
     channels: {email: alex@example.com}
     brief: {when: "08:00", format: email}
 ```
+
+To just try it, a person can be as short as `alex: {}`. `agent-pm brief --person alex` prints their brief, and the scheduled agent leaves them out until you add a channel.
 
 ```bash
 uv run agent-pm validate                  # checks the file, also for pasted secrets
