@@ -4,7 +4,7 @@
 
 - **Status:** agreed, not started
 - **Date:** 2026-11-17
-- **Issues:** #48 #49 #50 #51 #52 #54 #55, the cross-tracker part of #59 (#53 deferred)
+- **Issues:** #48 #49 #50 #51 #52 #54 #55, #69 (several trackers, split from #59, done) and #70 (#53 deferred)
 
 Phases 1–3 let the agent read, warn, ask and update. Phase 4 lets it **keep the project's records**: a plan drafted from a goal, risks, change requests, decisions, baselines and a monthly health check. All of these are records the team can see and edit without the agent ([ADR-0003](adr/0003-pm-records-without-a-database.md)).
 

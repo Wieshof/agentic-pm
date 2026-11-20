@@ -26,9 +26,9 @@ exact location in a `CoverageReport` (`last_coverage`), which briefs show:
    results); formulas without a cached value are reported, not read as empty.
 4. CSV is read as `utf-8-sig`, so Excel's byte-order mark can't hide the
    first header.
-5. `Depends On`: `T-12` means this sheet; `github:acme/api#42` points to
-   another tracker and is reported as not checkable until cross-tracker
-   dependencies exist (#59).
+5. `Depends On`: `T-12` means this sheet. `eng#42` or `eng:milestone/v2.0`
+   is a seam to another source in team.yaml (ADR-0006). A raw link like
+   `github:acme/api#42` can't be followed from the sheet and is reported.
 
 Unknown statuses skip the row (a wrong guess could hide or invent a risk).
 Unparseable dates and estimates keep the task and report the value.
@@ -204,8 +204,8 @@ class SpreadsheetAdapter:
                     report.add(
                         "EXTERNAL_DEPENDENCY",
                         row.location,
-                        f"'{row.task.ref.id}' depends on {dep}, which can't be checked yet "
-                        "(cross-tracker dependencies: issue #59)",
+                        f"'{row.task.ref.id}' depends on {dep}, which can't be checked from "
+                        "this sheet; list that tracker under sources: and write e.g. eng#42",
                         row.task.ref.id,
                         id=row.task.ref.id,
                         dep=dep,

@@ -269,7 +269,7 @@ texts:
     INVALID_ESTIMATE: '''{id}'' hat als Schätzung ''{value}'', das ist nicht lesbar'
     BAD_REFERENCE: '''{id}'' hängt von ''{ref}'' ab, das ist keine bekannte Referenz'
     DANGLING_DEPENDENCY: '''{id}'' hängt von ''{dep}'' ab, das steht nicht in der Tabelle'
-    EXTERNAL_DEPENDENCY: '''{id}'' hängt von {dep} ab, das kann ich noch nicht prüfen'
+    EXTERNAL_DEPENDENCY: '''{id}'' hängt von {dep} ab, das kann ich von hier aus nicht prüfen; trag den Tracker unter sources: in team.yaml ein und schreib z. B. eng#42 (docs/de/sources.md)'
     SEAM_UNKNOWN_TARGET: 'wartet auf „{target}“, das ist aber keine Quelle in team.yaml (schreib z. B. eng#142 oder eng:milestone/v2.0)'
     ISOLATION_BOUNDARY_BLOCKED: 'nicht verfolgt, weil eine Seite abgeschottet ist (strict); setz `isolation: open` bei beiden Quellen, wenn sie Termine teilen dürfen'
   web:

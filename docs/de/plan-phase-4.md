@@ -4,7 +4,7 @@
 
 - **Status:** abgestimmt, noch nicht begonnen
 - **Datum:** 17.11.2026
-- **Issues:** #48 #49 #50 #51 #52 #54 #55, der trackerübergreifende Teil von #59 (#53 zurückgestellt)
+- **Issues:** #48 #49 #50 #51 #52 #54 #55, #69 (mehrere Tracker, aus #59 ausgegliedert, erledigt) und #70 (#53 zurückgestellt)
 
 Mit den Phasen 1–3 kann der Agent lesen, warnen, nachfragen und aktualisieren. In Phase 4 **führt er die Unterlagen des Projekts**: einen aus einem Ziel entworfenen Plan, Risiken, Änderungsanträge, Entscheidungen, Basispläne und einen monatlichen Gesundheitscheck. Das alles sind Einträge, die das Team auch ohne den Agenten sehen und bearbeiten kann ([ADR-0003](../adr/0003-pm-records-without-a-database.de.md)).
 

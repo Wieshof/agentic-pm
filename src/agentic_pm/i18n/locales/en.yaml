@@ -269,7 +269,7 @@ texts:
     INVALID_ESTIMATE: '''{id}'' has estimate ''{value}'', which isn''t readable'
     BAD_REFERENCE: '''{id}'' depends on ''{ref}'', which isn''t a known reference'
     DANGLING_DEPENDENCY: '''{id}'' depends on ''{dep}'', which isn''t in the sheet'
-    EXTERNAL_DEPENDENCY: '''{id}'' depends on {dep}, which can''t be checked yet'
+    EXTERNAL_DEPENDENCY: '''{id}'' depends on {dep}, which can''t be checked from here; list that tracker under sources: in team.yaml and write e.g. eng#42 (docs/sources.md)'
     SEAM_UNKNOWN_TARGET: 'waits for ''{target}'', which isn''t a source in team.yaml (write e.g. eng#142 or eng:milestone/v2.0)'
     ISOLATION_BOUNDARY_BLOCKED: 'not followed, because one side is isolated (strict); set `isolation: open` on both sources if they may share dates'
   web:
