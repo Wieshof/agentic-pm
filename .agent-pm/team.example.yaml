@@ -1,4 +1,4 @@
-# Example team preference file ("Drucker profiles").
+# Example team preference file: how each person likes to hear from the agent.
 # Copy to .agent-pm/team.yaml in the repository the agent manages.
 # Each person controls their own entry; the agent can also update it on request.
 

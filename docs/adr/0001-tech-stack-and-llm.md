@@ -32,7 +32,7 @@ Requirements that shape the choice:
 | Quality | `ruff` (lint + format), `mypy --strict`, `pytest` |
 | CI | GitHub Actions |
 
-The web control plane (Phase 2) will be server-rendered from the same Python service (e.g. FastAPI + HTMX) so we keep a single language. That choice will get its own ADR.
+The web control plane (Phase 2) is server-rendered from the same Python service, so we keep a single language. It's a few small Starlette pages (`agentic_pm/web.py`); the choice was too small to need its own ADR.
 
 ### LLM strategy: provider-agnostic, local-first
 

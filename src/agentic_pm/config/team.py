@@ -1,4 +1,4 @@
-"""Schema for `.agent-pm/team.yaml` ("Drucker profiles").
+"""Schema for `.agent-pm/team.yaml` (team preference profiles).
 
 The file is the human-editable source of truth for who prefers which channel,
 when, and how the agent may escalate. See docs/data-model.md.

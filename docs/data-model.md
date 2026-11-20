@@ -8,7 +8,7 @@ Every piece of data the agent needs can live in infrastructure the company alrea
 
 When an event arrives (a git webhook, an incoming email or a phone call), the agent fetches live context from the tracker's API, reasons over it and writes the updated status or blocker tags straight back.
 
-## User preferences ("Drucker profiles") → repo config or SSO
+## Team preference profiles → repo config or SSO
 
 Preferences such as "morning email" or "afternoon phone call" live in one human-readable file in the repository (`.agent-pm/team.yaml`) or in directory attributes (Microsoft Entra ID / Google Workspace). Anyone can change their own preference by editing the file or sending the agent a message.
 

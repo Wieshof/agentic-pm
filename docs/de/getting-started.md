@@ -1,5 +1,7 @@
 # Erste Schritte (Phase 1: Einblick, nur lesend)
 
+> Nicht so technisch, oder unsicher, wo Du anfangen sollst? Fang mit [Deiner ersten Woche](first-week.md) an.
+>
 > Bereit für Schreiben, How-tos, Freigaben und den Team-Takt? Weiter geht's mit [Den Agenten betreiben (Phase 2)](running.md).
 
 🇬🇧 [English](../getting-started.md) · 🇩🇪 Deutsch
@@ -21,7 +23,7 @@ Die Demodaten liegen relativ zu heute, Du siehst also immer etwas: eine überfä
 
 ## 2. Deinen Tracker verbinden
 
-GitHub Issues und OpenProject funktionieren heute. Alle anderen Tracker (Jira, Asana, Notion, Trello, …) findest Du in der [Übersicht](trackers.md).
+GitHub Issues, OpenProject, Gitea / Forgejo und Tabellen funktionieren heute. Auch mehrere davon gleichzeitig (Kunden, Abteilungen): siehe [mehrere Tracker](sources.md). Alle anderen Tracker (Jira, Asana, Notion, Trello, …) findest Du in der [Übersicht](trackers.md).
 
 Kopiere `.agent-pm/team.example.yaml` nach `.agent-pm/team.yaml` und passe sie an. Prüfen kannst Du sie mit `uv run agent-pm validate`. Geheimnisse kommen ausschließlich aus Umgebungsvariablen.
 
@@ -53,6 +55,14 @@ Setze `OPENPROJECT_API_KEY`. Fälligkeit, Schätzung, Status, Zuständige (Anzei
 
 > Der OpenProject-Adapter ist mit aufgezeichneten API-Antworten getestet, aber noch nicht mit einer echten Instanz. Melde Dich gern, wenn Dir etwas komisch vorkommt.
 
+### Gitea / Forgejo
+
+```yaml
+project: {tracker: gitea, repo: deine-org/dein-repo, base_url: https://git.example.com, leads: [alex]}
+```
+
+Setze `AGENT_PM_GITEA_TOKEN` auf einen Token, der Issues lesen darf. Fälligkeit und Abhängigkeiten werden direkt gelesen; Schätzungen kennt Gitea nicht. Der Status kommt wie bei GitHub aus Labels wie `status:in-progress`.
+
 ## 3. So funktioniert die Risikoprüfung
 
 Die Analyse ist einfacher, nachvollziehbarer Code und kein Raten durch ein Modell:
@@ -74,11 +84,20 @@ Jede Aufgabe erscheint genau einmal, in ihrem wichtigsten Abschnitt: überfälli
 
 **Versand** nutzt `AGENT_PM_SMTP_HOST`, `AGENT_PM_SMTP_PORT` (587), `AGENT_PM_SMTP_USER`, `AGENT_PM_SMTP_PASSWORD` und `AGENT_PM_SMTP_FROM`.
 
-**Zeitplan:** Solange der Agent noch keinen eigenen Scheduler hat, nimm cron, zum Beispiel werktags um 07:30:
+**Zeitplan:** `uv run agent-pm run` verschickt jedes Briefing zu der Zeit, die die Person gewählt hat ([Den Agenten betreiben](running.md)). Willst Du nur die Briefings, geht auch cron, zum Beispiel werktags um 07:30:
 
 ```cron
-30 7 * * 1-5  cd /srv/agentic-pm && uv run agent-pm brief --all --send --llm
+30 7 * * 1-5  cd /pfad/zu/agentic-pm && uv run agent-pm brief --all --send --llm
 ```
+
+### Wo es läuft
+
+Auf jedem Rechner, der zur Briefing-Zeit eingeschaltet ist: Solange der Rechner schläft, geht nichts raus.
+
+- **Zum Ausprobieren:** Dein Laptop reicht.
+- **Für den Alltag:** ein kleiner Rechner, der an bleibt, z. B. ein Mini-PC, ein Büro-Server oder ein kleiner gemieteter Server. Mit einem lokalen Modell plan mindestens 16 GB Arbeitsspeicher ein.
+
+Deine Trackerdaten und das Modell bleiben auf diesem Rechner; nur die Briefings verlassen ihn, per E-Mail oder Chat.
 
 ## 5. Optional: eine kurze Zusammenfassung von Deinem lokalen Modell
 

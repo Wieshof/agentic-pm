@@ -6,7 +6,7 @@
 
 agentic-pm reads your task list or tracker, notices what's slipping, and talks to each person the way they prefer: a short email in the morning, a chat message, a quick "yes" to confirm a change. It keeps no database of its own. Your spreadsheet or tracker stays the one place where the truth lives.
 
-🌐 [Website](https://wieshof.github.io/agentic-pm/) · 🚀 [Getting started](docs/getting-started.md) · 📊 [Start with a spreadsheet](docs/spreadsheets.md) · 🗺️ [Roadmap](docs/roadmap.md)
+🌐 [Website](https://wieshof.github.io/agentic-pm/) · 🧭 [Your first week](docs/first-week.md) · 📚 [Documentation](docs/README.md) · 🚀 [Getting started](docs/getting-started.md) · 📊 [Start with a spreadsheet](docs/spreadsheets.md) · 🗺️ [Roadmap](docs/roadmap.md)
 
 ---
 
@@ -19,7 +19,7 @@ agentic-pm takes on that busywork, and its language model runs on your machine (
 ## What it does for you
 
 - **Warns you before a deadline slips.** It follows the dependencies between tasks and tells the right person early: *"#14 Release notes may slip 1 day because #13 Login UI is delayed further up the chain."*
-- **Meets people where they are.** A morning brief by email, or a short brief in Matrix or Signal. People reply in their own language, while tickets stay in the team's language. Adding a language is one file ([languages](docs/languages.md)).
+- **Meets people where they are.** A morning brief by email, or a short brief in Matrix or Signal. People reply in their own language, while tickets stay in the team's language. Adding a language is one file ([languages](docs/languages.md)). German texts use the informal "Du" today; a formal "Sie" version of the fixed texts doesn't exist yet (`formality: formal` already applies to the model's summary).
 - **Asks one friendly question per missing detail.** "#16 has no due date. When should it be done?" Reply "Friday", confirm with "yes", and the ticket is updated.
 - **Turns "here's how I fixed it" into a how-to** on the ticket, from an email reply or a voice note (transcribed locally).
 - **Notices when the story doesn't add up.** Someone writes "#12 is done" while #12 is still open, so it asks once instead of guessing.
@@ -44,6 +44,8 @@ Good morning, Alex!
 Assigned to you: 3 open tasks. Just reply to this email if anything looks off. 💬
 ```
 
+This is Alex's brief as a lead. The [German README](README.de.md) shows Sam's, who talks German with the agent and sees who is waiting on Sam's work.
+
 ## Who it's for
 
 | You are… | Start with |
@@ -52,7 +54,7 @@ Assigned to you: 3 open tasks. Just reply to this email if anything looks off. �
 | A team on GitHub, OpenProject or Gitea / Forgejo | [Getting started](docs/getting-started.md) |
 | Someone who'd rather not open a tracker at all | Ask your team to add you with email, Matrix or Signal ([chat](docs/chat.md)) |
 
-Not technical? Send the [getting-started guide](docs/getting-started.md) to whoever looks after your IT. The setup is one small config file.
+Not technical? Start with **[your first week](docs/first-week.md)**: what you decide, and a ready checklist for whoever looks after your IT. All guides: [documentation](docs/README.md).
 
 ## Private and careful by design
 
@@ -61,6 +63,8 @@ Not technical? Send the [getting-started guide](docs/getting-started.md) to whoe
 - **You stay in control.** The agent only reads until you switch writing on. Comments and labels run automatically. Changing your own task's date or status needs your "yes", and client deadlines or new owners need a lead's signed approval.
 - **No surveillance.** No scores, rankings or response-time tracking about people, and no guessing moods ([ADR-0004](docs/adr/0004-people-data-boundaries.md), [what it does with people's data](docs/people-data.md)).
 - **Secrets stay out of the repo.** Tokens and passwords live in environment variables only, and `agent-pm validate` rejects anything that looks like one.
+
+**For your team, data protection officer or works council:** [What the agent does with data about you](docs/people-data.md) is one page in plain language.
 
 ## Status
 

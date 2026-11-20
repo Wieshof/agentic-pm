@@ -38,7 +38,7 @@ Eine verständliche Zusammenfassung für alle in einem Team, das agentic-pm nutz
 ## Deine Wahl
 
 - Ändere Kanal, Sprache oder Briefing-Zeit in der Team-Datei, oder frag einfach Deine Teamleitung.
-- Schalte Briefings oder Erinnerungen ab, indem Du auf irgendeine Mail des Agenten antwortest.
+- Briefings oder Erinnerungen abschalten: Lösch die Zeile `brief:` in Deinem Eintrag in der Team-Datei, oder bitte Deine Teamleitung darum. Mit „stopp“ auf eine Mail des Agenten zu antworten, reicht dafür noch nicht: Eine Antwort zu einer Aufgabe landet als Notiz an genau dieser Aufgabe.
 - Frag Deine Teamleitung, was in der Team-Datei über Dich steht.
 
 Vor dem Rollout sollte Dein Team die Datenschutzbeauftragte bzw. den Datenschutzbeauftragten und, wo es einen gibt, den Betriebsrat einbeziehen.

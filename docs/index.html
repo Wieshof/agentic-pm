@@ -201,7 +201,43 @@
       display: flex;
       flex-wrap: wrap;
       gap: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .status-box {
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 0.9rem 1.15rem;
+      max-width: 62ch;
       margin-bottom: 3rem;
+      font-size: 0.93rem;
+      color: var(--text-muted);
+    }
+
+    .status-box strong {
+      color: var(--text);
+    }
+
+    .status-box ul {
+      margin: 0.35rem 0 0 1.1rem;
+    }
+
+    .demo-caption {
+      margin-top: 0.85rem;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .privacy-more {
+      margin-top: 1.5rem;
+      font-size: 0.95rem;
+    }
+
+    .privacy-more a {
+      color: var(--accent);
+      font-weight: 600;
     }
 
     .btn {
@@ -594,6 +630,7 @@
       <div class="nav-actions">
         <a href="#privacy" class="nav-link nav-hide-mobile" data-i18n="nav_privacy">Privacy</a>
         <a href="#faq" class="nav-link nav-hide-mobile" data-i18n="nav_faq">FAQ</a>
+        <a href="https://github.com/wieshof/agentic-pm/tree/main/docs" class="nav-link js-docs-link" target="_blank" rel="noopener" data-i18n="nav_docs">Docs</a>
         <a href="#it-handoff" class="nav-link" data-i18n="nav_setup">Setup</a>
         <a href="https://github.com/wieshof/agentic-pm" class="nav-link js-repo-link" target="_blank" rel="noopener">GitHub</a>
         <div class="lang-toggle" role="group" aria-label="Language switcher">
@@ -616,12 +653,21 @@
         agentic-pm reads your existing task lists, emails, and voice notes, spots hidden bottlenecks before they become emergencies, and sends you a calm morning briefing. Runs 100% locally on your own computer. No subscriptions. No accounts in the US or China.
       </p>
       <div class="cta-group">
-        <a href="https://github.com/wieshof/agentic-pm/blob/main/docs/spreadsheets.md" class="btn btn-primary js-spreadsheet-link" target="_blank" rel="noopener" data-i18n="cta_primary">
-          Try it with a simple Excel sheet
+        <a href="https://github.com/wieshof/agentic-pm/blob/main/docs/first-week.md" class="btn btn-primary js-first-week-link" target="_blank" rel="noopener" data-i18n="cta_primary">
+          Start here: your first week
         </a>
         <a href="#it-handoff" class="btn btn-secondary" data-i18n="cta_secondary">
           Send setup guide to your IT person
         </a>
+      </div>
+
+      <div class="status-box" data-i18n="status_box">
+        <strong>Where it stands today</strong>
+        <ul>
+          <li>Built and tested: morning briefs, dependency risks, questions about missing details, email and chat replies.</li>
+          <li>Week one only reads your tasks, so trying it changes nothing in your projects.</li>
+          <li>No pilot team has run it in production yet. Want to be the first? Open an issue on GitHub.</li>
+        </ul>
       </div>
 
       <!-- Interactive 3-Tab Demo -->
@@ -653,6 +699,7 @@
                 <li data-i18n="d1_li3"><strong>No action needed:</strong> 11 other tasks are on schedule for next week.</li>
               </ul>
             </div>
+            <div class="demo-caption" data-i18n="d1_caption">What you get after setup: an email from your spreadsheet or tracker. Simplified example.</div>
           </div>
 
           <!-- Tab 2: Hidden Bottleneck -->
@@ -660,8 +707,9 @@
             <div class="preview-meta" data-i18n="d2_meta">Dependency Alert &middot; Chain reaction detected</div>
             <div class="preview-subject" data-i18n="d2_subject">Heads up before your Friday launch</div>
             <div class="preview-quote" data-i18n="d2_quote">
-              "Friday's client launch depends on the printer proof in row 63, which hasn't been confirmed yet. Reply to this email if you want me to send a quick check-in."
+              "Friday's client launch depends on the printer proof in row 63, which has no date yet, so I can't tell whether Friday holds. When will the proof be ready?"
             </div>
+            <div class="demo-caption" data-i18n="d2_caption">What you get after setup: part of the morning brief, read-only, also from a spreadsheet.</div>
           </div>
 
           <!-- Tab 3: Voice Note to Task -->
@@ -678,6 +726,7 @@
                 <p data-i18n="d3_out_text"><strong>Resolution:</strong> Increased Redis connection pool size to resolve checkout timeouts. Verified on staging.</p>
               </div>
             </div>
+            <div class="demo-caption" data-i18n="d3_caption">Needs a tracker with writing switched on, plus Matrix or Signal for voice notes. Spreadsheets stay read-only.</div>
           </div>
         </div>
       </div>
@@ -712,7 +761,7 @@
             <span class="card-num">01</span>
             <h3 data-i18n="s1_title">One calm morning briefing instead of five open tabs</h3>
             <p data-i18n="s1_body">
-              Every morning at 8:00 AM, you get a short email (or spoken summary) in your preferred language telling you what actually needs attention today and what can wait.
+              Every morning at 8:00 AM, you get a short email (or chat message) in your preferred language telling you what actually needs attention today and what can wait.
             </p>
           </article>
 
@@ -743,7 +792,7 @@
             <h3 data-i18n="s4_title">Works for solo operators and small teams alike</h3>
             <ul>
               <li data-i18n="s4_li1"><strong>Working solo?</strong> Point it at a plain .xlsx or .csv file on your desktop. Zero setup overhead.</li>
-              <li data-i18n="s4_li2"><strong>Working with a team?</strong> Everyone stays in the channel they already use (email, Signal, Matrix, or voice). No new software to learn and no extra user licenses to buy.</li>
+              <li data-i18n="s4_li2"><strong>Working with a team?</strong> Everyone stays in the channel they already use (email, Signal or Matrix, voice notes included). No new software to learn and no extra user licenses to buy.</li>
             </ul>
           </article>
         </div>
@@ -769,13 +818,14 @@
           </div>
           <div class="privacy-item">
             <h3 data-i18n="p3_title">No Separate Database</h3>
-            <p data-i18n="p3_body">It never hoards your tasks in a proprietary format. Your Excel file, GitHub, Jira, or OpenProject stays your single source of truth.</p>
+            <p data-i18n="p3_body">It never hoards your tasks in a proprietary format. Your Excel file, GitHub, Gitea, or OpenProject stays your single source of truth.</p>
           </div>
           <div class="privacy-item">
             <h3 data-i18n="p4_title">Open Source (Apache 2.0)</h3>
             <p data-i18n="p4_body">Transparent, auditable code with no hidden tracking or telemetry.</p>
           </div>
         </div>
+        <p class="privacy-more"><a href="https://github.com/wieshof/agentic-pm/blob/main/docs/people-data.md" class="js-people-link" target="_blank" rel="noopener" data-i18n="privacy_more">For your team, data protection officer or works council: what the agent does with data about people, in plain language &rarr;</a></p>
       </div>
     </section>
 
@@ -799,6 +849,14 @@
           <div class="faq-item">
             <h3 data-i18n="f3_q">What does it cost?</h3>
             <p data-i18n="f3_a">Nothing. agentic-pm is free and open source under the Apache 2.0 license, with zero subscriptions, API fees, or per-user charges.</p>
+          </div>
+          <div class="faq-item">
+            <h3 data-i18n="f4_q">Which computer does it run on?</h3>
+            <p data-i18n="f4_a">Any computer that is switched on at briefing time. Your laptop is fine for trying it; for daily use, a small machine that stays on.</p>
+          </div>
+          <div class="faq-item">
+            <h3 data-i18n="f5_q">Which languages does it speak?</h3>
+            <p data-i18n="f5_a">Each person gets their own language; English and German are complete, and adding one is a single file. In German it uses the informal "Du" for now.</p>
           </div>
         </div>
       </div>
@@ -834,6 +892,8 @@
         <a href="https://github.com/wieshof/agentic-pm" class="js-repo-link" target="_blank" rel="noopener">GitHub</a>
         <a href="https://github.com/wieshof/agentic-pm/blob/main/docs/spreadsheets.md" class="js-spreadsheet-link" target="_blank" rel="noopener" data-i18n="footer_sheets">Spreadsheet Guide</a>
         <a href="https://github.com/wieshof/agentic-pm/blob/main/docs/getting-started.md" class="js-getting-started-link" target="_blank" rel="noopener" data-i18n="footer_start">Getting Started</a>
+        <a href="https://github.com/wieshof/agentic-pm/blob/main/docs/first-week.md" class="js-first-week-link" target="_blank" rel="noopener" data-i18n="footer_first_week">Your First Week</a>
+        <a href="https://github.com/wieshof/agentic-pm/tree/main/docs" class="js-docs-link" target="_blank" rel="noopener" data-i18n="footer_docs">All Docs</a>
       </div>
     </div>
   </footer>
@@ -846,11 +906,16 @@
         page_title: "agentic-pm - Local-First Project Assistant",
         nav_privacy: "Privacy",
         nav_faq: "FAQ",
+        nav_docs: "Docs",
         nav_setup: "Setup",
         hero_badge: "100% Local AI \u00b7 Zero Cloud Accounts",
         hero_title: "A quiet project buddy that keeps your work on track: without sending your data to the cloud.",
         hero_sub: "agentic-pm reads your existing task lists, emails, and voice notes, spots hidden bottlenecks before they become emergencies, and sends you a calm morning briefing. Runs 100% locally on your own computer. No subscriptions. No accounts in the US or China.",
-        cta_primary: "Try it with a simple Excel sheet",
+        cta_primary: "Start here: your first week",
+        status_box: "<strong>Where it stands today</strong><ul><li>Built and tested: morning briefs, dependency risks, questions about missing details, email and chat replies.</li><li>Week one only reads your tasks, so trying it changes nothing in your projects.</li><li>No pilot team has run it in production yet. Want to be the first? Open an issue on GitHub.</li></ul>",
+        d1_caption: "What you get after setup: an email from your spreadsheet or tracker. Simplified example.",
+        d2_caption: "What you get after setup: part of the morning brief, read-only, also from a spreadsheet.",
+        d3_caption: "Needs a tracker with writing switched on, plus Matrix or Signal for voice notes. Spreadsheets stay read-only.",
         cta_secondary: "Send setup guide to your IT person",
         tab_briefing: "1. Morning Briefing",
         tab_bottleneck: "2. Hidden Bottleneck",
@@ -863,7 +928,7 @@
         d1_li3: "<strong>No action needed:</strong> 11 other tasks are on schedule for next week.",
         d2_meta: "Dependency Alert \u00b7 Chain reaction detected",
         d2_subject: "Heads up before your Friday launch",
-        d2_quote: "\"Friday's client launch depends on the printer proof in row 63, which hasn't been confirmed yet. Reply to this email if you want me to send a quick check-in.\"",
+        d2_quote: "\"Friday's client launch depends on the printer proof in row 63, which has no date yet, so I can't tell whether Friday holds. When will the proof be ready?\"",
         d3_meta: "Local Speech-to-Text \u00b7 Written back to your tracker",
         d3_subject: "From casual voice memo to clean task documentation",
         d3_in_label: "Your 8-second voice note",
@@ -877,7 +942,7 @@
         scenarios_title: "How your project buddy helps you",
         scenarios_intro: "No new interface to learn. It works quietly in the background on top of the files and channels you already use every day.",
         s1_title: "One calm morning briefing instead of five open tabs",
-        s1_body: "Every morning at 8:00 AM, you get a short email (or spoken summary) in your preferred language telling you what actually needs attention today and what can wait.",
+        s1_body: "Every morning at 8:00 AM, you get a short email (or chat message) in your preferred language telling you what actually needs attention today and what can wait.",
         s2_title: "Spots hidden chain reactions automatically",
         s2_body: "Your buddy connects the dots across your task list or team tracker so deadlines don't slip silently.",
         s2_example: "\"Heads up: Friday's client launch depends on the printer proof in row 63, which hasn't been confirmed yet.\"",
@@ -886,7 +951,7 @@
         s3_example: "\"Fixed the login bug by increasing the cache size.\"",
         s4_title: "Works for solo operators and small teams alike",
         s4_li1: "<strong>Working solo?</strong> Point it at a plain .xlsx or .csv file on your desktop. Zero setup overhead.",
-        s4_li2: "<strong>Working with a team?</strong> Everyone stays in the channel they already use (email, Signal, Matrix, or voice). No new software to learn and no extra user licenses to buy.",
+        s4_li2: "<strong>Working with a team?</strong> Everyone stays in the channel they already use (email, Signal or Matrix, voice notes included). No new software to learn and no extra user licenses to buy.",
         privacy_title: "Your business stays on your hardware.",
         privacy_intro: "Built for people who want practical AI assistance without sacrificing data sovereignty or confidentiality.",
         p1_title: "100% Local AI",
@@ -894,7 +959,7 @@
         p2_title: "Zero Cloud Lock-in",
         p2_body: "No external cloud accounts, no monthly SaaS fees, and zero risk of your data being used to train third-party AI models.",
         p3_title: "No Separate Database",
-        p3_body: "It never hoards your tasks in a proprietary format. Your Excel file, GitHub, Jira, or OpenProject stays your single source of truth.",
+        p3_body: "It never hoards your tasks in a proprietary format. Your Excel file, GitHub, Gitea, or OpenProject stays your single source of truth.",
         p4_title: "Open Source (Apache 2.0)",
         p4_body: "Transparent, auditable code with no hidden tracking or telemetry.",
         faq_title: "What do I actually need?",
@@ -905,26 +970,41 @@
         f2_a: "It uses Ollama (a free, one-click app for Mac, Windows, and Linux) to run open-weights language models privately on your own hardware.",
         f3_q: "What does it cost?",
         f3_a: "Nothing. agentic-pm is free and open source under the Apache 2.0 license, with zero subscriptions, API fees, or per-user charges.",
+        f4_q: "Which computer does it run on?",
+        f4_a: "Any computer that is switched on at briefing time. Your laptop is fine for trying it; for daily use, a small machine that stays on.",
+        f5_q: "Which languages does it speak?",
+        f5_a: "Each person gets their own language; English and German are complete, and adding one is a single file. In German it uses the informal \"Du\" for now.",
+        privacy_more: "For your team, data protection officer or works council: what the agent does with data about people, in plain language &rarr;",
         handoff_title: "Not a programmer? No problem.",
         handoff_sub: "Copy this short note and send it to your IT support or a tech-savvy friend to set it up for you:",
-        handoff_note: `"Hey, could you help me set up agentic-pm on my machine? It's an open-source, local-first project assistant that connects to a local LLM (Ollama) and reads my Excel/CSV or issue tracker to send daily briefings. Here is the repository: ${REPO_URL}"`,
+        handoff_note: `"Hey, could you help me set up agentic-pm on my machine? It's an open-source, local-first project assistant that connects to a local LLM (Ollama) and reads my Excel/CSV or issue tracker to send daily briefings. The setup checklist is here: ${REPO_URL}/blob/main/docs/first-week.md#2-for-it-set-it-up"`,
         copy_btn: "Copy message",
         github_btn: "View on GitHub",
         copied_msg: "Copied to clipboard!",
         footer_sheets: "Spreadsheet Guide",
         footer_start: "Getting Started",
+        footer_first_week: "Your First Week",
+        footer_docs: "All Docs",
         spreadsheet_path: "/blob/main/docs/spreadsheets.md",
-        getting_started_path: "/blob/main/docs/getting-started.md"
+        getting_started_path: "/blob/main/docs/getting-started.md",
+        first_week_path: "/blob/main/docs/first-week.md",
+        docs_path: "/tree/main/docs",
+        people_path: "/blob/main/docs/people-data.md"
       },
       de: {
         page_title: "agentic-pm - Lokaler Projekt-Assistent",
         nav_privacy: "Datenschutz",
         nav_faq: "FAQ",
+        nav_docs: "Doku",
         nav_setup: "Einrichtung",
         hero_badge: "100 % lokale KI \u00b7 Ohne Cloud-Konten",
         hero_title: "Ein ruhiger Projekt-Buddy, der Dir den R\u00fccken freih\u00e4lt: ganz ohne Cloud-Zwang.",
         hero_sub: "agentic-pm liest Deine bestehenden Aufgabenlisten, E-Mails und Sprachnachrichten, erkennt versteckte Engp\u00e4sse, bevor sie zum Problem werden, und schickt Dir morgens eine kompakte \u00dcbersicht. L\u00e4uft zu 100 % lokal auf Deinem eigenen Rechner. Keine Abos. Keine Daten\u00fcbertragung in die USA oder nach China.",
-        cta_primary: "Mit einer einfachen Excel-Tabelle starten",
+        cta_primary: "Hier starten: Deine erste Woche",
+        status_box: "<strong>Wo es heute steht</strong><ul><li>Gebaut und getestet: Morgen-Briefings, Abh\u00e4ngigkeitsrisiken, Fragen zu fehlenden Angaben, Antworten per E-Mail und Chat.</li><li>In der ersten Woche liest es Deine Aufgaben nur, Ausprobieren \u00e4ndert also nichts in Deinen Projekten.</li><li>Im echten Betrieb hat es noch kein Pilotteam eingesetzt. Willst Du das erste sein? Er\u00f6ffne ein Issue auf GitHub.</li></ul>",
+        d1_caption: "Was Du nach der Einrichtung bekommst: eine E-Mail aus Deiner Tabelle oder Deinem Tracker. Vereinfachtes Beispiel.",
+        d2_caption: "Was Du nach der Einrichtung bekommst: ein Teil des Morgen-Briefings, nur lesend, auch aus einer Tabelle.",
+        d3_caption: "Braucht einen Tracker mit eingeschaltetem Schreiben, f\u00fcr Sprachnachrichten dazu Matrix oder Signal. Tabellen bleiben nur lesend.",
         cta_secondary: "Anleitung an Deine IT weiterleiten",
         tab_briefing: "1. Morgen-Briefing",
         tab_bottleneck: "2. Versteckter Engpass",
@@ -937,7 +1017,7 @@
         d1_li3: "<strong>Kein Handlungsbedarf:</strong> 11 weitere Aufgaben liegen f\u00fcr n\u00e4chste Woche voll im Plan.",
         d2_meta: "Abh\u00e4ngigkeits-Warnung \u00b7 Kettenreaktion erkannt",
         d2_subject: "Kurzer Hinweis vor Deinem Launch am Freitag",
-        d2_quote: "\"Der Kunden-Launch am Freitag h\u00e4ngt an der Druckfreigabe in Zeile 63, die noch nicht best\u00e4tigt wurde. Antworte einfach auf diese E-Mail, wenn ich kurz nachfassen soll.\"",
+        d2_quote: "\"Der Kunden-Launch am Freitag h\u00e4ngt an der Druckfreigabe in Zeile 63, die noch keinen Termin hat, deshalb kann ich nicht sagen, ob Freitag h\u00e4lt. Wann ist die Freigabe fertig?\"",
         d3_meta: "Lokale Spracherkennung \u00b7 Direkt in Deinen Tracker geschrieben",
         d3_subject: "Von der kurzen Sprachnotiz zur sauberen Aufgaben-Doku",
         d3_in_label: "Deine 8-Sekunden-Sprachnotiz",
@@ -951,7 +1031,7 @@
         scenarios_title: "So hilft Dir Dein Projekt-Buddy",
         scenarios_intro: "Keine neue Oberfl\u00e4che zum Einarbeiten. Der Assistent arbeitet leise im Hintergrund auf Basis der Dateien und Kan\u00e4le, die Du ohnehin t\u00e4glich nutzt.",
         s1_title: "Ein entspanntes Morgen-Briefing statt f\u00fcnf offener Tabs",
-        s1_body: "Jeden Morgen um 8:00 Uhr bekommst Du eine kurze E-Mail (oder eine gesprochene Zusammenfassung) in Deiner Wunschsprache. Du siehst sofort, was heute wirklich z\u00e4hlt und was warten kann.",
+        s1_body: "Jeden Morgen um 8:00 Uhr bekommst Du eine kurze E-Mail (oder eine Chat-Nachricht) in Deiner Wunschsprache. Du siehst sofort, was heute wirklich z\u00e4hlt und was warten kann.",
         s2_title: "Erkennt versteckte Kettenreaktionen automatisch",
         s2_body: "Dein Buddy verkn\u00fcpft die Punkte in Deiner Aufgabenliste oder im Team-Tracker, damit Deadlines nicht unbemerkt kippen.",
         s2_example: "\"Kurzer Hinweis: Der Kunden-Launch am Freitag h\u00e4ngt an der Druckfreigabe in Zeile 63, die noch nicht best\u00e4tigt wurde.\"",
@@ -960,7 +1040,7 @@
         s3_example: "\"Login-Problem gel\u00f6st, habe den Cache vergr\u00f6\u00dfert.\"",
         s4_title: "F\u00fcr Einzelk\u00e4mpfer genauso wie f\u00fcr kleine Teams",
         s4_li1: "<strong>Allein unterwegs?</strong> Verkn\u00fcpfe einfach eine normale .xlsx- oder .csv-Datei auf Deinem Desktop. Kein Einrichtungs-Overhead.",
-        s4_li2: "<strong>Im Team?</strong> Alle bleiben in dem Kanal, den sie ohnehin nutzen (E-Mail, Signal, Matrix oder Sprache). Keine neue Software zum Einarbeiten und keine teuren Zusatz-Lizenzen.",
+        s4_li2: "<strong>Im Team?</strong> Alle bleiben in dem Kanal, den sie ohnehin nutzen (E-Mail, Signal oder Matrix, auch mit Sprachnachrichten). Keine neue Software zum Einarbeiten und keine teuren Zusatz-Lizenzen.",
         privacy_title: "Dein Unternehmen bleibt auf Deiner Hardware.",
         privacy_intro: "Entwickelt f\u00fcr alle, die praktische KI-Unterst\u00fctzung suchen, ohne Datensouver\u00e4nit\u00e4t oder Vertraulichkeit aufzugeben.",
         p1_title: "100 % lokale KI",
@@ -968,7 +1048,7 @@
         p2_title: "Kein Cloud-Zwang",
         p2_body: "Keine externen Cloud-Konten, keine monatlichen SaaS-Geb\u00fchren und null Risiko, dass Deine Gesch\u00e4ftsdaten zum Training fremder KI-Modelle genutzt werden.",
         p3_title: "Keine zweite Datenbank",
-        p3_body: "Deine Aufgaben werden nicht in ein geschlossenes System kopiert. Deine Excel-Datei, GitHub, Jira oder OpenProject bleibt die alleinige Datenquelle.",
+        p3_body: "Deine Aufgaben werden nicht in ein geschlossenes System kopiert. Deine Excel-Datei, GitHub, Gitea oder OpenProject bleibt die alleinige Datenquelle.",
         p4_title: "Open Source (Apache 2.0)",
         p4_body: "Transparenter, \u00fcberpr\u00fcfbarer Quellcode ohne verstecktes Tracking oder Telemetrie.",
         faq_title: "Was brauche ich konkret daf\u00fcr?",
@@ -979,16 +1059,26 @@
         f2_a: "Der Assistent nutzt Ollama (eine kostenlose Ein-Klick-App f\u00fcr Mac, Windows und Linux), um offene Sprachmodelle privat auf Deiner eigenen Hardware auszuf\u00fchren.",
         f3_q: "Was kostet das?",
         f3_a: "Nichts. agentic-pm ist unter der Apache-2.0-Lizenz frei und Open Source: ohne Abos, API-Geb\u00fchren oder Lizenzkosten pro Nutzer.",
+        f4_q: "Auf welchem Rechner l\u00e4uft es?",
+        f4_a: "Auf jedem Rechner, der zur Briefing-Zeit eingeschaltet ist. Zum Ausprobieren reicht Dein Laptop; f\u00fcr den Alltag ein kleiner Rechner, der an bleibt.",
+        f5_q: "Welche Sprachen spricht es?",
+        f5_a: "Jede Person bekommt ihre eigene Sprache; Englisch und Deutsch sind vollst\u00e4ndig, eine weitere ist eine einzige Datei. Auf Deutsch duzt es vorerst.",
+        privacy_more: "F\u00fcr Dein Team, die Datenschutzbeauftragten oder den Betriebsrat: was der Agent mit Daten \u00fcber Menschen macht, in einfacher Sprache &rarr;",
         handoff_title: "Kein Programmierer? Kein Problem.",
         handoff_sub: "Kopiere diese kurze Nachricht und schick sie an Deinen IT-Support oder einen technikaffinen Kollegen:",
-        handoff_note: `"Hallo, k\u00f6nntest Du mir helfen, agentic-pm auf meinem Rechner einzurichten? Das ist ein lokaler Open-Source-Projektassistent, der mit einem lokalen Sprachmodell (Ollama) l\u00e4uft und meine Excel-/CSV-Listen oder unseren Tracker auswertet, um mir t\u00e4gliche Briefings zu schicken. Hier ist das Repository: ${REPO_URL}"`,
+        handoff_note: `"Hallo, k\u00f6nntest Du mir helfen, agentic-pm auf meinem Rechner einzurichten? Das ist ein lokaler Open-Source-Projektassistent, der mit einem lokalen Sprachmodell (Ollama) l\u00e4uft und meine Excel-/CSV-Listen oder unseren Tracker auswertet, um mir t\u00e4gliche Briefings zu schicken. Die Checkliste zum Einrichten steht hier: ${REPO_URL}/blob/main/docs/de/first-week.md#2-f\u00fcr-die-it-einrichten"`,
         copy_btn: "Nachricht kopieren",
         github_btn: "Auf GitHub ansehen",
         copied_msg: "In die Zwischenablage kopiert!",
         footer_sheets: "Start mit Tabellen",
         footer_start: "Erste Schritte",
+        footer_first_week: "Deine erste Woche",
+        footer_docs: "Alle Anleitungen",
         spreadsheet_path: "/blob/main/docs/de/spreadsheets.md",
-        getting_started_path: "/blob/main/docs/de/getting-started.md"
+        getting_started_path: "/blob/main/docs/de/getting-started.md",
+        first_week_path: "/blob/main/docs/de/first-week.md",
+        docs_path: "/blob/main/docs/de/README.md",
+        people_path: "/blob/main/docs/de/people-data.md"
       }
     };
 
@@ -1013,6 +1103,15 @@
       });
       document.querySelectorAll(".js-getting-started-link").forEach((el) => {
         el.href = REPO_URL + dict.getting_started_path;
+      });
+      document.querySelectorAll(".js-first-week-link").forEach((el) => {
+        el.href = REPO_URL + dict.first_week_path;
+      });
+      document.querySelectorAll(".js-docs-link").forEach((el) => {
+        el.href = REPO_URL + dict.docs_path;
+      });
+      document.querySelectorAll(".js-people-link").forEach((el) => {
+        el.href = REPO_URL + dict.people_path;
       });
 
       document.querySelectorAll("[data-lang-btn]").forEach((btn) => {

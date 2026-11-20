@@ -6,7 +6,7 @@
 
 agentic-pm liest Deine Aufgabenliste oder Deinen Tracker, bemerkt, was ins Rutschen kommt, und spricht mit jeder Person so, wie sie es mag: eine kurze Mail am Morgen, eine Chat-Nachricht, ein schnelles „ja“, um eine Änderung zu bestätigen. Eine eigene Datenbank hat er nicht. Deine Tabelle oder Dein Tracker bleibt der eine Ort, an dem die Wahrheit steht.
 
-🌐 [Website](https://wieshof.github.io/agentic-pm/) · 🚀 [Erste Schritte](docs/de/getting-started.md) · 📊 [Mit einer Tabelle starten](docs/de/spreadsheets.md) · 🗺️ [Roadmap](docs/de/roadmap.md)
+🌐 [Website](https://wieshof.github.io/agentic-pm/) · 🧭 [Deine erste Woche](docs/de/first-week.md) · 📚 [Dokumentation](docs/de/README.md) · 🚀 [Erste Schritte](docs/de/getting-started.md) · 📊 [Mit einer Tabelle starten](docs/de/spreadsheets.md) · 🗺️ [Roadmap](docs/de/roadmap.md)
 
 ---
 
@@ -19,7 +19,7 @@ agentic-pm nimmt Dir diesen Kleinkram ab, und sein Sprachmodell läuft auf Deine
 ## Was er für Dich tut
 
 - **Warnt Dich, bevor ein Termin platzt.** Er folgt den Abhängigkeiten zwischen Aufgaben und sagt der richtigen Person früh Bescheid: *„#14 Release notes könnte sich um 1 Tag verschieben, weil #13 Login UI weiter oben in der Kette hängt.“*
-- **Holt alle dort ab, wo sie sind.** Ein Morgen-Briefing per Mail oder ein kurzes Briefing in Matrix oder Signal. Antworten gehen in der eigenen Sprache, die Tickets bleiben in der Sprache des Teams. Eine weitere Sprache ist eine Datei ([Sprachen](docs/de/languages.md)).
+- **Holt alle dort ab, wo sie sind.** Ein Morgen-Briefing per Mail oder ein kurzes Briefing in Matrix oder Signal. Antworten gehen in der eigenen Sprache, die Tickets bleiben in der Sprache des Teams. Eine weitere Sprache ist eine Datei ([Sprachen](docs/de/languages.md)). Auf Deutsch duzt der Agent heute; eine Sie-Fassung der festen Texte gibt es noch nicht (`formality: formal` gilt bisher nur für die Zusammenfassung des Modells).
 - **Stellt eine freundliche Frage pro fehlender Angabe.** „#16 hat keinen Termin. Bis wann soll es fertig sein?“ Du antwortest „Freitag“, bestätigst mit „ja“, und das Ticket ist aktualisiert.
 - **Macht aus „so habe ich es gelöst“ ein How-to** im Ticket, aus einer Mail-Antwort oder einer Sprachnachricht (lokal transkribiert).
 - **Merkt, wenn etwas nicht zusammenpasst.** Jemand schreibt „#12 ist erledigt“, aber #12 ist noch offen. Dann fragt er einmal nach, statt zu raten.
@@ -42,6 +42,8 @@ Guten Morgen, Sam!
 Dir zugewiesen: 3 offene Aufgaben. Antworte einfach auf diese Mail, wenn etwas nicht stimmt. 💬
 ```
 
+Das ist Sams Briefing. Das [englische README](README.md) zeigt das von Alex als Teamleitung, mit Risiken und fehlenden Angaben.
+
 ## Für wen
 
 | Du bist… | Fang hier an |
@@ -50,7 +52,7 @@ Dir zugewiesen: 3 offene Aufgaben. Antworte einfach auf diese Mail, wenn etwas n
 | Ein Team auf GitHub, OpenProject oder Gitea / Forgejo | [Erste Schritte](docs/de/getting-started.md) |
 | Jemand, der lieber gar keinen Tracker öffnet | Lass Dich vom Team mit E-Mail, Matrix oder Signal eintragen ([Chat](docs/de/chat.md)) |
 
-Nicht so technisch? Schick die [Erste-Schritte-Anleitung](docs/de/getting-started.md) an die Person, die sich bei Euch um die IT kümmert. Eingerichtet wird das mit einer kleinen Konfigurationsdatei.
+Nicht so technisch? Fang mit **[Deiner ersten Woche](docs/de/first-week.md)** an: was Du entscheidest, und eine fertige Checkliste für die Person, die sich bei Euch um die IT kümmert. Alle Anleitungen: [Dokumentation](docs/de/README.md).
 
 ## Datenschutz und Sorgfalt eingebaut
 
@@ -59,6 +61,8 @@ Nicht so technisch? Schick die [Erste-Schritte-Anleitung](docs/de/getting-starte
 - **Du behältst die Kontrolle.** Der Agent liest nur, bis Du das Schreiben einschaltest. Kommentare und Labels laufen automatisch. Termin oder Status Deiner eigenen Aufgabe ändert er nur mit Deinem „ja“, Kundentermine oder neue Zuständige nur mit der signierten Freigabe einer Teamleitung.
 - **Keine Überwachung.** Keine Bewertungen, Ranglisten oder Messung von Antwortzeiten über Menschen, kein Erraten von Stimmungen ([ADR-0004](docs/adr/0004-people-data-boundaries.de.md), [was er mit Personendaten macht](docs/de/people-data.md)).
 - **Geheimnisse bleiben aus dem Repo.** Tokens und Passwörter stehen nur in Umgebungsvariablen, und `agent-pm validate` weist alles zurück, was danach aussieht.
+
+**Für Dein Team, die Datenschutzbeauftragten oder den Betriebsrat:** [Was der Agent mit Daten über Dich macht](docs/de/people-data.md) ist eine Seite in einfacher Sprache.
 
 ## Stand
 

@@ -32,7 +32,7 @@ Anforderungen, die die Wahl prägen:
 | Qualität | `ruff` (Lint + Format), `mypy --strict`, `pytest` |
 | CI | GitHub Actions |
 
-Die Web-Steuerungsoberfläche (Phase 2) wird serverseitig aus demselben Python-Dienst gerendert (z. B. FastAPI + HTMX), damit wir bei einer Sprache bleiben. Diese Wahl bekommt ein eigenes ADR.
+Die Web-Steuerungsoberfläche (Phase 2) wird serverseitig aus demselben Python-Dienst gerendert, damit wir bei einer Sprache bleiben. Es sind ein paar kleine Starlette-Seiten (`agentic_pm/web.py`); die Wahl war zu klein für ein eigenes ADR.
 
 ### LLM-Strategie: anbieterunabhängig, lokal zuerst
 

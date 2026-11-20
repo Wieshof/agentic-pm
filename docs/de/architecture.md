@@ -2,6 +2,13 @@
 
 🇬🇧 [English](../architecture.md) · 🇩🇪 Deutsch
 
+> **Diese Seite zeigt die Zielarchitektur.** Heute gebaut ist:
+> - **Tracker:** GitHub, OpenProject, Gitea / Forgejo und Tabellen, auch mehrere gleichzeitig ([Übersicht](trackers.md), [mehrere Tracker](sources.md)).
+> - **Kanäle:** E-Mail, Matrix und Signal, auch mit Sprachnachrichten. WhatsApp, Slack, Teams und Anrufe sind geplant.
+> - **Sprache:** Python.
+>
+> Die Kurzfassung steht in der [Stand-Tabelle im README](../../README.de.md#stand).
+
 agentic-pm ist eine **dreischichtige Middleware**. Sie liest den Zustand aus den zugrunde liegenden Werkzeugen ein, analysiert Abhängigkeiten und Widersprüche und überträgt Änderungen über die Kommunikationskanäle.
 
 ## 1. Repository-Adapterschicht (Open Core)
@@ -20,14 +27,14 @@ Bidirektionale Konnektoren, die **Aufgaben, Zuständige, Termine, Abhängigkeite
 
 Jeder Adapter implementiert eine gemeinsame Schnittstelle (Skizze):
 
-```ts
-interface TrackerAdapter {
-  getTask(ref: TaskRef): Promise<Task>;
-  listDependencies(ref: TaskRef): Promise<Edge[]>;
-  addComment(ref: TaskRef, markdown: string, meta: AuditMeta): Promise<void>;
-  updateFields(ref: TaskRef, patch: TaskPatch, meta: AuditMeta): Promise<void>;
-  subscribe(handler: (evt: TrackerEvent) => void): Unsubscribe;
-}
+```python
+class TrackerAdapter(Protocol):          # agentic_pm/adapters/base.py
+    async def get_task(self, ref: TaskRef) -> Task: ...
+    async def list_tasks(self, project: str, *, include_closed: bool = False) -> list[Task]: ...
+    async def list_dependencies(self, ref: TaskRef) -> list[Edge]: ...
+    async def add_comment(self, ref: TaskRef, markdown: str, meta: AuditMeta) -> None: ...
+    async def update_fields(self, ref: TaskRef, patch: TaskPatch, meta: AuditMeta) -> Task: ...
+    def subscribe(self, handler: EventHandler) -> Unsubscribe: ...
 ```
 
 Jeder Adapter wird zusätzlich als **MCP-Server** bereitgestellt, sodass die Reasoning-Engine und externe Agenten dieselben Werkzeuge nutzen.

@@ -5,7 +5,7 @@
 In a one- to five-person company, agentic-pm isn't about coordinating a team. It takes things off your mind:
 
 - **Hidden chains.** In a 100-row sheet it's easy to miss that Friday's client launch depends on a printer proof in row 63 that nobody has signed off. The dependency engine finds that chain and puts it in your morning email.
-- **No cell-editing on a phone.** You keep the spreadsheet as your ledger. Later (Phase 3) you can update it by voice or WhatsApp instead of zooming into Excel on a phone.
+- **The agent doesn't write into your spreadsheet.** You keep it as your ledger. Answers you give by email, chat or voice note are written into trackers like GitHub, not into a sheet. From Phase 4 the agent can add its own sheets to the same workbook (`Plan draft`, `RAID` …, [plan](plan-phase-4.md)). Your existing cells stay untouched; at most it appends a new row to your task sheet, and only after you approve.
 - **Nothing to set up.** A local `.xlsx` or `.csv` plus a local model (Ollama) means no cloud accounts, no subscriptions, and your data stays on your machine.
 
 ## Try it in two minutes

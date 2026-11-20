@@ -284,8 +284,8 @@ trackers:
     events: webhook
     mcp: none
     verified: false
-    notes_en: No native dependencies; use "Blocked by #N" lines; points per role
-    notes_de: Keine nativen Abhängigkeiten; „Blocked by #N“-Zeilen nutzen; Punkte pro Rolle
+    notes_en: 'No native dependencies; use "Blocked by #N" lines; points per role'
+    notes_de: 'Keine nativen Abhängigkeiten; „Blocked by #N“-Zeilen nutzen; Punkte pro Rolle'
   notion:
     name: Notion
     status: planned

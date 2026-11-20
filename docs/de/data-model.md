@@ -8,7 +8,7 @@ Alle Daten, die der Agent braucht, können in Infrastruktur liegen, die das Unte
 
 Trifft ein Ereignis ein (ein Git-Webhook, eine E-Mail oder ein Anruf), ruft der Agent den aktuellen Kontext über die API des Trackers ab, wertet ihn aus und schreibt den neuen Status oder Blocker-Tags direkt zurück.
 
-## Präferenzen („Drucker-Profile“) → Repo-Konfiguration oder SSO
+## Team-Präferenzprofile → Repo-Konfiguration oder SSO
 
 Präferenzen wie „morgens E-Mail“ oder „nachmittags Anruf“ stehen in einer einzigen, gut lesbaren Datei im Repository (`.agent-pm/team.yaml`) oder in Verzeichnisattributen (Microsoft Entra ID / Google Workspace). Jede Person kann ihre Präferenz selbst ändern, durch Bearbeiten der Datei oder per Nachricht an den Agenten.
 

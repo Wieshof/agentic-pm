@@ -5,7 +5,7 @@
 In einer Firma mit ein bis fünf Personen geht es bei agentic-pm nicht ums Koordinieren eines Teams. Es nimmt Dir Dinge aus dem Kopf:
 
 - **Versteckte Ketten.** In einer Tabelle mit 100 Zeilen übersieht man leicht, dass der Kunden-Launch am Freitag an einem Druckproof in Zeile 63 hängt, den noch niemand freigegeben hat. Die Abhängigkeitsanalyse findet diese Kette und schreibt sie in Deine Morgen-Mail.
-- **Kein Zellen-Bearbeiten am Handy.** Die Tabelle bleibt Dein Kassenbuch. Später (Phase 3) kannst Du sie per Sprache oder WhatsApp aktualisieren, statt in Excel auf dem Handy herumzuzoomen.
+- **Der Agent schreibt nicht in Deine Tabelle.** Sie bleibt Dein Kassenbuch. Was Du per E-Mail, Chat oder Sprachnachricht beantwortest, landet in Trackern wie GitHub, nicht in einer Tabelle. Ab Phase 4 kann der Agent eigene Tabellenblätter in derselben Arbeitsmappe anlegen (`Plan draft`, `RAID` …, [Plan](plan-phase-4.md)). Deine bestehenden Zellen bleiben unangetastet; höchstens hängt er eine neue Zeile an Dein Aufgabenblatt an, und das nur nach Deiner Freigabe.
 - **Nichts einzurichten.** Eine lokale `.xlsx` oder `.csv` plus ein lokales Modell (Ollama) heißt: keine Cloud-Konten, keine Abos, und Deine Daten bleiben auf Deinem Rechner.
 
 ## In zwei Minuten ausprobieren

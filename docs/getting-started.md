@@ -1,5 +1,7 @@
 # Getting started (Phase 1: read-only insight)
 
+> Not technical, or not sure where to begin? Start with [your first week](first-week.md).
+>
 > Ready for writes, how-tos, approvals and the team cadence? Continue with [Running the agent (Phase 2)](running.md).
 
 🇬🇧 English · 🇩🇪 [Deutsch](de/getting-started.md)
@@ -21,7 +23,7 @@ The demo dates are relative to today, so there is always something to see: an ov
 
 ## 2. Connect your tracker
 
-GitHub Issues and OpenProject work today. For all other trackers (Jira, Asana, Notion, Trello, …) see the [support matrix](trackers.md).
+GitHub Issues, OpenProject, Gitea / Forgejo and spreadsheets work today. Several of them at once (clients, departments) work too: see [several trackers](sources.md). For all other trackers (Jira, Asana, Notion, Trello, …) see the [support matrix](trackers.md).
 
 Copy `.agent-pm/team.example.yaml` to `.agent-pm/team.yaml` and adjust it. Check it with `uv run agent-pm validate`. Secrets only ever come from environment variables.
 
@@ -43,6 +45,8 @@ GitHub has no due dates or estimates, so agentic-pm reads these conventions:
 | Status | Closed → done. Open + label `status:in-progress`, `status:in-review` or `status:blocked` |
 | Client deadline | Label `client-facing` (date changes then need a team lead's approval later on) |
 
+German keywords work as well, which helps mixed-language teams: `Fällig: 2026-12-01`, `Abhängig von #12`.
+
 ### OpenProject
 
 ```yaml
@@ -52,6 +56,14 @@ project: {tracker: openproject, repo: my-project, base_url: https://op.example.c
 Set `OPENPROJECT_API_KEY`. Due dates, estimates, status, the assignee (display name) and relations (blocks / precedes / follows / relates, parent / child) are read natively. Use the display name as `tracker_login`.
 
 > The OpenProject adapter is tested against recorded API responses. It has not yet been tested against a live instance, so please report anything that looks off.
+
+### Gitea / Forgejo
+
+```yaml
+project: {tracker: gitea, repo: your-org/your-repo, base_url: https://git.example.com, leads: [alex]}
+```
+
+Set `AGENT_PM_GITEA_TOKEN` to a token that can read issues. Due dates and dependencies are read natively; Gitea has no estimates. Status comes from labels like `status:in-progress`, as on GitHub.
 
 ## 3. How the risk check works
 
@@ -74,11 +86,20 @@ Each task appears once, in its most important section: overdue, others waiting f
 
 **Sending** uses `AGENT_PM_SMTP_HOST`, `AGENT_PM_SMTP_PORT` (587), `AGENT_PM_SMTP_USER`, `AGENT_PM_SMTP_PASSWORD` and `AGENT_PM_SMTP_FROM`.
 
-**Scheduling:** until the agent has its own scheduler, use cron, for example weekdays at 07:30:
+**Scheduling:** `uv run agent-pm run` sends each brief at the time the person chose ([running the agent](running.md)). If you only want the briefs, cron works too, for example weekdays at 07:30:
 
 ```cron
-30 7 * * 1-5  cd /srv/agentic-pm && uv run agent-pm brief --all --send --llm
+30 7 * * 1-5  cd /path/to/agentic-pm && uv run agent-pm brief --all --send --llm
 ```
+
+### Where it runs
+
+On any computer that is switched on at briefing time: nothing is sent while the machine sleeps.
+
+- **To try it:** your laptop is fine.
+- **For daily use:** a small machine that stays on, e.g. a mini PC, an office server or a small rented server. With a local model, plan for at least 16 GB of memory.
+
+Your tracker data and the model stay on that machine; only the briefs leave it, by email or chat.
 
 ## 5. Optional: a short summary from your local model
 

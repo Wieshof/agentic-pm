@@ -38,7 +38,7 @@ A plain-language summary for everyone on a team that uses agentic-pm. The design
 ## Your choices
 
 - Change your channel, language or brief time in the team file, or just ask your lead.
-- Switch off briefs or reminders by replying to any agent email.
+- Switch off briefs or reminders: remove the `brief:` line from your entry in the team file, or ask your lead to. Replying "stop" to an agent email doesn't do this yet: a reply about a task is added to that task as a note.
 - Ask your lead what the team file says about you.
 
 Before rolling out, your team should involve the data protection officer and, where there is one, the works council.
