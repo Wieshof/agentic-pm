@@ -7,6 +7,7 @@ reply needs, the same stateless trick as for email (docs/data-model.md):
     — #12 · due?                           a question whose answer is a date
     — #12 · estimate?                      … or an estimate
     — #12 · set status done · 3f9a0c21d4   a proposed change, waiting for "yes"
+    — eng#12                               the same with several trackers (ADR-0006)
 
 A proposal is HMAC-signed with AGENT_PM_SIGNING_KEY. Signal lets the sender's
 app supply the quoted text, so without the signature someone could quote a
@@ -30,7 +31,7 @@ Ask = Literal["due", "estimate"]
 Field = Literal["due", "estimate", "status"]
 
 _TAG = re.compile(
-    r"^— #(?P<id>[A-Za-z0-9][A-Za-z0-9_-]*)"
+    r"^— (?P<source>[a-z][a-z0-9_-]*)?#(?P<id>[A-Za-z0-9][A-Za-z0-9_-]*)"
     r"(?: · (?P<ask>due|estimate)\?"
     r"| · set (?P<field>due|estimate|status) (?P<value>[A-Za-z0-9_.-]+) · (?P<sig>[0-9a-f]{10}))?"
     r"\s*$"
@@ -39,27 +40,41 @@ _TAG = re.compile(
 
 class Tag(BaseModel):
     id: str
+    source: str | None = None
     ask: Ask | None = None
     field: Field | None = None
     value: str | None = None
     sig: str | None = None
 
+    @property
+    def label(self) -> str:
+        return f"{self.source or ''}#{self.id}"
+
     def render(self) -> str:
         if self.field and self.value and self.sig:
-            return f"— #{self.id} · set {self.field} {self.value} · {self.sig}"
+            return f"— {self.label} · set {self.field} {self.value} · {self.sig}"
         if self.ask:
-            return f"— #{self.id} · {self.ask}?"
-        return f"— #{self.id}"
+            return f"— {self.label} · {self.ask}?"
+        return f"— {self.label}"
 
 
-def _sig(key: str | bytes, task_id: str, field: str, value: str) -> str:
-    msg = f"agent-pm-chat|{task_id}|{field}|{value}".encode()
+def _sig(key: str | bytes, task_id: str, field: str, value: str, source: str | None) -> str:
+    task = f"{source}#{task_id}" if source else task_id  # unchanged with one tracker
+    msg = f"agent-pm-chat|{task}|{field}|{value}".encode()
     k = key.encode() if isinstance(key, str) else key
     return hmac.new(k, msg, hashlib.sha256).hexdigest()[:10]
 
 
-def proposal(key: str | bytes, task_id: str, field: Field, value: str) -> Tag:
-    return Tag(id=task_id, field=field, value=value, sig=_sig(key, task_id, field, value))
+def proposal(
+    key: str | bytes, task_id: str, field: Field, value: str, source: str | None = None
+) -> Tag:
+    return Tag(
+        id=task_id,
+        source=source,
+        field=field,
+        value=value,
+        sig=_sig(key, task_id, field, value, source),
+    )
 
 
 def parse(text: str | None) -> Tag | None:
@@ -75,7 +90,7 @@ def verified_patch(tag: Tag, key: str | bytes | None) -> TaskPatch | None:
     """The change a proposal tag stands for, only if its signature is valid."""
     if not (key and tag.field and tag.value and tag.sig):
         return None
-    if not hmac.compare_digest(tag.sig, _sig(key, tag.id, tag.field, tag.value)):
+    if not hmac.compare_digest(tag.sig, _sig(key, tag.id, tag.field, tag.value, tag.source)):
         return None
     try:
         if tag.field == "due":

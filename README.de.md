@@ -67,6 +67,7 @@ Nicht so technisch? Schick die [Erste-Schritte-Anleitung](docs/de/getting-starte
 | ✅ | **Nur-Lese-Einblick:** Abhängigkeitsrisiken, Terminkollisionen, Fragen zur Datenqualität, Morgen-Briefings | Phase 1 |
 | ✅ | **Zurückschreiben:** Kommentare, How-tos, signierte Freigaben, Mail-Antworten, täglicher und wöchentlicher Takt | Phase 2 |
 | ✅ | **Chat über Matrix und Signal:** Sprachnachrichten, Triangulation, adaptives Nachfassen | Phase 3 |
+| ✅ | **Mehrere Tracker:** ein Briefing über Kunden oder Abteilungen hinweg, Nahtstellen mit Prognose, strikte Abschottung ([so geht's](docs/de/sources.md)) | Schritt 4.0a |
 | ⏳ | WhatsApp, telefonische Check-ins und gesprochene Briefings | Phase 3 |
 | 🗓️ | Planung und Steuerung, Scrum-Artefakte, Portfolio und Finanzen | Phasen 4–7 |
 
@@ -176,8 +177,8 @@ Alles Geheime kommt aus Umgebungsvariablen (oder Deinem Secret-Manager), nie aus
 | Modul | Zweck |
 |-------|-------|
 | `agentic_pm.config` | Schema und Prüfung von `team.yaml` |
-| `agentic_pm.adapters` | `TrackerAdapter`-Protokoll; Tabelle, GitHub, OpenProject, Gitea; Tracker-Katalog; Vertragstests |
-| `agentic_pm.engine` | Abhängigkeiten, Kapazität, Vollständigkeit, Nachfassen, Triangulation |
+| `agentic_pm.adapters` | `TrackerAdapter`-Protokoll; Tabelle, GitHub, OpenProject, Gitea; mehrere Tracker als einer, mit Abschottungsprüfung (`multi`); Tracker-Katalog; Vertragstests |
+| `agentic_pm.engine` | Abhängigkeiten, Kapazität, Vollständigkeit, Nachfassen, Triangulation, Nahtstellen zwischen Trackern |
 | `agentic_pm.briefs` | Morgen-Briefing, Feierabend-Notiz, Wochenrückblick, abgesicherte LLM-Zusammenfassung |
 | `agentic_pm.actions` · `approvals` · `audit` | Berechtigungsstufen, signierte Freigaben, Audit-Fußzeile |
 | `agentic_pm.email_routing` · `inbox` · `inbound` | Mail-Zuordnung, IMAP-Postfach, Antwortverarbeitung, How-to-Schleife |

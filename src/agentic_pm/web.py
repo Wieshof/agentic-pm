@@ -5,6 +5,8 @@
 * POST /approve       approve or decline (the signed token is the permission)
 * POST /webhooks/github  verified with AGENT_PM_GITHUB_WEBHOOK_SECRET, then the
                       webhook gate (self-trigger protection, de-duplication)
+* POST /webhooks/<source>  the same per source with several trackers (ADR-0006),
+                      verified with AGENT_PM_<SOURCE>_WEBHOOK_SECRET
 * GET  /healthz
 """
 
@@ -71,7 +73,9 @@ def create_app(
     on_github_webhook: WebhookHandler | None = None,
     gitea_webhook_secret: str | None = None,
     on_gitea_webhook: WebhookHandler | None = None,
+    source_webhooks: dict[str, tuple[str, str | None, WebhookHandler]] | None = None,
 ) -> Starlette:
+    """`source_webhooks`: source key -> (tracker kind "github" | "gitea", secret, handler)."""
     cfg = guard.cfg
 
     async def healthz(_: Request) -> Response:
@@ -130,50 +134,75 @@ def create_app(
         t = _t(lang)
         return _page(t["title"], f"<h2>{t[outcome.status].format(name=html.escape(name))}</h2>")
 
-    async def github_webhook(request: Request) -> Response:
-        from agentic_pm.adapters.github import verify_signature
+    def github_hook(secret: str | None, handler: WebhookHandler | None) -> Any:
+        async def hook(request: Request) -> Response:
+            from agentic_pm.adapters.github import verify_signature
 
-        if not webhook_secret or on_github_webhook is None:
-            return JSONResponse({"error": "webhooks not configured"}, status_code=503)
-        body = await request.body()
-        if not verify_signature(webhook_secret, body, request.headers.get("x-hub-signature-256")):
-            return JSONResponse({"error": "bad signature"}, status_code=401)
-        try:
-            payload = json.loads(body)
-        except ValueError:
-            return JSONResponse({"error": "invalid json"}, status_code=400)
-        event = request.headers.get("x-github-event", "")
-        result = await on_github_webhook(event, payload, request.headers.get("x-github-delivery"))
-        return JSONResponse({"accepted": result is not None}, status_code=202)
+            if not secret or handler is None:
+                return JSONResponse({"error": "webhooks not configured"}, status_code=503)
+            body = await request.body()
+            if not verify_signature(secret, body, request.headers.get("x-hub-signature-256")):
+                return JSONResponse({"error": "bad signature"}, status_code=401)
+            try:
+                payload = json.loads(body)
+            except ValueError:
+                return JSONResponse({"error": "invalid json"}, status_code=400)
+            event = request.headers.get("x-github-event", "")
+            result = await handler(event, payload, request.headers.get("x-github-delivery"))
+            return JSONResponse({"accepted": result is not None}, status_code=202)
 
-    async def gitea_webhook(request: Request) -> Response:
-        from agentic_pm.adapters.gitea import verify_signature as verify_gitea
+        return hook
 
-        if not gitea_webhook_secret or on_gitea_webhook is None:
-            return JSONResponse({"error": "webhooks not configured"}, status_code=503)
-        body = await request.body()
-        signature = request.headers.get("x-gitea-signature") or request.headers.get(
-            "x-forgejo-signature"
+    def gitea_hook(secret: str | None, handler: WebhookHandler | None) -> Any:
+        async def hook(request: Request) -> Response:
+            from agentic_pm.adapters.gitea import verify_signature as verify_gitea
+
+            if not secret or handler is None:
+                return JSONResponse({"error": "webhooks not configured"}, status_code=503)
+            body = await request.body()
+            signature = request.headers.get("x-gitea-signature") or request.headers.get(
+                "x-forgejo-signature"
+            )
+            if not verify_gitea(secret, body, signature):
+                return JSONResponse({"error": "bad signature"}, status_code=401)
+            try:
+                payload = json.loads(body)
+            except ValueError:
+                return JSONResponse({"error": "invalid json"}, status_code=400)
+            event = request.headers.get("x-gitea-event") or request.headers.get(
+                "x-forgejo-event", ""
+            )
+            delivery = request.headers.get("x-gitea-delivery") or request.headers.get(
+                "x-forgejo-delivery"
+            )
+            result = await handler(event, payload, delivery)
+            return JSONResponse({"accepted": result is not None}, status_code=202)
+
+        return hook
+
+    per_source = [
+        Route(
+            f"/webhooks/{key}",
+            (gitea_hook if kind == "gitea" else github_hook)(secret, handler),
+            methods=["POST"],
         )
-        if not verify_gitea(gitea_webhook_secret, body, signature):
-            return JSONResponse({"error": "bad signature"}, status_code=401)
-        try:
-            payload = json.loads(body)
-        except ValueError:
-            return JSONResponse({"error": "invalid json"}, status_code=400)
-        event = request.headers.get("x-gitea-event") or request.headers.get("x-forgejo-event", "")
-        delivery = request.headers.get("x-gitea-delivery") or request.headers.get(
-            "x-forgejo-delivery"
-        )
-        result = await on_gitea_webhook(event, payload, delivery)
-        return JSONResponse({"accepted": result is not None}, status_code=202)
+        for key, (kind, secret, handler) in (source_webhooks or {}).items()
+        if key not in ("github", "gitea")
+    ]
 
     return Starlette(
         routes=[
             Route("/healthz", healthz),
             Route("/approve", show, methods=["GET"]),
             Route("/approve", decide, methods=["POST"]),
-            Route("/webhooks/github", github_webhook, methods=["POST"]),
-            Route("/webhooks/gitea", gitea_webhook, methods=["POST"]),
+            Route(
+                "/webhooks/github", github_hook(webhook_secret, on_github_webhook), methods=["POST"]
+            ),
+            Route(
+                "/webhooks/gitea",
+                gitea_hook(gitea_webhook_secret, on_gitea_webhook),
+                methods=["POST"],
+            ),
+            *per_source,
         ]
     )

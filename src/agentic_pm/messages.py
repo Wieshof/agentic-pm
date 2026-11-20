@@ -95,16 +95,18 @@ def onboarding(cfg: TeamConfig, handle: str) -> tuple[str, str]:
         when = person.brief.when or cfg.cadence.morning_triage or "-"
         brief = f"{person.brief.format.value} ({when}, {cfg.project.timezone})"
     llm = cfg.llm.model
-    names = ", ".join(cfg.display_name(h) for h in cfg.project.leads)
+    names = ", ".join(cfg.display_name(h) for h in cfg.all_leads())
     de = i18n.base_language(lang) == "de"  # the docs exist in English and German
     return (
         t["onboarding_subject"].format(name=cfg.display_name(handle)),
         t["onboarding_body"].format(
             name=cfg.display_name(handle),
-            project=cfg.project.repo,
+            project=cfg.project.repo or ", ".join(cfg.sources),
             channels=channels,
             language=language_name(lang, lang),
-            tracker=tracker_name(cfg.project.tracker),
+            tracker=", ".join(
+                dict.fromkeys(tracker_name(cfg.tracker_of(k)) for k in cfg.sources or [None])
+            ),
             llm=llm,
             brief=brief,
             leads=names,

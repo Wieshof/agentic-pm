@@ -142,7 +142,7 @@ def chat_text(subject: str, text: str, ref: TaskRef | None = None) -> str:
     from agentic_pm.chat.tags import Tag
 
     body = f"{subject}\n\n{text}" if subject else text
-    return f"{body}\n\n{Tag(id=ref.id).render()}" if ref is not None else body
+    return f"{body}\n\n{Tag(id=ref.id, source=ref.source).render()}" if ref is not None else body
 
 
 class ChatNotifier:

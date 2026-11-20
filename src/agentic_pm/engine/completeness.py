@@ -11,6 +11,8 @@ Gaps (who gets them):
 * BLOCKED_WITHOUT_REASON: "blocked", no linked blocker, no explanation (owner)
 * BLOCKER_DONE: "blocked", but everything it waited for is finished (owner)
 * UNLINKED_DEPENDENCY: text says "waiting on #14", nothing linked (owner)
+* SEAM_SUGGESTED: text names another source (eng#142, eng:milestone/v2.0) but
+  doesn't declare `waits_for` (owner; several trackers only, ADR-0006)
 
 Hints from free text are **suggestions only**: the text is untrusted, nothing
 is ever changed automatically, and only the short matched phrase is quoted.
@@ -132,11 +134,9 @@ def dependency_hints(task: Task, text: str) -> list[tuple[TaskRef, str]]:
         elif m.group("iid"):
             if m.group("inst") != here.project:
                 continue  # some other sheet: can't resolve safely
-            ref = TaskRef(tracker=here.tracker, project=here.project, id=m.group("iid"))
+            ref = here.model_copy(update={"id": m.group("iid")})
         else:
-            ref = TaskRef(
-                tracker=here.tracker, project=here.project, id=m.group("hid") or m.group("key")
-            )
+            ref = here.model_copy(update={"id": m.group("hid") or m.group("key")})
         if ref != here:
             found.setdefault(str(ref), (ref, _evidence(m.group(0))))
     return list(found.values())
@@ -169,6 +169,9 @@ def waiting_on(graph: DependencyGraph) -> dict[str, list[Task]]:
         for ref, _ in dependency_hints(task, f"{task.title}\n{task.description or ''}"):
             if str(ref) in graph.tasks:
                 out.setdefault(str(ref), {})[str(task.ref)] = task
+    for key, waiters in graph.seam_waiters.items():  # another source waits on it (ADR-0006)
+        for w in waiters:
+            out.setdefault(key, {})[str(w.ref)] = w
     return {k: sorted(v.values(), key=lambda t: str(t.ref)) for k, v in out.items()}
 
 
@@ -198,14 +201,13 @@ def is_backlog(
 
 
 def _names(tasks: list[Task], limit: int = 2) -> str:
-    shown = ", ".join(f"#{t.ref.id} {t.title}" for t in tasks[:limit])
+    shown = ", ".join(f"{t.ref.label} {t.title}" for t in tasks[:limit])
     return shown + (f" (+{len(tasks) - limit})" if len(tasks) > limit else "")
 
 
 def check_completeness(cfg: TeamConfig, graph: DependencyGraph) -> CompletenessReport:
     policy = cfg.completeness
     caps = graph.capabilities
-    triage = list(policy.triage or cfg.project.leads)
     check_due = policy.require_due and (caps is None or caps.due_dates != "none")
     check_estimate = policy.require_estimate and (caps is None or caps.estimates != "none")
     check_links = caps is None or caps.dependencies != "none"
@@ -223,8 +225,11 @@ def check_completeness(cfg: TeamConfig, graph: DependencyGraph) -> CompletenessR
             continue
         active += 1
         mine: list[Gap] = []
-        owners = [h for login in task.assignees if (h := cfg.handle_for_login(login))]
-        strangers = [login for login in task.assignees if not cfg.handle_for_login(login)]
+        source = task.ref.source
+        owners = [h for login in task.assignees if (h := cfg.handle_for_login(login, source))]
+        strangers = [login for login in task.assignees if not cfg.handle_for_login(login, source)]
+        triage = [h for h in policy.triage or cfg.leads_of(source) if cfg.belongs(h, source)]
+        triage = triage or cfg.leads_of(source)
         to = owners or triage
         text = task.description or ""
 
@@ -272,7 +277,7 @@ def check_completeness(cfg: TeamConfig, graph: DependencyGraph) -> CompletenessR
                         code="BLOCKER_DONE",
                         task=task,
                         recipients=to,
-                        params={"done": ", ".join(f"#{t.ref.id}" for t in done)},
+                        params={"done": ", ".join(t.ref.label for t in done)},
                     )
                 )
             elif not text.strip():
@@ -284,13 +289,25 @@ def check_completeness(cfg: TeamConfig, graph: DependencyGraph) -> CompletenessR
                     continue  # closed or unknown: it can't block anything
                 if local and graph.linked(ref, task.ref):
                     continue
-                label = f"#{ref.id}" if local else str(ref)
+                label = ref.label if local else str(ref)
                 mine.append(
                     Gap(
                         code="UNLINKED_DEPENDENCY",
                         task=task,
                         recipients=to,
                         params={"ref": label, "evidence": evidence},
+                    )
+                )
+        if policy.detect_hints:
+            from agentic_pm.engine.seams import mentions
+
+            for target in mentions(task, cfg):
+                mine.append(
+                    Gap(
+                        code="SEAM_SUGGESTED",
+                        task=task,
+                        recipients=to,
+                        params={"target": target.text},
                     )
                 )
         if mine:

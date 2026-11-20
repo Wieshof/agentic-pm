@@ -21,7 +21,9 @@ from __future__ import annotations
 import asyncio
 import math
 from collections import defaultdict, deque
+from collections.abc import Callable
 from datetime import date, timedelta
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -65,6 +67,9 @@ class DependencyGraph:
     ) -> None:
         self.capabilities = capabilities
         self.coverage = coverage
+        # Seams resolved for this graph (agentic_pm.engine.seams), once per build.
+        self.seams: list[Any] | None = None
+        self.seam_waiters: dict[str, list[Task]] = {}
         self.tasks: dict[str, Task] = {
             str(t.ref): t for t in tasks if t.status not in CLOSED_STATUSES
         }
@@ -109,6 +114,19 @@ class DependencyGraph:
                     except TaskNotFoundError:
                         continue
         return cls(list(tasks.values()), edges, adapter.capabilities, coverage)
+
+    def subgraph(self, keep: Callable[[Task], bool]) -> DependencyGraph:
+        """Only the tasks `keep` accepts, with the links among them (e.g. what one lead
+        may see when there are several sources, ADR-0006)."""
+        view = DependencyGraph([], [], self.capabilities, self.coverage)
+        view.tasks = {k: t for k, t in self.tasks.items() if keep(t)}
+        for k in view.tasks:
+            view._up[k] = {u for u in self._up[k] if u in view.tasks}
+            view._down[k] = {d for d in self._down[k] if d in view.tasks}
+            view._done_up[k] = [t for t in self._done_up[k] if keep(t)]
+        view.seams = self.seams
+        view.seam_waiters = {k: v for k, v in self.seam_waiters.items() if k in view.tasks}
+        return view
 
     # -------------------------------------------------------------- queries
 
@@ -242,6 +260,10 @@ class DependencyGraph:
             else:
                 finish[k] = own
         return finish, driver
+
+    def projected_finish(self, today: date) -> dict[str, date | None]:
+        """Projected finish per open task (None: no due date and nothing upstream)."""
+        return self._project(today)[0]
 
     def risks(self, today: date) -> list[Risk]:
         """Open tasks projected to finish after their due date because of a blocker."""

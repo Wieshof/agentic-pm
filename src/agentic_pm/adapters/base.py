@@ -27,9 +27,23 @@ class TaskRef(_Model):
     tracker: str = Field(description="Adapter name, e.g. 'github'")
     project: str = Field(description="Repo / project key, e.g. 'org/repo'")
     id: str = Field(description="Tracker-native task id, e.g. '142'")
+    source: str | None = Field(
+        default=None,
+        description="Source key from team.yaml `sources:` (ADR-0006); None with one tracker",
+    )
 
     def __str__(self) -> str:
-        return f"{self.tracker}:{self.project}#{self.id}"
+        plain = f"{self.tracker}:{self.project}#{self.id}"
+        return f"{self.source}@{plain}" if self.source else plain
+
+    @property
+    def label(self) -> str:
+        """How people see it: `#142` with one tracker, `eng#142` with several."""
+        return f"{self.source}#{self.id}" if self.source else f"#{self.id}"
+
+    def bare(self) -> TaskRef:
+        """The reference as the tracker itself knows it (without the source key)."""
+        return self.model_copy(update={"source": None}) if self.source else self
 
 
 class TaskStatus(StrEnum):
@@ -66,6 +80,12 @@ class Task(_Model):
         default=None, description="Last change in the tracker; used for polling trackers"
     )
     comments: list[Comment] = []
+    milestone: str | None = Field(default=None, description="Milestone / version name")
+    waits_for: list[str] = Field(
+        default_factory=list,
+        description="Seams this task waits for, e.g. 'eng:milestone/v2.0' (ADR-0006); "
+        "adapters fill it from structured fields, the agent-pm block is read on top",
+    )
 
 
 class EdgeKind(StrEnum):
@@ -111,6 +131,10 @@ class AuditMeta(_Model):
     approved_by: str | None = None
     request_id: str | None = Field(
         default=None, description="Approval request this write belongs to (idempotency)"
+    )
+    source: str | None = Field(
+        default=None,
+        description="Source the write acts for (ADR-0006); must match the target's source",
     )
 
 

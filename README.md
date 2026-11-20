@@ -69,6 +69,7 @@ Not technical? Send the [getting-started guide](docs/getting-started.md) to whoe
 | ✅ | **Read-only insight:** dependency risks, deadline collisions, data-quality questions, morning briefs | Phase 1 |
 | ✅ | **Write-back:** comments, how-tos, signed approvals, email replies, daily and weekly cadence | Phase 2 |
 | ✅ | **Chat on Matrix and Signal:** voice notes, triangulation, adaptive follow-up | Phase 3 |
+| ✅ | **Several trackers:** one brief across clients or departments, seams with forecasts, strict isolation ([how](docs/sources.md)) | Step 4.0a |
 | ⏳ | WhatsApp, phone check-ins and spoken briefings | Phase 3 |
 | 🗓️ | Planning and control, Scrum artefacts, portfolio and money | Phases 4–7 |
 
@@ -178,8 +179,8 @@ Everything secret comes from environment variables (or your secret manager), nev
 | Module | Purpose |
 |--------|---------|
 | `agentic_pm.config` | `team.yaml` schema and validation |
-| `agentic_pm.adapters` | `TrackerAdapter` protocol; spreadsheet, GitHub, OpenProject, Gitea; tracker catalog; contract tests |
-| `agentic_pm.engine` | Dependencies, capacity, completeness, follow-up, triangulation |
+| `agentic_pm.adapters` | `TrackerAdapter` protocol; spreadsheet, GitHub, OpenProject, Gitea; several trackers as one with the isolation guard (`multi`); tracker catalog; contract tests |
+| `agentic_pm.engine` | Dependencies, capacity, completeness, follow-up, triangulation, seams between trackers |
 | `agentic_pm.briefs` | Morning brief, end-of-day note, weekly digest, guarded LLM summary |
 | `agentic_pm.actions` · `approvals` · `audit` | Permission tiers, signed approvals, audit footer |
 | `agentic_pm.email_routing` · `inbox` · `inbound` | Email routing, IMAP inbox, reply handling, how-to loop |

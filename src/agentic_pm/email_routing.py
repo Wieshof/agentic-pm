@@ -50,11 +50,13 @@ def make_message_id(ref: TaskRef, agent_email: str) -> str:
 
 
 def task_address(agent_email: str, ref: TaskRef) -> str | None:
-    """pm@acme.com + #142 -> pm+142@acme.com (None if the id can't be encoded safely)."""
-    if not _SAFE_ID.match(ref.id):
+    """pm@acme.com + #142 -> pm+142@acme.com, + eng#142 -> pm+eng.142@acme.com
+    (None if the id can't be encoded safely)."""
+    if not _SAFE_ID.match(ref.id) or (ref.source and not _SAFE_ID.match(ref.source)):
         return None
     local, domain = agent_email.split("@", 1)
-    return f"{local.split('+')[0]}+{ref.id}@{domain}"
+    tag = f"{ref.source}.{ref.id}" if ref.source else ref.id
+    return f"{local.split('+')[0]}+{tag}@{domain}"
 
 
 def ref_from_address(address: str, cfg: TeamConfig) -> TaskRef | None:
@@ -69,9 +71,10 @@ def ref_from_address(address: str, cfg: TeamConfig) -> TaskRef | None:
     if domain.lower() != a_domain or "+" not in local:
         return None
     base, tag = local.split("+", 1)
-    if base.lower() != a_local.split("+")[0] or not _SAFE_ID.match(tag):
+    source, _, task_id = tag.rpartition(".")
+    if base.lower() != a_local.split("+")[0] or not _SAFE_ID.match(task_id):
         return None
-    return TaskRef(tracker=cfg.project.tracker, project=cfg.project.repo, id=tag)
+    return cfg.ref(task_id, source or None)
 
 
 def ref_from_message_ids(header: str) -> TaskRef | None:
@@ -160,10 +163,12 @@ def parse_inbound(raw: bytes, cfg: TeamConfig) -> InboundMessage:
     if ref is None:
         ids = " ".join(str(msg.get(h, "")) for h in ("In-Reply-To", "References"))
         ref = ref_from_message_ids(ids)
-    if ref is None:  # "#142" in the subject as a last resort
-        m = re.search(r"#([A-Za-z0-9_-]+)", str(msg.get("Subject", "")))
+    if ref is None:  # "#142" (or "eng#142") in the subject as a last resort
+        m = re.search(
+            r"(?<![\w#-])([a-z][a-z0-9_-]*)?#([A-Za-z0-9_-]+)", str(msg.get("Subject", ""))
+        )
         if m:
-            ref = TaskRef(tracker=cfg.project.tracker, project=cfg.project.repo, id=m.group(1))
+            ref = cfg.ref(m.group(2), m.group(1))
     authserv = cfg.project.email_trusted_authserv_id
     return InboundMessage(
         sender=sender,

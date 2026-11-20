@@ -26,6 +26,8 @@ Mit den Phasen 1–3 kann der Agent lesen, warnen, nachfragen und aktualisieren.
 
 Der Agent arbeitet über mehrere Tracker hinweg, ohne Tickets zu spiegeln. Er ist Übersetzer und Abhängigkeitsbrücke an der Nahtstelle zwischen Abteilungen oder zwischen Kunden.
 
+> **Stand:** gebaut ([Anleitung](sources.md)), außer den Statuszeilen, die ins wartende Ticket geschrieben werden. Sie brauchen den bearbeitbaren agent-pm-Block aus 4.0 und kommen mit ihm.
+
 - **`sources:`** in `team.yaml`: ein Eintrag pro Tracker, mit eigenen Zugangsdaten, eigenem Webhook-Pfad, eigener Ticket-Sprache, eigenem Schreibrecht und eigenen Teamleitungen. `project:` funktioniert weiter als Kurzform für eine Quelle. Eine Person kann pro Quelle einen eigenen Login haben (`logins:`).
 - **Ein Bild über alle Quellen:** Abhängigkeitsgraph, Briefings, Kapazitätskollisionen und Vollständigkeit arbeiten über alle Quellen zusammen, nur lesend.
 - **Nahtstellen:** Die wartende Seite trägt `waits_for: eng:milestone/v2.0` (oder einen einzelnen Eintrag oder ein Label) im eigenen Tracker oder in der Tabellenzelle ein.

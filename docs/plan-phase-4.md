@@ -26,6 +26,8 @@ Phases 1–3 let the agent read, warn, ask and update. Phase 4 lets it **keep th
 
 The agent works across several trackers without mirroring tickets. It's a translator and dependency bridge at the seam between departments, or between clients.
 
+> **Status:** built ([guide](sources.md)), except the status lines written into the waiting ticket. They need the editable agent-pm block from 4.0, so they come with it.
+
 - **`sources:`** in `team.yaml`: one entry per tracker, with its own credentials, webhook path, ticket language, write permission and leads. `project:` keeps working as the one-source shorthand. One person can have a login per source (`logins:`).
 - **One picture across sources:** dependency graph, briefs, capacity collisions and completeness work on all sources together, read-only.
 - **Seams:** the waiting side declares `waits_for: eng:milestone/v2.0` (or one item, or a label) in its own tracker or spreadsheet cell.

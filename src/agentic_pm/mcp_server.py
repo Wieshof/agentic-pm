@@ -50,6 +50,13 @@ class TrackerTools:
             )
 
     def _ref(self, project: str, task_id: str) -> TaskRef:
+        """`project` is the repo, or the source key with several trackers (ADR-0006)."""
+        from agentic_pm.adapters.multi import MultiTracker
+
+        if isinstance(self.adapter, MultiTracker) and project in self.adapter.adapters:
+            src = self.adapter.cfg.sources[project]
+            sub = self.adapter.adapters[project]
+            return TaskRef(tracker=sub.name, project=src.project, id=task_id, source=project)
         return TaskRef(tracker=self.adapter.name, project=project, id=task_id)
 
     async def get_task(self, project: str, task_id: str) -> dict[str, Any]:
@@ -68,8 +75,8 @@ class TrackerTools:
         self, project: str, task_id: str, markdown: str, actor: str, channel: str, reason: str
     ) -> dict[str, Any]:
         self._require_writes()
-        meta = AuditMeta(actor=actor, channel=Channel(channel), reason=reason)
         ref = self._ref(project, task_id)
+        meta = AuditMeta(actor=actor, channel=Channel(channel), reason=reason, source=ref.source)
         if self.guard is not None:
             await self.guard.comment(ref, markdown, meta)
         else:
@@ -89,7 +96,7 @@ class TrackerTools:
         self._require_writes()
         ref = self._ref(project, task_id)
         parsed = TaskPatch.model_validate(patch)
-        meta = AuditMeta(actor=actor, channel=Channel(channel), reason=reason)
+        meta = AuditMeta(actor=actor, channel=Channel(channel), reason=reason, source=ref.source)
 
         if approval_token is not None:
             if self.guard is None or self.guard.signer is None:

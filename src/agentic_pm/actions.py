@@ -60,10 +60,11 @@ class Guard:
     # ---------------------------------------------------------------- helpers
 
     def _approvers(self, task: Task, tier: RiskTier) -> list[str]:
-        leads = list(self.cfg.project.leads)
+        source = task.ref.source
+        leads = self.cfg.leads_of(source)
         if tier is RiskTier.HIGH:
             return leads
-        owners = [h for login in task.assignees if (h := self.cfg.handle_for_login(login))]
+        owners = [h for login in task.assignees if (h := self.cfg.handle_for_login(login, source))]
         return owners or leads
 
     def approval_url(self, token: str) -> str:
@@ -142,7 +143,7 @@ class Guard:
                 ref=ref,
             )
         if self.adapter.capabilities.writes and request is not None:
-            lang = self.cfg.project.ticket_language
+            lang = self.cfg.ticket_language_of(ref.source)
             change, _ = describe_patch(task, patch, lang)
             await self.adapter.add_comment(
                 ref,
@@ -158,7 +159,7 @@ class Guard:
         req = self.signer.verify(token)
         task = await self.adapter.get_task(req.ref)
         tier = RiskTier(req.tier)
-        lang = self.cfg.project.ticket_language
+        lang = self.cfg.ticket_language_of(req.ref.source)
         name = self.cfg.display_name(req.approver)
         reason = req.reason
         if approve:
@@ -169,6 +170,7 @@ class Guard:
             reason=reason,
             approved_by=req.approver if approve else None,
             request_id=req.request_id,
+            source=req.ref.source,
         )
         # One "no" ends the request for everyone: another approver's link must not
         # bring it back. The decline is read from the ticket (verified footer).

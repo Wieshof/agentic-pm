@@ -41,6 +41,8 @@ cadence:
 
 **GitHub-Webhook:** Richte in den Repository-Einstellungen einen Webhook auf `https://pm.deine-org.de/webhooks/github` ein, Content-Type JSON, mit demselben Secret. Abonniere *Issues* und *Issue comments*. Für **Gitea / Forgejo** nimm `/webhooks/gitea` und `AGENT_PM_GITEA_WEBHOOK_SECRET`.
 
+**Mehrere Tracker** ([Quellen](sources.md)): Jede Quelle bekommt ihren eigenen Token `AGENT_PM_<QUELLE>_TOKEN` und ihren eigenen Webhook `/webhooks/<quelle>` mit `AGENT_PM_<QUELLE>_WEBHOOK_SECRET`, z. B. `AGENT_PM_ENG_TOKEN` und `/webhooks/eng`. Ohne eigenen Token nutzt eine Quelle den gemeinsamen.
+
 **Wo er lauscht:** `agent-pm run` nimmt nur Verbindungen von diesem Rechner an (`127.0.0.1:8787`). Setz einen Reverse-Proxy mit HTTPS davor. Nutz `--host 0.0.0.0` nur in einem Container oder wenn ein Proxy oder eine Firewall regelt, wer ihn erreichen kann.
 
 ## 2. Was passiert

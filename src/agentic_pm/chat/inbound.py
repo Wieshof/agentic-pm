@@ -20,6 +20,7 @@ Senders not in team.yaml are ignored.
 from __future__ import annotations
 
 import logging
+import re
 from collections.abc import Callable
 from datetime import date
 
@@ -38,9 +39,11 @@ from agentic_pm.chat.base import ChatEvent, ChatTransport
 from agentic_pm.config.team import TeamConfig
 from agentic_pm.email_routing import InboundMessage
 from agentic_pm.inbound import Router
-from agentic_pm.knowledge import _ID
 from agentic_pm.messages import describe_patch, friendly_date, render
 from agentic_pm.speech import Transcriber
+
+# "#12", or "eng#12" with several trackers
+_MENTION = re.compile(r"(?<![\w#-])([a-z][a-z0-9_-]*)?#([A-Za-z0-9](?:[A-Za-z0-9_-]*[A-Za-z0-9])?)")
 
 log = logging.getLogger("agentic_pm.chat")
 
@@ -59,8 +62,8 @@ class ChatRouter:
         self.transcriber = transcriber
         self.today = today
 
-    def _ref(self, task_id: str) -> TaskRef:
-        return TaskRef(tracker=self.cfg.project.tracker, project=self.cfg.project.repo, id=task_id)
+    def _ref(self, task_id: str, source: str | None = None) -> TaskRef | None:
+        return self.cfg.ref(task_id, source)
 
     async def _say(
         self, transport: ChatTransport, evt: ChatEvent, handle: str, key: str, **kw: str
@@ -104,11 +107,13 @@ class ChatRouter:
             if asked is not None:
                 return asked
 
-        ref = self._ref(tag.id) if tag is not None else None
+        ref = self._ref(tag.id, tag.source) if tag is not None else None
         if ref is None:
-            ids = {m.group(1) for m in _ID.finditer(text)}
+            ids = {(m.group(1), m.group(2)) for m in _MENTION.finditer(text)}
             if len(ids) == 1:
-                ref = self._ref(ids.pop())
+                source, task_id = ids.pop()
+                ref = self._ref(task_id, source)
+            if ref is not None:
                 short = await self._short_answer(transport, evt, handle, ref, text)
                 if short is not None:
                     return short
@@ -138,8 +143,10 @@ class ChatRouter:
         if not answer:
             await self._say(transport, evt, handle, "confirm_declined", id=tag.id)
             return "confirm_declined"
-        ref = self._ref(tag.id)
+        ref = self._ref(tag.id, tag.source)
         try:
+            if ref is None:
+                raise TaskNotFoundError(tag.label)
             task = await self.guard.adapter.get_task(ref)
         except TaskNotFoundError:
             await self._say(transport, evt, handle, "chat_unknown_task")
@@ -149,7 +156,12 @@ class ChatRouter:
             return "confirm_stale"
         lang = self.cfg.language_of(handle)
         change, _ = describe_patch(task, patch, lang)
-        meta = AuditMeta(actor=handle, channel=Channel(evt.platform), reason="confirmed in chat")
+        meta = AuditMeta(
+            actor=handle,
+            channel=Channel(evt.platform),
+            reason="confirmed in chat",
+            source=ref.source,
+        )
         try:
             outcome = await self.guard.propose(ref, patch, meta, owner_confirmed=True)
         except ReadOnlyAdapterError:
@@ -165,7 +177,7 @@ class ChatRouter:
         self, transport: ChatTransport, evt: ChatEvent, handle: str, ref: TaskRef, text: str
     ) -> str | None:
         """'#12 Friday' / '#12 2 days': an answer to a bundled question without a tag."""
-        rest = _ID.sub(" ", text).strip(" :,-\u2013")
+        rest = _MENTION.sub(" ", text).strip(" :,-\u2013")
         if not rest or len(rest.split()) > 5:
             return None
         try:
@@ -179,7 +191,9 @@ class ChatRouter:
             ask = "estimate"
         if ask is None:
             return None
-        return await self._answer(transport, evt, handle, tags.Tag(id=ref.id, ask=ask), rest)
+        return await self._answer(
+            transport, evt, handle, tags.Tag(id=ref.id, source=ref.source, ask=ask), rest
+        )
 
     async def _answer(
         self, transport: ChatTransport, evt: ChatEvent, handle: str, tag: tags.Tag, text: str
@@ -188,17 +202,20 @@ class ChatRouter:
         if signer is None or not self.guard.adapter.capabilities.writes:
             return None  # can't propose a change: keep the answer as a note
         lang = self.cfg.language_of(handle)
+        ref = self._ref(tag.id, tag.source)
+        if ref is None:
+            return None
         try:
-            task = await self.guard.adapter.get_task(self._ref(tag.id))
+            task = await self.guard.adapter.get_task(ref)
         except TaskNotFoundError:
             return None
         common = {"id": task.ref.id, "title": task.title}
         if tag.ask == "due" and (d := parse_date(text, self.today())):
             question = render(lang, "confirm_due", date=friendly_date(d, lang), **common)
-            proposal = tags.proposal(signer.key, task.ref.id, "due", d.isoformat())
+            proposal = tags.proposal(signer.key, task.ref.id, "due", d.isoformat(), task.ref.source)
         elif tag.ask == "estimate" and (h := parse_estimate(text)):
             question = render(lang, "confirm_estimate", hours=format_hours(h), **common)
-            proposal = tags.proposal(signer.key, task.ref.id, "estimate", f"{h:g}")
+            proposal = tags.proposal(signer.key, task.ref.id, "estimate", f"{h:g}", task.ref.source)
         else:
             return None
         await transport.reply(evt, f"{question}\n\n{proposal.render()}")

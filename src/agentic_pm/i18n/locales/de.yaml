@@ -172,6 +172,16 @@ texts:
     collision: '{tasks} sind bis {by} fällig und brauchen etwa {need}, es bleiben aber nur {left}.'
     collision_move: ' Vielleicht {id} verschieben oder übergeben?'
     collision_all_critical: ' Auf alle davon warten andere, lass uns gemeinsam auf die Prioritäten schauen.'
+    same_day: '{tasks} sind am selben Tag fällig, {date}.'
+    seams: 🌉 Über Teamgrenzen
+    seam_ok: '{task} wartet auf {target}: {done}/{total} erledigt, Prognose {date}, im Plan ({buffer} Puffer)'
+    seam_late: '{task} wartet auf {target}: {done}/{total} erledigt, Prognose {date}, {late} nach seinem Termin ({due}). Gefährdet.'
+    seam_no_due: '{task} wartet auf {target}: {done}/{total} erledigt, Prognose {date}'
+    seam_undated: '{task} wartet auf {target}: {done}/{total} erledigt, noch keine Prognose, weil {n} offene Einträge dort keinen Termin haben'
+    seam_done: '{task} wartet auf {target}: alle {total} erledigt ✅'
+    seam_empty: '{task} wartet auf {target}, aber dort finde ich noch nichts'
+    seam_deliver: '{task} am {due} wartet auf {target}; {deciding} entscheiden es.'
+    seam_deliver_undated: '{task} am {due} wartet auf {target}; {deciding} haben noch keinen Termin, deshalb kann niemand sagen, ob es passt.'
     and: und
     limits: 🔍 Dein Tracker liefert das nicht, deshalb kann ich es nicht prüfen
     limit_dependencies: Abhängigkeiten (keine Risiko-Warnungen für blockierte Aufgaben)
@@ -210,6 +220,7 @@ texts:
     MISSING_ESTIMATE: '{task} hat keine Schätzung, deshalb rechne ich mit 1 Tag. Wie lange dauert es ungefähr?'
     BLOCKED_WITHOUT_REASON: '{task} ist als blockiert markiert, aber ich sehe nicht, wodurch. Worauf wartet es?'
     UNLINKED_DEPENDENCY: '{task} erwähnt {ref} („{evidence}“), ist aber nicht damit verknüpft. Soll es auf {ref} warten? Dann verknüpf die beiden gern.'
+    SEAM_SUGGESTED: '{task} erwähnt {target}. Wartet es darauf? Dann ergänz `waits_for: {target}` im agent-pm-Block, und ich behalte die andere Seite für Dich im Blick.'
     readiness_heading: 📊 Datenqualität
     readiness: '{pct} % von {n} offenen Aufgaben haben alles, was die Prüfungen brauchen'
     readiness_counts: 'es fehlen: {counts}'
@@ -222,6 +233,7 @@ texts:
     count_BLOCKED_WITHOUT_REASON: '{n} blockiert ohne Grund'
     count_BLOCKER_DONE: '{n} blockiert durch bereits Erledigtes'
     count_UNLINKED_DEPENDENCY: '{n} unverknüpfte Abhängigkeiten'
+    count_SEAM_SUGGESTED: '{n} mögliche Abhängigkeiten von einem anderen Team'
     what_MISSING_OWNER: niemand zuständig
     what_OWNER_NOT_IN_TEAM: Zuständige nicht in der Team-Datei
     what_MISSING_DUE: kein Termin
@@ -230,6 +242,7 @@ texts:
     what_BLOCKED_WITHOUT_REASON: blockiert, Grund unbekannt
     what_BLOCKER_DONE: blockiert, obwohl der Blocker erledigt ist
     what_UNLINKED_DEPENDENCY: Abhängigkeit nicht verknüpft
+    what_SEAM_SUGGESTED: wartet auf ein anderes Team?
     stalled_heading: ⏰ Wartet noch auf eine Antwort
     stalled_item: '#{id} {title}: {what}, vor {days} Arbeitstagen nachgefragt'
     switch_intro: Ich habe auf {channel} schon ein paar Mal gefragt, deshalb versuche ich es hier, falls das einfacher ist.
@@ -257,6 +270,8 @@ texts:
     BAD_REFERENCE: '''{id}'' hängt von ''{ref}'' ab, das ist keine bekannte Referenz'
     DANGLING_DEPENDENCY: '''{id}'' hängt von ''{dep}'' ab, das steht nicht in der Tabelle'
     EXTERNAL_DEPENDENCY: '''{id}'' hängt von {dep} ab, das kann ich noch nicht prüfen'
+    SEAM_UNKNOWN_TARGET: 'wartet auf „{target}“, das ist aber keine Quelle in team.yaml (schreib z. B. eng#142 oder eng:milestone/v2.0)'
+    ISOLATION_BOUNDARY_BLOCKED: 'nicht verfolgt, weil eine Seite abgeschottet ist (strict); setz `isolation: open` bei beiden Quellen, wenn sie Termine teilen dürfen'
   web:
     title: Dein OK, bitte
     intro: '{actor} möchte bei {task} {change}.'

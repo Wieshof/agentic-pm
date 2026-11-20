@@ -110,6 +110,7 @@ class GiteaAdapter:
             assignees=[user["login"] for user in issue.get("assignees") or []],
             due=datetime.fromisoformat(due.replace("Z", "+00:00")).date() if due else None,
             labels=labels,
+            milestone=(issue.get("milestone") or {}).get("title") or None,
             client_facing=any(label.lower() == "client-facing" for label in labels),
             url=issue.get("html_url"),
             description=issue.get("body") or None,

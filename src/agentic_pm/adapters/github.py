@@ -187,6 +187,7 @@ class GitHubAdapter:
             due=due,
             estimate_hours=parse_estimate(body, labels),
             labels=labels,
+            milestone=milestone.get("title") or None,
             client_facing="client-facing" in (lbl.lower() for lbl in labels),
             url=issue.get("html_url"),
             description=body or None,

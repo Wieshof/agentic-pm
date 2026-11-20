@@ -9,12 +9,15 @@ from __future__ import annotations
 import re
 from enum import StrEnum
 from pathlib import Path
-from typing import Annotated, Any, Literal, Self
+from typing import TYPE_CHECKING, Annotated, Any, Literal, Self
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
 from agentic_pm.cadence import SPEC_PATTERN
+
+if TYPE_CHECKING:
+    from agentic_pm.adapters.base import TaskRef
 
 _DAYS = "Mon|Tue|Wed|Thu|Fri|Sat|Sun"
 _HHMM = r"(?:[01]\d|2[0-3]):[0-5]\d"
@@ -182,16 +185,30 @@ class Person(_Strict):
         "(GitHub login, or OpenProject display name)",
     )
 
-    def login(self, handle: str) -> str:
+    logins: dict[str, str] = Field(
+        default_factory=dict,
+        description="Login per source when there are several (`sources:`), e.g. "
+        '{eng: sam-dev, ops: "Sam Meier"}. A person with logins belongs to exactly those '
+        "sources; a person without belongs to every `open` source (ADR-0006)",
+    )
+
+    def login(self, handle: str, source: str | None = None) -> str:
+        if source is not None and source in self.logins:
+            return self.logins[source]
         return self.tracker_login or handle
 
 
 class Project(_Strict):
-    tracker: str = Field(
+    tracker: str | None = Field(
+        default=None,
         description="Tracker key from the catalog (`agent-pm trackers`), e.g. github, jira, "
-        "or an installed plugin"
+        "or an installed plugin. Leave out when you list several trackers under `sources:`",
     )
-    repo: str = Field(description="GitHub 'owner/repo', or OpenProject project identifier")
+    repo: str | None = Field(
+        default=None,
+        description="GitHub 'owner/repo', or OpenProject project identifier. Leave out with "
+        "`sources:`",
+    )
     base_url: str | None = Field(
         default=None, description="Tracker URL, required for self-hosted trackers (OpenProject)"
     )
@@ -242,6 +259,35 @@ class Project(_Strict):
         description="Tracker logins the agent writes with (service accounts). Webhooks "
         "caused by these accounts are ignored to prevent self-triggering loops.",
     )
+
+
+SourceKey = Annotated[str, StringConstraints(pattern=r"^[a-z][a-z0-9_-]{0,31}$")]
+
+
+class Source(_Strict):
+    """One tracker among several (ADR-0006). `project:` is the shorthand for just one."""
+
+    tracker: str = Field(description="Tracker key from the catalog, e.g. github, openproject")
+    project: str = Field(description="Repo / project / file this source reads")
+    base_url: str | None = None
+    tracker_options: dict[str, Any] = Field(default_factory=dict)
+    ticket_language: LanguageCode = Field(
+        default="en", description="Language the agent writes into this tracker"
+    )
+    isolation: Literal["strict", "open"] = Field(
+        default="strict",
+        description="strict (default, e.g. clients): nothing about other sources is ever "
+        "written here, and no seam crosses it. open (e.g. departments of one company): seam "
+        "roll-ups may cross",
+    )
+    allow_writes: bool = False
+    leads: list[Handle] | None = Field(
+        default=None, description="Leads for this source (default: project.leads)"
+    )
+    agent_accounts: list[str] = Field(default_factory=list)
+
+    def env_prefix(self, key: str) -> str:
+        return f"AGENT_PM_{key.upper().replace('-', '_')}_"
 
 
 class Completeness(_Strict):
@@ -320,6 +366,11 @@ class TeamConfig(_Strict):
         return data
 
     project: Project
+    sources: dict[SourceKey, Source] = Field(
+        default_factory=dict,
+        description="Several trackers in one team (ADR-0006). Replaces project.tracker / "
+        "project.repo; team-wide settings stay under project",
+    )
     people: dict[Handle, Person] = Field(min_length=1)
     llm: LLMSettings = LLMSettings()
     cadence: Cadence = Cadence()
@@ -328,9 +379,97 @@ class TeamConfig(_Strict):
 
     # ------------------------------------------------------------ lookups
 
-    def handle_for_login(self, login: str) -> str | None:
+    def handle_for_login(self, login: str, source: str | None = None) -> str | None:
         return next(
-            (h for h, p in self.people.items() if p.login(h).lower() == login.lower()), None
+            (
+                h
+                for h, p in self.people.items()
+                if p.login(h, source).lower() == login.lower() and self.belongs(h, source)
+            ),
+            None,
+        )
+
+    # ----------------------------------------------------- sources (ADR-0006)
+
+    @property
+    def multi(self) -> bool:
+        return bool(self.sources)
+
+    @property
+    def scope(self) -> str:
+        """What to pass to `list_tasks`: the one repo, or every source."""
+        return self.project.repo or "*"
+
+    def source_of(self, key: str | None) -> Source | None:
+        return self.sources.get(key) if key else None
+
+    def is_strict(self, key: str | None) -> bool:
+        src = self.source_of(key)
+        return src is not None and src.isolation == "strict"
+
+    def leads_of(self, source: str | None = None) -> list[str]:
+        src = self.source_of(source)
+        return list(src.leads) if src and src.leads is not None else list(self.project.leads)
+
+    def all_leads(self) -> list[str]:
+        out = list(self.project.leads)
+        for src in self.sources.values():
+            out += [h for h in src.leads or [] if h not in out]
+        return out
+
+    def ticket_language_of(self, source: str | None = None) -> str:
+        src = self.source_of(source)
+        return src.ticket_language if src else self.project.ticket_language
+
+    def belongs(self, handle: str, source: str | None) -> bool:
+        """May this person see this source's tasks? Always true with one tracker."""
+        src = self.source_of(source)
+        if src is None:
+            return True
+        person = self.people.get(handle)
+        if person is None:
+            return False
+        if person.logins:
+            return source in person.logins or handle in self.leads_of(source)
+        return src.isolation == "open" or handle in self.leads_of(source)
+
+    def assigned(self, handle: str, task_assignees: list[str], source: str | None) -> bool:
+        if not self.belongs(handle, source):
+            return False
+        login = self.people[handle].login(handle, source).lower()
+        return login in (a.lower() for a in task_assignees)
+
+    def ref(self, task_id: str, source: str | None = None) -> TaskRef | None:
+        """A task reference from what a person or a reply carries (`#12`, `eng#12`)."""
+        from agentic_pm.adapters.base import TaskRef
+
+        if self.multi:
+            src = self.source_of(source)
+            if src is None:
+                return None
+            return TaskRef(tracker=src.tracker, project=src.project, id=task_id, source=source)
+        if source is not None or not (self.project.tracker and self.project.repo):
+            return None
+        return TaskRef(tracker=self.project.tracker, project=self.project.repo, id=task_id)
+
+    def tracker_of(self, source: str | None = None) -> str:
+        src = self.source_of(source)
+        return src.tracker if src else self.project.tracker or ""
+
+    def source_project(self, key: str) -> Project:
+        """A one-tracker view of a source, for building its adapter."""
+        src = self.sources[key]
+        return self.project.model_copy(
+            update={
+                "tracker": src.tracker,
+                "repo": src.project,
+                "base_url": src.base_url,
+                "tracker_options": src.tracker_options,
+                "ticket_language": src.ticket_language,
+                "allow_writes": src.allow_writes,
+                "leads": self.leads_of(key),
+                "agent_accounts": src.agent_accounts or self.project.agent_accounts,
+            }
         )
 
     def handle_for_email(self, email: str) -> str | None:
@@ -383,24 +522,64 @@ class TeamConfig(_Strict):
         errors: list[str] = []
         from agentic_pm.adapters.registry import known_trackers
 
-        if self.project.tracker not in known_trackers():
+        trackers: list[tuple[str, str, str | None, dict[str, Any]]] = []
+        if self.sources:
+            if self.project.tracker or self.project.repo:
+                errors.append(
+                    "use either project.tracker/project.repo (one tracker) or sources: "
+                    "(several), not both. Move them into a source, e.g. "
+                    "sources: {main: {tracker: github, project: org/repo}}"
+                )
+            trackers = [
+                (f"sources.{k}", s.tracker, s.base_url, s.tracker_options)
+                for k, s in self.sources.items()
+            ]
+            seen: dict[tuple[str, str], str] = {}
+            for k, src in self.sources.items():
+                if (src.tracker, src.project) in seen:
+                    twin = seen[src.tracker, src.project]
+                    errors.append(f"sources.{k}: same tracker and project as '{twin}'")
+                seen[src.tracker, src.project] = k
+                for lead in src.leads or []:
+                    if lead not in self.people:
+                        errors.append(f"sources.{k}.leads: '{lead}' is not defined under people")
+            for handle, p in self.people.items():
+                for k in p.logins:
+                    if k not in self.sources:
+                        errors.append(f"people.{handle}.logins: '{k}' is not a source")
+        elif not (self.project.tracker and self.project.repo):
             errors.append(
-                f"project.tracker: unknown tracker '{self.project.tracker}' "
-                f"(known: {', '.join(sorted(known_trackers()))})"
+                "project.tracker and project.repo are required (or list several trackers "
+                "under sources:)"
             )
-        if self.project.tracker == "spreadsheet":
-            from pydantic import ValidationError
+        else:
+            trackers = [
+                (
+                    "project",
+                    self.project.tracker,
+                    self.project.base_url,
+                    self.project.tracker_options,
+                )
+            ]
+        for where, tracker, base_url, options in trackers:
+            if tracker not in known_trackers():
+                errors.append(
+                    f"{where}.tracker: unknown tracker '{tracker}' "
+                    f"(known: {', '.join(sorted(known_trackers()))})"
+                )
+            if tracker == "spreadsheet":
+                from pydantic import ValidationError
 
-            from agentic_pm.adapters.spreadsheet import SpreadsheetOptions
+                from agentic_pm.adapters.spreadsheet import SpreadsheetOptions
 
-            try:
-                SpreadsheetOptions.model_validate(self.project.tracker_options)
-            except ValidationError as e:
-                for err in e.errors():
-                    loc = ".".join(str(x) for x in err["loc"])
-                    errors.append(f"project.tracker_options.{loc}: {err['msg']}")
-        if self.project.tracker == "openproject" and not self.project.base_url:
-            errors.append("project.base_url is required for tracker 'openproject'")
+                try:
+                    SpreadsheetOptions.model_validate(options)
+                except ValidationError as e:
+                    for err in e.errors():
+                        loc = ".".join(str(x) for x in err["loc"])
+                        errors.append(f"{where}.tracker_options.{loc}: {err['msg']}")
+            if tracker == "openproject" and not base_url:
+                errors.append(f"{where}.base_url is required for tracker 'openproject'")
         for h in self.completeness.triage:
             if h not in self.people:
                 errors.append(f"completeness.triage: '{h}' is not defined under people")

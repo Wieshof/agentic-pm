@@ -41,6 +41,8 @@ cadence:
 
 **GitHub webhook:** in your repository settings, point a webhook to `https://pm.your-org.com/webhooks/github`, content type JSON, with the same secret. Subscribe to *Issues* and *Issue comments*. For **Gitea / Forgejo**, use `/webhooks/gitea` and `AGENT_PM_GITEA_WEBHOOK_SECRET`.
 
+**Several trackers** ([sources](sources.md)): each source gets its own token `AGENT_PM_<SOURCE>_TOKEN` and its own webhook `/webhooks/<source>` with `AGENT_PM_<SOURCE>_WEBHOOK_SECRET`, e.g. `AGENT_PM_ENG_TOKEN` and `/webhooks/eng`. Without its own token, a source uses the shared one.
+
 **Where it listens:** `agent-pm run` only accepts connections from this machine (`127.0.0.1:8787`). Put a reverse proxy with HTTPS in front of it. Use `--host 0.0.0.0` only inside a container, or when a proxy or firewall controls who can reach it.
 
 ## 2. What happens

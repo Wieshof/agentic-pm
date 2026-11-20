@@ -109,7 +109,7 @@ class Router:
         if not msg.text.strip():
             return "ignored_empty"
 
-        ticket_lang = self.cfg.project.ticket_language
+        ticket_lang = self.cfg.ticket_language_of(msg.ref.source)
         name = self.cfg.display_name(handle)
         channel = channel_label(msg.channel.value, ticket_lang)
         if msg.voice:
@@ -137,7 +137,10 @@ class Router:
                     source_language=self.cfg.language_of(handle),
                 )
                 meta = AuditMeta(
-                    actor=handle, channel=msg.channel, reason=f"how-to from {msg.channel.value}"
+                    actor=handle,
+                    channel=msg.channel,
+                    reason=f"how-to from {msg.channel.value}",
+                    source=msg.ref.source,
                 )
                 await self.guard.comment(msg.ref, md, meta)
                 await self._reply(handle, msg, msg.ref, "ack_howto", id=task.ref.id, url=url)
@@ -145,13 +148,16 @@ class Router:
                 return f"howto+{checked}" if checked else "howto"
             note = render_note(msg.text, ticket_language=ticket_lang, author=name, channel=channel)
             meta = AuditMeta(
-                actor=handle, channel=msg.channel, reason=f"note from {msg.channel.value}"
+                actor=handle,
+                channel=msg.channel,
+                reason=f"note from {msg.channel.value}",
+                source=msg.ref.source,
             )
             await self.guard.comment(msg.ref, note, meta)
         except ReadOnlyAdapterError:
             return "writes_disabled"
         if ok and analysis is not None and analysis.kind == "scope_change":
-            leads = self.cfg.project.leads
+            leads = self.cfg.leads_of(msg.ref.source)
             for lead in leads:
                 lang = self.cfg.language_of(lead)
                 await self.notifier.notify(
@@ -188,11 +194,13 @@ class Router:
             "title": task.title,
             "status": status_name(task.status, lang),
             "new": status_name(found.proposed, lang),
-            "tracker": tracker_name(self.cfg.project.tracker),
+            "tracker": tracker_name(self.cfg.tracker_of(task.ref.source)),
         }
         approvers = self.guard._approvers(task, RiskTier.MEDIUM)
         if msg.channel in CHAT_CHANNELS and handle in approvers:
-            tag = tags.proposal(signer.key, task.ref.id, "status", found.proposed.value)
+            tag = tags.proposal(
+                signer.key, task.ref.id, "status", found.proposed.value, task.ref.source
+            )
             text = render(lang, "confirm_status_self", evidence=found.claim.evidence, **common)
             await self.notifier.notify(
                 handle, "", f"{text}\n\n{tag.render()}", channel=msg.channel.value
@@ -202,6 +210,7 @@ class Router:
             actor=handle,
             channel=msg.channel,
             reason=f"{self.cfg.display_name(handle)}: “{found.claim.evidence}”",
+            source=task.ref.source,
         )
         outcome = await self.guard.propose(task.ref, TaskPatch(status=found.proposed), meta)
         if outcome.status != "pending":
@@ -236,9 +245,10 @@ class HowToLoop:
         handles = [
             h
             for login in task.assignees
-            if (h := self.cfg.handle_for_login(login)) and self.cfg.people[h].channels.email
+            if (h := self.cfg.handle_for_login(login, ref.source))
+            and self.cfg.people[h].channels.email
         ]
-        ticket_lang = self.cfg.project.ticket_language
+        ticket_lang = self.cfg.ticket_language_of(ref.source)
         for h in handles:
             lang = self.cfg.language_of(h)
             await self.notifier.notify(
@@ -256,7 +266,9 @@ class HowToLoop:
             )
         if handles:
             names = ", ".join(self.cfg.display_name(h) for h in handles)
-            meta = AuditMeta(actor="agent", channel=Channel.SYSTEM, reason=HOWTO_REQUEST)
+            meta = AuditMeta(
+                actor="agent", channel=Channel.SYSTEM, reason=HOWTO_REQUEST, source=ref.source
+            )
             with contextlib.suppress(ReadOnlyAdapterError):  # read-only: ask anyway
                 await self.guard.comment(
                     ref, render(ticket_lang, "howto_asked_comment", names=names), meta

@@ -118,6 +118,8 @@ Verbindlich für Schritt 4.0a. Sie machen die Entscheidung oben sicher umsetzbar
 
 ## Umsetzung
 
+> **Stand (20.11.2026):** Punkte 1–5 sind gebaut ([Anleitung](../de/sources.md)). Statuszeilen in `open`-Tickets (Regel 3) folgen mit dem agent-pm-Block in Schritt 4.0; die Schreibprüfung, durch die sie gehen, ist fertig.
+
 Schritt **4.0a** im [Plan für Phase 4](../de/plan-phase-4.md), vor der Grundlage 4.0:
 
 1. Konfiguration `sources:`, Zugangsdaten, Webhooks und Ticket-Sprache pro Quelle; `project:` bleibt als Kurzform.

@@ -172,6 +172,16 @@ texts:
     collision: '{tasks} are due by {by} and need about {need}, but only {left} left.'
     collision_move: ' Maybe move {id} or hand it over?'
     collision_all_critical: ' Others are waiting on all of them, so let''s look at priorities together.'
+    same_day: '{tasks} are due on the same day, {date}.'
+    seams: 🌉 Across teams
+    seam_ok: '{task} waits for {target}: {done}/{total} done, forecast {date}, on track ({buffer} buffer)'
+    seam_late: '{task} waits for {target}: {done}/{total} done, forecast {date}, {late} after its date ({due}). At risk.'
+    seam_no_due: '{task} waits for {target}: {done}/{total} done, forecast {date}'
+    seam_undated: '{task} waits for {target}: {done}/{total} done, no forecast yet, because {n} open items there have no date'
+    seam_done: '{task} waits for {target}: all {total} done ✅'
+    seam_empty: '{task} waits for {target}, but I can''t find anything there yet'
+    seam_deliver: '{task} on {due} waits for {target}; {deciding} decide it.'
+    seam_deliver_undated: '{task} on {due} waits for {target}; {deciding} have no date yet, so nobody can tell if it fits.'
     and: and
     limits: 🔍 Your tracker doesn't provide this, so I can't check it
     limit_dependencies: dependencies (no risk warnings for blocked tasks)
@@ -210,6 +220,7 @@ texts:
     MISSING_ESTIMATE: '{task} has no estimate, so I count it as 1 day. Roughly how long will it take?'
     BLOCKED_WITHOUT_REASON: '{task} is marked blocked, but I can''t see by what. What is it waiting for?'
     UNLINKED_DEPENDENCY: '{task} mentions {ref} (“{evidence}”) but isn''t linked to it. Should it wait for {ref}? Then please link them.'
+    SEAM_SUGGESTED: '{task} mentions {target}. Does it wait for it? Then add `waits_for: {target}` to its agent-pm block, and I''ll keep an eye on the other side for you.'
     readiness_heading: 📊 Data readiness
     readiness: '{pct}% of {n} open tasks have everything the checks need'
     readiness_counts: 'missing: {counts}'
@@ -222,6 +233,7 @@ texts:
     count_BLOCKED_WITHOUT_REASON: '{n} blocked without a reason'
     count_BLOCKER_DONE: '{n} blocked by something already done'
     count_UNLINKED_DEPENDENCY: '{n} unlinked dependencies'
+    count_SEAM_SUGGESTED: '{n} possible waits on another team'
     what_MISSING_OWNER: no owner
     what_OWNER_NOT_IN_TEAM: owner not in the team file
     what_MISSING_DUE: no due date
@@ -230,6 +242,7 @@ texts:
     what_BLOCKED_WITHOUT_REASON: blocked, reason unknown
     what_BLOCKER_DONE: blocked, but its blocker is done
     what_UNLINKED_DEPENDENCY: dependency not linked
+    what_SEAM_SUGGESTED: waits on another team?
     stalled_heading: ⏰ Still waiting for an answer
     stalled_item: '#{id} {title}: {what}, asked {days} working days ago'
     switch_intro: I've asked on {channel} a few times, so I'm trying here in case it's easier.
@@ -257,6 +270,8 @@ texts:
     BAD_REFERENCE: '''{id}'' depends on ''{ref}'', which isn''t a known reference'
     DANGLING_DEPENDENCY: '''{id}'' depends on ''{dep}'', which isn''t in the sheet'
     EXTERNAL_DEPENDENCY: '''{id}'' depends on {dep}, which can''t be checked yet'
+    SEAM_UNKNOWN_TARGET: 'waits for ''{target}'', which isn''t a source in team.yaml (write e.g. eng#142 or eng:milestone/v2.0)'
+    ISOLATION_BOUNDARY_BLOCKED: 'not followed, because one side is isolated (strict); set `isolation: open` on both sources if they may share dates'
   web:
     title: Your OK, please
     intro: '{actor} would like to {change} on {task}.'

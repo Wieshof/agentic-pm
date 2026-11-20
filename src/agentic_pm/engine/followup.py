@@ -65,7 +65,8 @@ def working_days(start: date, end: date) -> int:
 def _anchor(cfg: TeamConfig, gap: Gap, writes: bool) -> date | None:
     asked: date | None = None
     answered: date | None = None
-    logins = {cfg.people[h].login(h).lower() for h in gap.recipients if h in cfg.people}
+    source = gap.task.ref.source
+    logins = {cfg.people[h].login(h, source).lower() for h in gap.recipients if h in cfg.people}
     for c in gap.task.comments:
         day = c.created_at.date()
         meta = audit_meta_in(c.body)

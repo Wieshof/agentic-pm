@@ -473,6 +473,14 @@
           "default": null,
           "description": "Username in the tracker if it differs from the handle (GitHub login, or OpenProject display name)",
           "title": "Tracker Login"
+        },
+        "logins": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Login per source when there are several (`sources:`), e.g. {eng: sam-dev, ops: \"Sam Meier\"}. A person with logins belongs to exactly those sources; a person without belongs to every `open` source (ADR-0006)",
+          "title": "Logins",
+          "type": "object"
         }
       },
       "title": "Person",
@@ -482,14 +490,30 @@
       "additionalProperties": false,
       "properties": {
         "tracker": {
-          "description": "Tracker key from the catalog (`agent-pm trackers`), e.g. github, jira, or an installed plugin",
-          "title": "Tracker",
-          "type": "string"
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Tracker key from the catalog (`agent-pm trackers`), e.g. github, jira, or an installed plugin. Leave out when you list several trackers under `sources:`",
+          "title": "Tracker"
         },
         "repo": {
-          "description": "GitHub 'owner/repo', or OpenProject project identifier",
-          "title": "Repo",
-          "type": "string"
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "GitHub 'owner/repo', or OpenProject project identifier. Leave out with `sources:`",
+          "title": "Repo"
         },
         "base_url": {
           "anyOf": [
@@ -604,11 +628,94 @@
         }
       },
       "required": [
-        "tracker",
-        "repo",
         "leads"
       ],
       "title": "Project",
+      "type": "object"
+    },
+    "Source": {
+      "additionalProperties": false,
+      "description": "One tracker among several (ADR-0006). `project:` is the shorthand for just one.",
+      "properties": {
+        "tracker": {
+          "description": "Tracker key from the catalog, e.g. github, openproject",
+          "title": "Tracker",
+          "type": "string"
+        },
+        "project": {
+          "description": "Repo / project / file this source reads",
+          "title": "Project",
+          "type": "string"
+        },
+        "base_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Base Url"
+        },
+        "tracker_options": {
+          "additionalProperties": true,
+          "title": "Tracker Options",
+          "type": "object"
+        },
+        "ticket_language": {
+          "default": "en",
+          "description": "Language the agent writes into this tracker",
+          "pattern": "^[a-z]{2}(-[A-Z]{2})?$",
+          "title": "Ticket Language",
+          "type": "string"
+        },
+        "isolation": {
+          "default": "strict",
+          "description": "strict (default, e.g. clients): nothing about other sources is ever written here, and no seam crosses it. open (e.g. departments of one company): seam roll-ups may cross",
+          "enum": [
+            "strict",
+            "open"
+          ],
+          "title": "Isolation",
+          "type": "string"
+        },
+        "allow_writes": {
+          "default": false,
+          "title": "Allow Writes",
+          "type": "boolean"
+        },
+        "leads": {
+          "anyOf": [
+            {
+              "items": {
+                "pattern": "^[a-z0-9][a-z0-9._-]*$",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Leads for this source (default: project.leads)",
+          "title": "Leads"
+        },
+        "agent_accounts": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Agent Accounts",
+          "type": "array"
+        }
+      },
+      "required": [
+        "tracker",
+        "project"
+      ],
+      "title": "Source",
       "type": "object"
     },
     "Speech": {
@@ -654,6 +761,16 @@
   "properties": {
     "project": {
       "$ref": "#/$defs/Project"
+    },
+    "sources": {
+      "description": "Several trackers in one team (ADR-0006). Replaces project.tracker / project.repo; team-wide settings stay under project",
+      "patternProperties": {
+        "^[a-z][a-z0-9_-]{0,31}$": {
+          "$ref": "#/$defs/Source"
+        }
+      },
+      "title": "Sources",
+      "type": "object"
     },
     "people": {
       "minProperties": 1,

@@ -21,6 +21,7 @@ Deshalb prüft der Agent vor jedem Briefing die offenen Aufgaben und **stellt de
 | Blockiert, aber nichts verknüpft und keine Erklärung | Niemand weiß, worauf sie wartet | Die zuständige Person |
 | Blockiert, aber der Blocker ist schon erledigt | Vielleicht kann es weitergehen | Die zuständige Person |
 | Text sagt „wartet auf #14“, aber nichts ist verknüpft | Die Abhängigkeitsprüfung sieht es nicht | Die zuständige Person |
+| Text nennt einen anderen Tracker (`eng#142`, `eng:milestone/v2.0`) ohne `waits_for` | Die Prognose des anderen Teams wird nicht verfolgt ([mehrere Tracker](sources.md)) | Die zuständige Person |
 
 Im Briefing sieht das so aus:
 
@@ -48,6 +49,7 @@ Ein Eintrag ist **nie** Backlog, wenn etwas zeigt, dass er wichtig ist:
 |---------|----------|---------------------------|
 | Andere Arbeit ist als wartend darauf verknüpft | #201 hängt an #200 | „#200 Payment API contract hat niemanden, der zuständig ist, aber andere Arbeit wartet darauf: #201 Checkout page. Wer übernimmt?“ |
 | Ein anderes Ticket nennt ihn im Text | #203 sagt „wartet auf #204“ | dasselbe, mit #203 |
+| Eine andere Quelle wartet darauf ([Nahtstelle](sources.md#nahtstellen)) | ops#57 sagt `waits_for: eng:milestone/v2.0` | dasselbe, mit ops#57 |
 | Ein dringendes Label | `blocker`, `critical`, `urgent`, `P0`, `P1`, `sev1`, `security`, `hotfix`, `priority: high`, `dringend`, `kritisch` … | „#202 Prod login broken ist als „blocker“ markiert, hat aber niemanden, der zuständig ist. Wer übernimmt?“ |
 
 - **Diese kommen zuerst.** „Wer übernimmt?“-Fragen stehen vorn, sortiert danach, wie viel daran hängt, dann nach dringenden Labels, dann nach dem nächsten Termin. Ein Blocker landet nie hinter „… und 41 weitere“.

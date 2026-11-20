@@ -121,6 +121,7 @@ class OpenProjectAdapter:
             assignees=[assignee] if assignee else [],
             due=due,
             estimate_hours=parse_duration_hours(wp.get("estimatedTime")),
+            milestone=(links.get("version") or {}).get("title") or None,
             url=f"{self.base_url}/work_packages/{wp['id']}",
             description=((wp.get("description") or {}).get("raw") or None),
             updated_at=(

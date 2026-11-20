@@ -118,6 +118,8 @@ Binding for step 4.0a. They make the decision above safe to build.
 
 ## Implementation
 
+> **Status (2026-11-20):** items 1–5 are built ([guide](../sources.md)). Status lines written into `open` tickets (rule 3) follow with the agent-pm block in step 4.0; the write guard they'll pass is in place.
+
 Step **4.0a** of the [Phase 4 plan](../plan-phase-4.md), before the 4.0 foundation:
 
 1. `sources:` config, per-source credentials, webhooks and ticket language; `project:` stays as shorthand.

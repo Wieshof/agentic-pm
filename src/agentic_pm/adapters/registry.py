@@ -78,6 +78,8 @@ def _spreadsheet(project: Project, env: Mapping[str, str]) -> TrackerAdapter:
         options = SpreadsheetOptions.model_validate(project.tracker_options)
     except ValidationError as e:
         raise AdapterConfigError(f"project.tracker_options for spreadsheet: {e}") from e
+    if not project.repo:
+        raise AdapterConfigError("project.repo (the file path) is required for spreadsheets")
     return SpreadsheetAdapter(project.repo, options)
 
 
@@ -113,6 +115,8 @@ def known_trackers() -> set[str]:
 
 def build_adapter(project: Project, env: Mapping[str, str] | None = None) -> TrackerAdapter:
     env = os.environ if env is None else env
+    if not project.tracker:
+        raise AdapterConfigError("project.tracker is not set (several trackers: use build_tracker)")
     available = factories()
     if project.tracker in available:
         return available[project.tracker](project, env)

@@ -260,3 +260,36 @@ def test_gitea_webhook_endpoint_checks_its_own_signature() -> None:
     )
     assert ok.status_code == 202 and seen == [("issues", "d1")]
     assert client.post("/webhooks/github", content=body).status_code == 503  # not configured
+
+
+def test_each_source_has_its_own_webhook_and_secret() -> None:
+    _, _, _, guard = setup()
+    seen: list[str] = []
+
+    async def eng(event: str, payload: dict[str, Any], delivery: str | None) -> object:
+        seen.append(f"eng:{event}")
+        return object()
+
+    async def site(event: str, payload: dict[str, Any], delivery: str | None) -> object:
+        seen.append(f"site:{event}")
+        return object()
+
+    client = TestClient(
+        create_app(
+            guard,
+            source_webhooks={"eng": ("github", "eng-secret", eng), "site": ("gitea", None, site)},
+        )
+    )
+    body = b"{}"
+    sign = lambda key: "sha256=" + hmac.new(key, body, hashlib.sha256).hexdigest()  # noqa: E731
+    wrong = client.post(
+        "/webhooks/eng", content=body, headers={"X-Hub-Signature-256": sign(b"other-secret")}
+    )
+    assert wrong.status_code == 401 and seen == []  # another source's secret doesn't open it
+    ok = client.post(
+        "/webhooks/eng",
+        content=body,
+        headers={"X-Hub-Signature-256": sign(b"eng-secret"), "X-GitHub-Event": "issues"},
+    )
+    assert ok.status_code == 202 and seen == ["eng:issues"]
+    assert client.post("/webhooks/site", content=body).status_code == 503  # no secret: closed

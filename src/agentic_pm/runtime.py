@@ -86,7 +86,7 @@ class Runtime:
         from agentic_pm.briefs.summary import generate_summary, summary_facts
 
         today = self.today()
-        graph = await DependencyGraph.build(self.adapter, self.cfg.project.repo)
+        graph = await DependencyGraph.build(self.adapter, self.cfg.scope)
         sent = 0
         for handle in handles or self.brief_handles():
             person = self.cfg.people[handle]
@@ -159,9 +159,11 @@ class Runtime:
                     title=c.task.title,
                     status=status_name(c.task.status, lang),
                     new=status_name(c.proposed, lang),
-                    tracker=tracker_name(self.cfg.project.tracker),
+                    tracker=tracker_name(self.cfg.tracker_of(c.task.ref.source)),
                 )
-                tag = tags.proposal(signer.key, c.task.ref.id, "status", c.proposed.value)
+                tag = tags.proposal(
+                    signer.key, c.task.ref.id, "status", c.proposed.value, c.task.ref.source
+                )
                 await self.notifier.notify(handle, "", f"{text}\n\n{tag.render()}", channel=ch)
         await self._record_asked(due)
         return 1
@@ -173,7 +175,8 @@ class Runtime:
         can_propose = self.guard.signer is not None and self.adapter.capabilities.writes
         asks = {"MISSING_DUE": "due", "IMPLICIT_DUE": "due", "MISSING_ESTIMATE": "estimate"}
         ask = asks.get(gap.code) if can_propose else None
-        return f"{render_gap(gap, lang)}\n\n{Tag(id=gap.task.ref.id, ask=ask).render()}"
+        tag = Tag(id=gap.task.ref.id, source=gap.task.ref.source, ask=ask)
+        return f"{render_gap(gap, lang)}\n\n{tag.render()}"
 
     async def _switch(self, handle: str, items: list[FollowUp], current: str) -> bool:
         """Ask `items` on the person's next channel; False if there is none."""
@@ -207,14 +210,17 @@ class Runtime:
 
         if self.dry_run or not self.adapter.capabilities.writes:
             return
-        lang = self.cfg.project.ticket_language
         for f in items:
             if f.asked_on is not None or f.key in self._asked:
                 continue
+            lang = self.cfg.ticket_language_of(f.gap.task.ref.source)
             self._asked.add(f.key)
             names = ", ".join(self.cfg.display_name(h) for h in f.gap.recipients)
             meta = AuditMeta(
-                actor="agent-pm", channel=Channel.SYSTEM, reason=f"{REASON_PREFIX}{f.gap.code}"
+                actor="agent-pm",
+                channel=Channel.SYSTEM,
+                reason=f"{REASON_PREFIX}{f.gap.code}",
+                source=f.gap.task.ref.source,
             )
             text = gap_text(lang, "asked_note", names=names, what=gap_label(f.gap, lang))
             try:
@@ -236,9 +242,9 @@ class Runtime:
 
     async def end_of_day(self) -> int:
         today = self.today()
-        graph = await DependencyGraph.build(self.adapter, self.cfg.project.repo)
+        graph = await DependencyGraph.build(self.adapter, self.cfg.scope)
         sent = 0
-        for lead in self.cfg.project.leads:
+        for lead in self.cfg.all_leads():
             note = await end_of_day(self.cfg, self.adapter, graph, today, lead)
             if note and await self.notifier.notify(lead, note[0], note[1]):
                 sent += 1
@@ -247,9 +253,9 @@ class Runtime:
 
     async def weekly_digest(self) -> int:
         today = self.today()
-        graph = await DependencyGraph.build(self.adapter, self.cfg.project.repo)
+        graph = await DependencyGraph.build(self.adapter, self.cfg.scope)
         sent = 0
-        for lead in self.cfg.project.leads:
+        for lead in self.cfg.all_leads():
             subject, text = await weekly_digest(self.cfg, self.adapter, graph, today, lead)
             if await self.notifier.notify(lead, subject, text):
                 sent += 1
@@ -320,19 +326,29 @@ class Runtime:
     async def serve(self, host: str = "127.0.0.1", port: int = 8787) -> None:
         import uvicorn
 
+        from agentic_pm.adapters.multi import MultiTracker
         from agentic_pm.web import create_app
 
         handler = None
         if hasattr(self.adapter, "handle_webhook"):
             handler = self.adapter.handle_webhook
-            self.adapter.subscribe(self.howto.on_event)
         gitea = self.adapter.name == "gitea"
+        per_source = {}
+        if isinstance(self.adapter, MultiTracker):  # one endpoint per source (ADR-0006)
+            for key, sub in self.adapter.adapters.items():
+                if hasattr(sub, "handle_webhook"):
+                    prefix = self.cfg.sources[key].env_prefix(key)
+                    secret = self.env.get(f"{prefix}WEBHOOK_SECRET")
+                    per_source[key] = (sub.name, secret, sub.handle_webhook)
+        if handler is not None or per_source:
+            self.adapter.subscribe(self.howto.on_event)
         app = create_app(
             self.guard,
             webhook_secret=self.env.get("AGENT_PM_GITHUB_WEBHOOK_SECRET"),
             on_github_webhook=None if gitea else handler,
             gitea_webhook_secret=self.env.get("AGENT_PM_GITEA_WEBHOOK_SECRET"),
             on_gitea_webhook=handler if gitea else None,
+            source_webhooks=per_source,
         )
         tasks: list[Awaitable[Any]] = [
             uvicorn.Server(uvicorn.Config(app, host=host, port=port, log_level="info")).serve(),

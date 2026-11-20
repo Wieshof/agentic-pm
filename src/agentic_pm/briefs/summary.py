@@ -17,8 +17,11 @@ from agentic_pm.briefs.morning import BriefData
 from agentic_pm.llm.base import ChatMessage, LLMError, LLMProvider
 
 MAX_WORDS = 70
-# Task ids: 12 (GitHub), P-7 (spreadsheets), APP-12 (Jira/Linear). Trailing punctuation excluded.
-_TASK_NO = re.compile(r"#([A-Za-z0-9](?:[A-Za-z0-9_-]*[A-Za-z0-9])?)")
+# Task labels: #12 (GitHub), #P-7 (spreadsheets), #APP-12 (Jira/Linear), eng#12 (several
+# trackers, ADR-0006). Trailing punctuation excluded; the whole label must match.
+_TASK_NO = re.compile(
+    r"(?<![\w#-])((?:[a-z][a-z0-9_-]*)?#[A-Za-z0-9](?:[A-Za-z0-9_-]*[A-Za-z0-9])?)"
+)
 _STRAY_HASH = re.compile(r"#(?![A-Za-z0-9])\S*")  # e.g. "#{15}", "# " - not an id
 
 SCHEMA: dict[str, Any] = {
@@ -45,7 +48,7 @@ def style_for(language: str) -> str:
 
 def summary_facts(d: BriefData) -> dict[str, Any]:
     def t(task: Any) -> dict[str, Any]:
-        return {"id": f"#{task.ref.id}", "title": task.title, "due": str(task.due)}
+        return {"id": task.ref.label, "title": task.title, "due": str(task.due)}
 
     return {
         "person": d.name,
@@ -53,11 +56,11 @@ def summary_facts(d: BriefData) -> dict[str, Any]:
         "overdue": [t(x) for x in d.overdue],
         "due_soon": [t(x) for x in d.due_soon],
         "at_risk": [
-            {**t(r.task), "blocked_by": f"#{r.blocker.ref.id}", "days_late": r.days_late}
+            {**t(r.task), "blocked_by": r.blocker.ref.label, "days_late": r.days_late}
             for r in d.my_risks
         ],
         "others_waiting_on_you": [
-            {"waiting": f"#{r.task.ref.id}", "on": f"#{r.blocker.ref.id}"} for r in d.waiting_on_me
+            {"waiting": r.task.ref.label, "on": r.blocker.ref.label} for r in d.waiting_on_me
         ],
         "team_risks": len(d.team_risks),
     }
@@ -97,7 +100,7 @@ def check_summary(summary: str, facts: dict[str, Any], language: str) -> list[st
         problems.append(f"too long ({len(text.split())} words > {MAX_WORDS})")
     unknown = set(_TASK_NO.findall(text)) - allowed_ids(facts)
     if unknown:
-        problems.append(f"mentions unknown tasks: {sorted('#' + u for u in unknown)}")
+        problems.append(f"mentions unknown tasks: {sorted(unknown)}")
     if stray := _STRAY_HASH.findall(text):
         problems.append(f"stray '#' tags: {stray}")
     reg = i18n.register(language)

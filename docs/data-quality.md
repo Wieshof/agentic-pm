@@ -21,6 +21,7 @@ So before every brief, the agent checks the open tasks and **asks the right pers
 | Blocked, but nothing linked and no explanation | Nobody knows what it's waiting for | The owner |
 | Blocked, but its blocker is already done | It may be able to continue | The owner |
 | Text says "waiting on #14", but nothing is linked | Dependency checks can't see it | The owner |
+| Text names another tracker (`eng#142`, `eng:milestone/v2.0`) without `waits_for` | The other team's forecast isn't followed ([several trackers](sources.md)) | The owner |
 
 In the brief, it looks like this:
 
@@ -48,6 +49,7 @@ An item is **never** backlog when something says it matters:
 |--------|---------|----------------|
 | Other work is linked as waiting on it | #201 depends on #200 | "#200 Payment API contract has no owner, but other work is waiting for it: #201 Checkout page. Who takes it?" |
 | Another ticket's text names it | #203 says "waiting on #204" | the same, naming #203 |
+| Another source waits on it ([seam](sources.md#seams)) | ops#57 says `waits_for: eng:milestone/v2.0` | the same, naming ops#57 |
 | An urgent label | `blocker`, `critical`, `urgent`, `P0`, `P1`, `sev1`, `security`, `hotfix`, `priority: high`, `dringend`, `kritisch` … | "#202 Prod login broken is marked "blocker" but has no owner. Who takes it?" |
 
 - **These come first.** "Who takes it?" questions lead the list, ordered by how much waits on them, then urgent labels, then the nearest due date. A blocker never ends up behind "… and 41 more".

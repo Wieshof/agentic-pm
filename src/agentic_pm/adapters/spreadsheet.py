@@ -71,6 +71,8 @@ def default_status_map() -> dict[TaskStatus, list[str]]:
 
 
 _DEP_SPLIT = re.compile(r"[,;\n]+")
+# A seam to another source in team.yaml (ADR-0006): eng#142, eng:milestone/v2.0, eng:label/launch
+_SEAM = re.compile(r"^[a-z][a-z0-9_-]*(?:#[\w.-]+|:(?:milestone|label)/\S.*)$")
 _OWNER_SPLIT = re.compile(r"\s*[,;/&]\s*")
 _QUALIFIED = re.compile(r"^([a-z0-9_-]+):(.+)$")
 _EST = re.compile(r"^\s*([\d.]+)\s*([hdw])?\s*$", re.I)
@@ -415,10 +417,14 @@ class SpreadsheetAdapter:
         if cols.owner:
             owners = [o for o in _OWNER_SPLIT.split(self._text(values.get(cols.owner))) if o]
         deps: list[TaskRef] = []
+        seams: list[str] = []
         if cols.depends_on:
             for token in _DEP_SPLIT.split(self._text(values.get(cols.depends_on))):
                 token = token.strip()
                 if not token:
+                    continue
+                if _SEAM.match(token) and not token.startswith(f"{self.instance}#"):
+                    seams.append(token)
                     continue
                 ref = self._dep_ref(token)
                 if ref is None:
@@ -443,6 +449,7 @@ class SpreadsheetAdapter:
                 due=due,
                 estimate_hours=estimate,
                 description=notes or None,
+                waits_for=seams,
             ),
             depends_on=deps,
             location=location,

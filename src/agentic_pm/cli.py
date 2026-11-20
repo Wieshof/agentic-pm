@@ -52,10 +52,23 @@ def _validate(path: str) -> int:
     cfg = _config_or_report(path)
     if isinstance(cfg, int):
         return cfg
-    print(f"✓ {path}: {len(cfg.people)} people, tracker={cfg.project.tracker}")
+    if cfg.multi:
+        print(f"✓ {path}: {len(cfg.people)} people, {len(cfg.sources)} sources")
+        for key, src in cfg.sources.items():
+            members = [h for h in cfg.people if cfg.belongs(h, key)]
+            print(
+                f"  {key}: {src.tracker} {src.project} · {src.isolation} · "
+                f"writes {'on' if src.allow_writes else 'off'} · "
+                f"leads {', '.join(cfg.leads_of(key))} · sees it: {', '.join(members)}"
+            )
+            token = f"{src.env_prefix(key)}TOKEN"
+            print(f"    credentials: {token} (falls back to the shared token if unset)")
+    else:
+        print(f"✓ {path}: {len(cfg.people)} people, tracker={cfg.project.tracker}")
     from agentic_pm import i18n
 
-    for lang in sorted({p.language for p in cfg.people.values()} | {cfg.project.ticket_language}):
+    ticket_langs = {cfg.ticket_language_of(k) for k in cfg.sources or [None]}
+    for lang in sorted({p.language for p in cfg.people.values()} | ticket_langs):
         english = i18n.base_language(lang) == "en"  # "you" is the same either way
         if cfg.project.formality == "formal" and not english and not i18n.has_formal(lang):
             print(
@@ -89,27 +102,41 @@ def _adapter(cfg: TeamConfig, args: argparse.Namespace, today: date) -> TrackerA
     if args.demo:
         from agentic_pm.demo import demo_tracker
 
-        return demo_tracker(cfg.project.repo, today)
-    from agentic_pm.adapters.factory import build_adapter
+        return demo_tracker(cfg.project.repo or "acme/app", today)
+    from agentic_pm.adapters.multi import build_tracker
 
-    return build_adapter(cfg.project)
+    return build_tracker(cfg)
 
 
 async def _deps(args: argparse.Namespace) -> int:
     from agentic_pm.engine import DependencyGraph
 
     cfg, today = _load(args)
-    graph = await DependencyGraph.build(_adapter(cfg, args, today), cfg.project.repo)
+    adapter = _adapter(cfg, args, today)
+    graph = await DependencyGraph.build(adapter, cfg.scope)
     risks = graph.risks(today)
     print(f"{len(graph.tasks)} open tasks · {len(risks)} at risk · {len(graph.cycles())} cycle(s)")
     for r in risks:
         print(
-            f"  ⚠️  #{r.task.ref.id} {r.task.title}: {r.days_late} day(s) late "
-            f"(blocker #{r.blocker.ref.id} {r.blocker.title}, {r.reason}); "
+            f"  ⚠️  {r.task.ref.label} {r.task.title}: {r.days_late} day(s) late "
+            f"(blocker {r.blocker.ref.label} {r.blocker.title}, {r.reason}); "
             f"suggest {r.proposed_due}"
         )
     for c in graph.cycles():
-        print("  🔁 " + " → ".join(f"#{ref.id}" for ref in c))
+        print("  🔁 " + " → ".join(ref.label for ref in c))
+    from agentic_pm.engine.seams import resolve as resolve_seams
+
+    for seam in await resolve_seams(cfg, adapter, graph, today):
+        roll = seam.rollup
+        state = (
+            f"{roll.done}/{roll.total} done · forecast {roll.forecast or '?'}"
+            + (f" · {len(roll.undated)} undated" if roll.undated else "")
+            + (f" · buffer {seam.buffer} day(s)" if seam.buffer is not None else "")
+            + (" · AT RISK" if seam.at_risk else "")
+            if roll
+            else seam.status
+        )
+        print(f"  🌉 {seam.waiting.ref.label} waits for {seam.target.text}: {state}")
     from agentic_pm.engine.completeness import check_completeness
 
     report = check_completeness(cfg, graph)
@@ -128,7 +155,7 @@ async def _deps(args: argparse.Namespace) -> int:
     )
     for g in report.gaps:
         detail = f" {g.params}" if g.params else ""
-        print(f"  🧩 #{g.task.ref.id} {g.code}{detail}")
+        print(f"  🧩 {g.task.ref.label} {g.code}{detail}")
     cov = graph.coverage
     if cov is not None:
         print(f"coverage {cov.source}: {cov.tasks_loaded}/{cov.rows_scanned} rows loaded")
@@ -160,7 +187,7 @@ async def _brief(args: argparse.Namespace) -> int:
         return 2
 
     adapter = _adapter(cfg, args, today)
-    graph = await DependencyGraph.build(adapter, cfg.project.repo)
+    graph = await DependencyGraph.build(adapter, cfg.scope)
     provider = None
     if args.llm:
         from agentic_pm.llm import provider_from_settings
