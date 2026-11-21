@@ -4,6 +4,10 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import ipaddress
+import json
+import re
+import warnings
 from datetime import UTC, datetime
 from typing import Any
 
@@ -34,7 +38,7 @@ class GiteaError(RuntimeError):
 
 def verify_signature(secret: str, body: bytes, signature_header: str | None) -> bool:
     """Verify the hex HMAC in X-Gitea-Signature or X-Forgejo-Signature."""
-    if not signature_header or not signature_header.isascii():
+    if not secret or not signature_header or not signature_header.isascii():
         return False
     expected = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
     return hmac.compare_digest(expected, signature_header)
@@ -50,7 +54,24 @@ class GiteaAdapter:
         token: str | None = None,
         transport: httpx.AsyncBaseTransport | None = None,
         gate: WebhookGate | None = None,
+        project: str | None = None,
+        max_pages: int = 1000,
     ) -> None:
+        if project is not None:
+            self._project_path(project)
+        if max_pages < 1:
+            raise ValueError("max_pages must be positive")
+        self.project = project
+        self.max_pages = max_pages
+        url = httpx.URL(base_url)
+        if url.scheme not in ("http", "https") or not url.host:
+            raise ValueError("base_url must be an HTTP(S) URL")
+        try:
+            loopback = ipaddress.ip_address(url.host).is_loopback
+        except ValueError:
+            loopback = url.host.lower() == "localhost"
+        if token and url.scheme == "http" and not loopback:
+            warnings.warn("Gitea token will be sent over unencrypted HTTP", stacklevel=2)
         headers = {"Accept": "application/json", "User-Agent": "agentic-pm"}
         if token:
             headers["Authorization"] = f"token {token}"
@@ -78,16 +99,35 @@ class GiteaAdapter:
     async def _all(self, path: str, **params: Any) -> list[Any]:
         items: list[Any] = []
         page = 1
-        while True:
+        while page <= self.max_pages:
             response = await self._get(path, {**params, "page": page, "limit": 50})
             batch = response.json()
             items.extend(batch)
             if "next" not in response.links:
                 return items
             page += 1
+        raise GiteaError(f"Gitea pagination exceeded {self.max_pages} pages for {path}")
+
+    @staticmethod
+    def _project_path(project: str) -> str:
+        parts = project.split("/")
+        if len(parts) != 2 or any(
+            not re.fullmatch(r"[A-Za-z0-9_.-]+", part) or part in (".", "..") for part in parts
+        ):
+            raise ValueError("Gitea project must be owner/repository with safe path components")
+        return project
+
+    @classmethod
+    def _issue_path(cls, ref: TaskRef) -> str:
+        project = cls._project_path(ref.project)
+        if not re.fullmatch(r"[0-9]+", ref.id) or int(ref.id) < 1:
+            raise ValueError("Gitea issue ID must be a positive ASCII integer")
+        return f"repos/{project}/issues/{ref.id}"
 
     def _ref(self, project: str, number: int | str) -> TaskRef:
-        return TaskRef(tracker=self.name, project=project, id=str(number))
+        ref = TaskRef(tracker=self.name, project=project, id=str(number))
+        self._issue_path(ref)
+        return ref
 
     def _task(self, project: str, issue: dict[str, Any], comments: list[Any]) -> Task:
         labels = [label["name"] for label in issue.get("labels") or []]
@@ -126,19 +166,21 @@ class GiteaAdapter:
         )
 
     async def get_task(self, ref: TaskRef) -> Task:
-        path = f"repos/{ref.project}/issues/{ref.id}"
+        path = self._issue_path(ref)
         issue = (await self._get(path)).json()
         comments = await self._all(f"{path}/comments") if issue.get("comments") else []
         return self._task(ref.project, issue, comments)
 
     async def list_tasks(self, project: str, *, include_closed: bool = False) -> list[Task]:
         issues = await self._all(
-            f"repos/{project}/issues", state="all" if include_closed else "open", type="issues"
+            f"repos/{self._project_path(project)}/issues",
+            state="all" if include_closed else "open",
+            type="issues",
         )
         return [self._task(project, issue, []) for issue in issues if not issue.get("pull_request")]
 
     async def list_dependencies(self, ref: TaskRef) -> list[Edge]:
-        path = f"repos/{ref.project}/issues/{ref.id}"
+        path = self._issue_path(ref)
         edges = []
         for relation in ("dependencies", "blocks"):
             for issue in await self._all(f"{path}/{relation}"):
@@ -164,13 +206,27 @@ class GiteaAdapter:
     async def handle_webhook(
         self,
         event: str,
-        payload: dict[str, Any],
+        body: bytes,
         delivery_id: str | None = None,
+        *,
+        secret: str,
+        signature_header: str | None,
     ) -> TrackerEvent | None:
-        """Handle a verified delivery; callers must verify its HMAC before dispatch."""
+        """Authenticate the original delivery bytes before parsing or dispatching."""
+        if not verify_signature(secret, body, signature_header):
+            return None
+        try:
+            payload = json.loads(body)
+        except ValueError:
+            return None
+        if not isinstance(payload, dict):
+            return None
         issue = payload.get("issue")
-        project = (payload.get("repository") or {}).get("full_name")
-        if not issue or not project or issue.get("pull_request"):
+        repository = payload.get("repository")
+        if not isinstance(repository, dict) or not isinstance(issue, dict):
+            return None
+        project = repository.get("full_name")
+        if not issue or not self.project or project != self.project or issue.get("pull_request"):
             return None
         action = payload.get("action", "")
         if event == "issues":
@@ -182,7 +238,10 @@ class GiteaAdapter:
             kind, changed = TrackerEventKind.COMMENTED, ["comments"]
         else:
             return None
-        ref = self._ref(project, issue["number"])
+        try:
+            ref = self._ref(project, issue["number"])
+        except (KeyError, ValueError):
+            return None
         actor = (payload.get("sender") or {}).get("login")
         self.last_decision = self.gate.admit(
             ticket=str(ref),

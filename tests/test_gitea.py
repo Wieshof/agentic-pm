@@ -41,7 +41,12 @@ def make_adapter(routes: dict[str, Any], seen: list[httpx.Request] | None = None
             return value
         return httpx.Response(200, json=value)
 
-    return GiteaAdapter("https://forge.test", "test-token", transport=httpx.MockTransport(handle))
+    return GiteaAdapter(
+        "https://forge.test",
+        "test-token",
+        transport=httpx.MockTransport(handle),
+        project="acme/app",
+    )
 
 
 class TestGiteaContract(AdapterContract):
@@ -173,18 +178,23 @@ async def test_webhook_delivery_gate_and_unsubscribe() -> None:
         "sender": {"login": "sam"},
         "comment": {"body": "hello"},
     }
-    result = await adapter.handle_webhook("issue_comment", payload, "delivery-1")
+
+    async def deliver(event: str, data: dict[str, Any], delivery_id: str):
+        body = json.dumps(data).encode()
+        signature = hmac.new(b"secret", body, hashlib.sha256).hexdigest()
+        return await adapter.handle_webhook(
+            event, body, delivery_id, secret="secret", signature_header=signature
+        )
+
+    result = await deliver("issue_comment", payload, "delivery-1")
     assert result is not None and result.kind is TrackerEventKind.COMMENTED
     assert str(result.ref) == "gitea:acme/app#1"
     assert len(events) == 1
-    assert await adapter.handle_webhook("issue_comment", payload, "delivery-1") is None
-    assert (
-        await adapter.handle_webhook("issues", {**payload, "sender": {"login": "agent-bot"}}, "2")
-        is None
-    )
+    assert await deliver("issue_comment", payload, "delivery-1") is None
+    assert await deliver("issues", {**payload, "sender": {"login": "agent-bot"}}, "2") is None
     unsubscribe()
-    assert await adapter.handle_webhook("push", payload, "3") is None
-    assert await adapter.handle_webhook("issues", {**payload, "action": "opened"}, "4") is not None
+    assert await deliver("push", payload, "3") is None
+    assert await deliver("issues", {**payload, "action": "opened"}, "4") is not None
     assert len(events) == 1
     await adapter.aclose()
 

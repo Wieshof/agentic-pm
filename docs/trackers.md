@@ -98,12 +98,22 @@ Native `due_date`, multiple assignees, comments and both dependency directions a
 Pull requests are excluded. Time tracking is not treated as an estimate, and project-board
 columns and sub-issue hierarchies are not inferred.
 
-Webhook consumers must first verify the raw request body using
-`agentic_pm.adapters.gitea.verify_signature` and `X-Gitea-Signature` (or
-`X-Forgejo-Signature`), then pass the `issues` or `issue_comment` event, JSON payload
-and delivery ID to `handle_webhook`. Agent-account, duplicate-delivery and burst filtering
-use the shared webhook gate. Live compatibility has not been verified against a private
-installation; the adapter is tested offline with an anonymized public Forgejo response.
+Webhook consumers pass the original request bytes to `handle_webhook(event, body,
+delivery_id, secret=..., signature_header=...)`. The header is `X-Gitea-Signature`
+or `X-Forgejo-Signature`. The adapter verifies the HMAC before parsing or dispatching;
+an empty secret is rejected. The built-in receiver also authenticates at HTTP ingress.
+Configure the adapter with `project="owner/repository"` (the registry uses `repo`);
+deliveries for other repositories are ignored, including system-wide hooks. Without a
+configured project, webhook dispatch is disabled; read-only API calls remain available.
+Agent-account, duplicate-delivery and burst filtering use the shared webhook gate.
+
+Projects must contain two nonempty ASCII alphanumeric/dot/underscore/hyphen path
+components other than `.` and `..`; issue IDs must be positive ASCII integers.
+Token-bearing HTTP connections warn unless the host is localhost or a loopback IP.
+Use HTTPS for remote servers. Pagination raises `GiteaError` after `max_pages`
+(default 1000 pages of 50 items) rather than returning incomplete results.
+Live compatibility has not been verified against a private installation; tests use
+an anonymized public Forgejo response and offline adversarial deliveries.
 
 API references: [issue fields](https://docs.gitea.com/api/operations/issue-get-issue/),
 [dependencies](https://docs.gitea.com/api/operations/issue-list-issue-dependencies/) and

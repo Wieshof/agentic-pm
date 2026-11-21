@@ -240,8 +240,17 @@ def test_gitea_webhook_endpoint_checks_its_own_signature() -> None:
     _, _, _, guard = setup()
     seen: list[tuple[str, str | None]] = []
 
-    async def handler(event: str, payload: dict[str, Any], delivery: str | None) -> object:
-        seen.append((event, delivery))
+    async def handler(
+        event: str,
+        body: bytes,
+        delivery_id: str | None,
+        *,
+        secret: str,
+        signature_header: str | None,
+    ) -> object:
+        assert body == b'{"action": "closed"}'
+        assert secret == "s3cret" and signature_header == sig
+        seen.append((event, delivery_id))
         return object()
 
     client = TestClient(create_app(guard, gitea_webhook_secret="s3cret", on_gitea_webhook=handler))
@@ -270,7 +279,14 @@ def test_each_source_has_its_own_webhook_and_secret() -> None:
         seen.append(f"eng:{event}")
         return object()
 
-    async def site(event: str, payload: dict[str, Any], delivery: str | None) -> object:
+    async def site(
+        event: str,
+        body: bytes,
+        delivery_id: str | None,
+        *,
+        secret: str,
+        signature_header: str | None,
+    ) -> object:
         seen.append(f"site:{event}")
         return object()
 
@@ -293,3 +309,29 @@ def test_each_source_has_its_own_webhook_and_secret() -> None:
     )
     assert ok.status_code == 202 and seen == ["eng:issues"]
     assert client.post("/webhooks/site", content=body).status_code == 503  # no secret: closed
+
+
+def test_gitea_receiver_passes_signed_bytes_to_configured_adapter() -> None:
+    from agentic_pm.adapters.gitea import GiteaAdapter
+
+    _, _, _, guard = setup()
+    adapter = GiteaAdapter("https://forge.test", project="acme/app")
+    client = TestClient(
+        create_app(guard, gitea_webhook_secret="secret", on_gitea_webhook=adapter.handle_webhook)
+    )
+    for project, accepted in [("other/repo", False), ("acme/app", True)]:
+        body = json.dumps(
+            {"action": "opened", "issue": {"number": 1}, "repository": {"full_name": project}}
+        ).encode()
+        signature = hmac.new(b"secret", body, hashlib.sha256).hexdigest()
+        response = client.post(
+            "/webhooks/gitea",
+            content=body,
+            headers={
+                "X-Gitea-Signature": signature,
+                "X-Gitea-Event": "issues",
+                "X-Gitea-Delivery": "same-id",
+            },
+        )
+        assert response.status_code == 202
+        assert response.json() == {"accepted": accepted}
