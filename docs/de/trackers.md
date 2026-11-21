@@ -63,13 +63,23 @@ Ein geschlossenes Issue wird nicht ohne entsprechende API-Daten als abgebrochen 
 `due_date`, mehrere Zuständige, Kommentare und beide Richtungen nativer Abhängigkeiten
 werden gelesen. Pull Requests, geschätzte Aufwände und eine vermutete Hierarchie sind ausgeschlossen.
 
-Vor `handle_webhook` müssen Empfänger den unveränderten Request-Body mit
-`agentic_pm.adapters.gitea.verify_signature` und `X-Gitea-Signature` bzw.
-`X-Forgejo-Signature` prüfen. Anschließend werden Ereignisname (`issues` oder
-`issue_comment`), Payload und Delivery-ID übergeben. Das gemeinsame Webhook-Gate
-filtert Agentenaktionen, doppelte Zustellungen und Ereignis-Bursts.
-Offline-Tests verwenden eine anonymisierte öffentliche Forgejo-Antwort; eine private
-Installation wurde nicht live geprüft.
+Webhook-Empfänger übergeben die ursprünglichen Bytes an
+`handle_webhook(event, body, delivery_id, secret=..., signature_header=...)`.
+Der Header heißt `X-Gitea-Signature` oder `X-Forgejo-Signature`. Vor dem Parsen
+prüft der Adapter die HMAC; ein leeres Secret wird abgelehnt. Der HTTP-Eingang
+prüft die Signatur ebenfalls. `project="besitzer/repository"` bindet Zustellungen
+an das konfigurierte Repository; die Registry verwendet dafür `repo`.
+Ohne konfiguriertes Projekt werden keine Webhook-Ereignisse zugestellt.
+Das gemeinsame Gate filtert Agentenaktionen, doppelte Zustellungen und Bursts.
+
+Projektpfade bestehen aus zwei nichtleeren ASCII-Komponenten (Buchstaben, Ziffern,
+Punkt, Unterstrich, Bindestrich), die weder `.` noch `..` sein dürfen.
+Issue-IDs sind positive ASCII-Ganzzahlen. Bei HTTP-Verbindungen mit Token warnt
+der Adapter, außer für localhost und Loopback-IP-Adressen. Für entfernte Server
+HTTPS verwenden. Nach `max_pages` Seiten (Standard: 1000 Seiten mit je 50 Einträgen)
+endet die Abfrage mit `GiteaError`, statt unvollständige Ergebnisse zurückzugeben.
+Offline-Tests verwenden eine anonymisierte öffentliche Forgejo-Antwort und
+signierte Testzustellungen; eine private Installation wurde nicht live geprüft.
 
 **Stufen.** 1 = als Nächstes (weit verbreitet, API passt gut zu abhängigkeitsbewusstem PM). 2 = später. 3 = passt nur begrenzt zu Team-Projektmanagement, z. B. persönliche Aufgabenlisten oder Bugtracker ohne Planungsfelder. Eine Stufe ist eine vorgeschlagene Reihenfolge, keine Hürde: Beiträge für jeden Tracker sind willkommen.
 

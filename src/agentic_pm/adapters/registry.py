@@ -62,6 +62,7 @@ def _gitea(project: Project, env: Mapping[str, str]) -> TrackerAdapter:
     return GiteaAdapter(
         project.base_url,
         token=env.get("AGENT_PM_GITEA_TOKEN"),
+        project=project.repo,
         gate=WebhookGate(
             agent_accounts=project.agent_accounts,
             signing_key=env.get("AGENT_PM_SIGNING_KEY"),

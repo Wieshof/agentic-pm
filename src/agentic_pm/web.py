@@ -15,7 +15,7 @@ from __future__ import annotations
 import html
 import json
 from collections.abc import Awaitable, Callable
-from typing import Any
+from typing import Any, Protocol, cast
 from urllib.parse import urlparse
 
 from starlette.applications import Starlette
@@ -57,6 +57,18 @@ def _page(title: str, body: str, status: int = 200) -> HTMLResponse:
 WebhookHandler = Callable[[str, dict[str, Any], str | None], Awaitable[Any]]
 
 
+class GiteaWebhookHandler(Protocol):
+    async def __call__(
+        self,
+        event: str,
+        body: bytes,
+        delivery_id: str | None,
+        *,
+        secret: str,
+        signature_header: str | None,
+    ) -> Any: ...
+
+
 def safe_url(url: str | None) -> bool:
     """Only plain http(s) links are rendered: a tracker URL is untrusted data
     (e.g. a spreadsheet cell), and `javascript:` would run on the approval page."""
@@ -72,8 +84,9 @@ def create_app(
     webhook_secret: str | None = None,
     on_github_webhook: WebhookHandler | None = None,
     gitea_webhook_secret: str | None = None,
-    on_gitea_webhook: WebhookHandler | None = None,
-    source_webhooks: dict[str, tuple[str, str | None, WebhookHandler]] | None = None,
+    on_gitea_webhook: GiteaWebhookHandler | None = None,
+    source_webhooks: dict[str, tuple[str, str | None, WebhookHandler | GiteaWebhookHandler]]
+    | None = None,
 ) -> Starlette:
     """`source_webhooks`: source key -> (tracker kind "github" | "gitea", secret, handler)."""
     cfg = guard.cfg
@@ -153,7 +166,7 @@ def create_app(
 
         return hook
 
-    def gitea_hook(secret: str | None, handler: WebhookHandler | None) -> Any:
+    def gitea_hook(secret: str | None, handler: GiteaWebhookHandler | None) -> Any:
         async def hook(request: Request) -> Response:
             from agentic_pm.adapters.gitea import verify_signature as verify_gitea
 
@@ -166,7 +179,7 @@ def create_app(
             if not verify_gitea(secret, body, signature):
                 return JSONResponse({"error": "bad signature"}, status_code=401)
             try:
-                payload = json.loads(body)
+                json.loads(body)
             except ValueError:
                 return JSONResponse({"error": "invalid json"}, status_code=400)
             event = request.headers.get("x-gitea-event") or request.headers.get(
@@ -175,7 +188,7 @@ def create_app(
             delivery = request.headers.get("x-gitea-delivery") or request.headers.get(
                 "x-forgejo-delivery"
             )
-            result = await handler(event, payload, delivery)
+            result = await handler(event, body, delivery, secret=secret, signature_header=signature)
             return JSONResponse({"accepted": result is not None}, status_code=202)
 
         return hook
@@ -183,7 +196,11 @@ def create_app(
     per_source = [
         Route(
             f"/webhooks/{key}",
-            (gitea_hook if kind == "gitea" else github_hook)(secret, handler),
+            (
+                gitea_hook(secret, cast(GiteaWebhookHandler, handler))
+                if kind == "gitea"
+                else github_hook(secret, cast(WebhookHandler, handler))
+            ),
             methods=["POST"],
         )
         for key, (kind, secret, handler) in (source_webhooks or {}).items()
